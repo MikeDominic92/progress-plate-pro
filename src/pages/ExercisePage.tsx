@@ -326,10 +326,34 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   // Calculate overall progress - with safety checks
   const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
     if (!exercise?.sets) return acc;
-    return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+    
+    // Count main exercise completed sets
+    const mainCompletedSets = exercise.sets.filter((set: any) => set.confirmed).length;
+    
+    // Count substitute completed sets if substitute exists
+    let substituteCompletedSets = 0;
+    if (exercise.substitute?.sets) {
+      substituteCompletedSets = exercise.substitute.sets.filter((set: any) => set.confirmed).length;
+    }
+    
+    // Use the higher count (either main or substitute, whichever is being used)
+    const exerciseCompletedSets = Math.max(mainCompletedSets, substituteCompletedSets);
+    return acc + exerciseCompletedSets;
   }, 0);
   const overallProgress = (completedSets / 20) * 100; // 20 total sets, 5% per set
   const progressPercentage = Math.round(overallProgress / 5) * 5; // Round to nearest 5%
+  
+  // Helper functions to check if exercise types are used/locked
+  const isMainExerciseUsed = (exercise: any) => {
+    return exercise.sets.some((set: any) => set.weight || set.reps || set.confirmed);
+  };
+  
+  const isSubstituteExerciseUsed = (exercise: any) => {
+    return exercise.substitute?.sets.some((set: any) => set.weight || set.reps || set.confirmed);
+  };
+  
+  const isMainLocked = isSubstituteExerciseUsed(currentExercise);
+  const isSubstituteLocked = isMainExerciseUsed(currentExercise);
 
   const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
     set: any, 
@@ -492,7 +516,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
           </Button>
           
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Exercise {currentExerciseIndex + 1} of {workoutLog.length}</h1>
+            <h1 className="text-2xl font-bold">Exercise {currentExerciseIndex + 1} of 5</h1>
             <p className="text-muted-foreground">{currentExercise.name}</p>
           </div>
           
@@ -509,7 +533,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         <Card className="p-3 sm:p-4 bg-black border-white/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs sm:text-sm font-medium text-white">Overall Progress</span>
-            <span className="text-xs sm:text-sm text-white">{completedSets}/20 sets</span>
+            <span className="text-xs sm:text-sm text-white">{Math.round(progressPercentage)}%</span>
           </div>
           <div className="w-full bg-black border border-orange-500 rounded-full h-2">
             <div 
@@ -638,18 +662,27 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {(hasWatchedMainVideo || currentExerciseStartTime) && (
               <Tabs defaultValue="main" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
-                  <TabsTrigger value="main" className="relative text-xs sm:text-sm border border-orange-400/50 bg-black text-white">
-                    Main Exercise
+                  <TabsTrigger 
+                    value="main" 
+                    className={`relative text-xs sm:text-sm border bg-black text-white ${
+                      isMainLocked ? 'border-gray-600 opacity-50 cursor-not-allowed' : 'border-orange-400/50'
+                    }`}
+                    disabled={isMainLocked}
+                  >
+                    Main Exercise {isMainLocked && '(Locked)'}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="substitute" 
                     className={`relative text-xs sm:text-sm bg-black ${
-                      hasClickedSubstitute 
+                      isSubstituteLocked 
+                        ? 'border-gray-600 opacity-50 cursor-not-allowed text-gray-400' 
+                        : hasClickedSubstitute 
                         ? 'border border-orange-400/50 text-white font-semibold' 
                         : currentExercise.substitute 
                         ? 'text-white border border-yellow-400/50 font-semibold'
                         : 'text-white'
                     }`}
+                    disabled={isSubstituteLocked}
                     onClick={() => {
                       if (currentExercise.substitute && !hasClickedSubstitute) {
                         setHasClickedSubstitute(true);
@@ -657,11 +690,11 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     }}
                   >
                     <span className="flex items-center gap-1 sm:gap-2">
-                      Substitute
-                      {currentExercise.substitute && !hasClickedSubstitute && (
+                      Substitute {isSubstituteLocked && '(Locked)'}
+                      {currentExercise.substitute && !hasClickedSubstitute && !isSubstituteLocked && (
                         <span className="text-xs text-muted-foreground ml-1">click here</span>
                       )}
-                      {currentExercise.substitute && !hasClickedSubstitute && (
+                      {currentExercise.substitute && !hasClickedSubstitute && !isSubstituteLocked && (
                         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-500 rounded-full animate-pulse" />
                       )}
                     </span>
@@ -677,7 +710,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   
                   const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
                   // Only allow interaction if timer has started
-                  const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime);
+                  const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime) && !isMainLocked;
                   
                   return (
                     <SetLog
@@ -754,7 +787,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         
                         const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
                         // Only allow interaction if timer has started
-                        const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime);
+                        const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime) && !isSubstituteLocked;
                     
                         return (
                           <SetLog
