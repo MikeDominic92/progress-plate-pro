@@ -243,12 +243,18 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
 
         <CardContent className="space-y-6">
           {hasSubstitute && !isLocked && (
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 bg-muted/30 backdrop-blur-sm">
-                <TabsTrigger value="main" className="data-[state=active]:bg-primary/20">Main Exercise</TabsTrigger>
-                <TabsTrigger value="substitute" className="data-[state=active]:bg-primary/20">Substitute</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <>
+              <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                <p className="text-sm text-primary font-medium mb-2">💡 Alternative Exercise Available</p>
+                <p className="text-xs text-muted-foreground">You can switch to a substitute exercise if needed. Both options target the same muscle groups effectively.</p>
+              </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2 bg-muted/30 backdrop-blur-sm">
+                  <TabsTrigger value="main" className="data-[state=active]:bg-primary/20">Main Exercise</TabsTrigger>
+                  <TabsTrigger value="substitute" className="data-[state=active]:bg-primary/20">Substitute</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </>
           )}
 
           <div className="space-y-4">
@@ -308,6 +314,212 @@ const WorkoutIntro = () => (
     </CardContent>
   </Card>
 );
+
+const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCardioData: any }) => {
+  const handleComplete = () => {
+    if (cardioData.time && cardioData.calories) {
+      setCardioData({ ...cardioData, completed: true });
+    }
+  };
+
+  return (
+    <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
+      <CardHeader>
+        <CardTitle className="text-accent flex items-center gap-2">
+          <Timer className="h-5 w-5" />
+          Pre-Workout Cardio
+          {cardioData.completed && <CheckCircle2 className="h-5 w-5 text-success" />}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-sm">
+          <h4 className="font-semibold text-foreground mb-2">Stair Master - 10 minutes</h4>
+          <p className="text-muted-foreground mb-4">Easy pace, focus on long steps to fully stretch the glutes.</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <FitnessInput
+            label="Time (minutes)"
+            icon={<Clock className="h-4 w-4" />}
+            type="number"
+            placeholder="10"
+            value={cardioData.time}
+            onChange={(e) => setCardioData({ ...cardioData, time: e.target.value })}
+            variant={cardioData.time ? 'success' : 'default'}
+          />
+          <FitnessInput
+            label="Calories Burned"
+            icon={<Zap className="h-4 w-4" />}
+            type="number"
+            placeholder="0"
+            value={cardioData.calories}
+            onChange={(e) => setCardioData({ ...cardioData, calories: e.target.value })}
+            variant={cardioData.calories ? 'success' : 'default'}
+          />
+        </div>
+        
+        {!cardioData.completed && (
+          <Button 
+            onClick={handleComplete}
+            disabled={!cardioData.time || !cardioData.calories}
+            className="w-full bg-gradient-primary hover:shadow-glow"
+          >
+            Complete Cardio
+          </Button>
+        )}
+        
+        {cardioData.completed && (
+          <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
+            <div className="flex items-center justify-center gap-2 text-success font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              Cardio Complete! {cardioData.time} mins, {cardioData.calories} calories
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWarmupData: any }) => {
+  const moodOptions = [
+    { value: 'perfect', label: 'Perfect 💯', color: 'text-success' },
+    { value: 'good', label: 'Good 😊', color: 'text-primary' },
+    { value: 'okay', label: 'Okay 😐', color: 'text-accent' },
+    { value: 'feeling-off', label: 'Feeling Off 😕', color: 'text-warning' },
+    { value: 'tired', label: 'Tired 😴', color: 'text-muted-foreground' },
+    { value: 'fatigued', label: 'Fatigued 😰', color: 'text-destructive' }
+  ];
+
+  const handleComplete = () => {
+    const { gluteBridges, bandedSideSteps, mood } = warmupData;
+    if (gluteBridges.sets && gluteBridges.reps && bandedSideSteps.sets && bandedSideSteps.reps && mood) {
+      setWarmupData({ 
+        ...warmupData, 
+        gluteBridges: { ...gluteBridges, completed: true },
+        bandedSideSteps: { ...bandedSideSteps, completed: true },
+        completed: true 
+      });
+    }
+  };
+
+  return (
+    <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
+      <CardHeader>
+        <CardTitle className="text-accent flex items-center gap-2">
+          <Timer className="h-5 w-5" />
+          Activation Exercises
+          {warmupData.completed && <CheckCircle2 className="h-5 w-5 text-success" />}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Mood Selection */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-foreground">How are you feeling today?</label>
+          <div className="grid grid-cols-2 gap-2">
+            {moodOptions.map((option) => (
+              <Button
+                key={option.value}
+                variant={warmupData.mood === option.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                className={`justify-start ${option.color} ${
+                  warmupData.mood === option.value 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-white/5 hover:bg-white/10 border-white/20'
+                }`}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Glute Bridges */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-foreground">Glute Bridges</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <FitnessInput
+              label="Sets"
+              icon={<Target className="h-4 w-4" />}
+              type="number"
+              placeholder="2"
+              value={warmupData.gluteBridges.sets}
+              onChange={(e) => setWarmupData({ 
+                ...warmupData, 
+                gluteBridges: { ...warmupData.gluteBridges, sets: e.target.value }
+              })}
+              variant={warmupData.gluteBridges.sets ? 'success' : 'default'}
+            />
+            <FitnessInput
+              label="Reps"
+              icon={<Repeat className="h-4 w-4" />}
+              type="number"
+              placeholder="15"
+              value={warmupData.gluteBridges.reps}
+              onChange={(e) => setWarmupData({ 
+                ...warmupData, 
+                gluteBridges: { ...warmupData.gluteBridges, reps: e.target.value }
+              })}
+              variant={warmupData.gluteBridges.reps ? 'success' : 'default'}
+            />
+          </div>
+        </div>
+
+        {/* Banded Side Steps */}
+        <div className="space-y-3">
+          <h4 className="font-semibold text-foreground">Banded Side Steps</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <FitnessInput
+              label="Sets"
+              icon={<Target className="h-4 w-4" />}
+              type="number"
+              placeholder="2"
+              value={warmupData.bandedSideSteps.sets}
+              onChange={(e) => setWarmupData({ 
+                ...warmupData, 
+                bandedSideSteps: { ...warmupData.bandedSideSteps, sets: e.target.value }
+              })}
+              variant={warmupData.bandedSideSteps.sets ? 'success' : 'default'}
+            />
+            <FitnessInput
+              label="Reps Each Way"
+              icon={<Repeat className="h-4 w-4" />}
+              type="number"
+              placeholder="20"
+              value={warmupData.bandedSideSteps.reps}
+              onChange={(e) => setWarmupData({ 
+                ...warmupData, 
+                bandedSideSteps: { ...warmupData.bandedSideSteps, reps: e.target.value }
+              })}
+              variant={warmupData.bandedSideSteps.reps ? 'success' : 'default'}
+            />
+          </div>
+        </div>
+        
+        {!warmupData.completed && (
+          <Button 
+            onClick={handleComplete}
+            disabled={!warmupData.gluteBridges.sets || !warmupData.gluteBridges.reps || 
+                     !warmupData.bandedSideSteps.sets || !warmupData.bandedSideSteps.reps || !warmupData.mood}
+            className="w-full bg-gradient-primary hover:shadow-glow"
+          >
+            Complete Warm-up
+          </Button>
+        )}
+        
+        {warmupData.completed && (
+          <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
+            <div className="flex items-center justify-center gap-2 text-success font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              Warm-up Complete! Feeling {warmupData.mood.replace('-', ' ')}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const WorkoutWarmup = () => (
   <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
@@ -374,10 +586,20 @@ export default function FitnessApp() {
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [cardioData, setCardioData] = useState({ time: '', calories: '', completed: false });
+  const [warmupData, setWarmupData] = useState({
+    gluteBridges: { sets: '', reps: '', completed: false },
+    bandedSideSteps: { sets: '', reps: '', completed: false },
+    mood: '',
+    completed: false
+  });
+  const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
 
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
-  }, [workoutLog]);
+    localStorage.setItem('jackyCardioData', JSON.stringify(cardioData));
+    localStorage.setItem('jackyWarmupData', JSON.stringify(warmupData));
+  }, [workoutLog, cardioData, warmupData]);
 
   const handleLogChange = (exerciseIndex: number, setIndex: number, field: string, value: string, exerciseType = 'main') => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
@@ -398,7 +620,12 @@ export default function FitnessApp() {
   
   // Check if current exercise is complete and advance to next
   useEffect(() => {
-    if (activeExerciseIndex < workoutLog.length) {
+    // Auto-progress through phases
+    if (currentPhase === 'cardio' && cardioData.completed) {
+      setTimeout(() => setCurrentPhase('warmup'), 1000);
+    } else if (currentPhase === 'warmup' && warmupData.completed) {
+      setTimeout(() => setCurrentPhase('main'), 1000);
+    } else if (currentPhase === 'main' && activeExerciseIndex < workoutLog.length) {
       const currentExercise = workoutLog[activeExerciseIndex];
       const currentCompletedSets = currentExercise.sets.filter((set: any) => set.weight && set.reps).length;
       const currentTotalSets = currentExercise.sets.length;
@@ -410,15 +637,15 @@ export default function FitnessApp() {
         }, 1000);
       }
     }
-  }, [workoutLog, activeExerciseIndex]);
+  }, [currentPhase, cardioData.completed, warmupData.completed, workoutLog, activeExerciseIndex]);
   
   // Check for workout completion
   useEffect(() => {
-    if (overallProgress === 100 && !showCelebration) {
+    if (overallProgress === 100 && !showCelebration && currentPhase === 'main') {
       setShowCelebration(true);
       setTimeout(() => setShowCelebration(false), 5000);
     }
-  }, [overallProgress, showCelebration]);
+  }, [overallProgress, showCelebration, currentPhase]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -497,35 +724,50 @@ export default function FitnessApp() {
         {/* Content */}
         <div className="space-y-8">
           <WorkoutIntro />
-          <WorkoutWarmup />
           
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Main Workout</h2>
-              <p className="text-muted-foreground">Focus on form and progressive overload</p>
-            </div>
-            {workoutLog.map((exercise: any, index: number) => {
-              const exerciseCompletedSets = exercise.sets.filter((set: any) => set.weight && set.reps).length;
-              const exerciseTotalSets = exercise.sets.length;
-              const isCompleted = exerciseCompletedSets === exerciseTotalSets;
-              const isActive = index === activeExerciseIndex;
-              const isLocked = index > activeExerciseIndex;
+          {/* Cardio Phase */}
+          {(currentPhase === 'cardio' || cardioData.completed) && (
+            <CardioTracking cardioData={cardioData} setCardioData={setCardioData} />
+          )}
+          
+          {/* Warmup Phase */}
+          {(currentPhase === 'warmup' || warmupData.completed) && cardioData.completed && (
+            <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
+          )}
+          
+          {/* Main Workout Phase */}
+          {currentPhase === 'main' && warmupData.completed && (
+            <div className="space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-foreground mb-2">Main Workout</h2>
+                <p className="text-muted-foreground">Focus on form and progressive overload</p>
+              </div>
+              {workoutLog.map((exercise: any, index: number) => {
+                const exerciseCompletedSets = exercise.sets.filter((set: any) => set.weight && set.reps).length;
+                const exerciseTotalSets = exercise.sets.length;
+                const isCompleted = exerciseCompletedSets === exerciseTotalSets;
+                const isActive = index === activeExerciseIndex;
+                const isLocked = index > activeExerciseIndex;
 
-              return (
-                <ExerciseCard 
-                  key={index} 
-                  exercise={exercise} 
-                  exIndex={index} 
-                  onLogChange={handleLogChange}
-                  isActive={isActive}
-                  isLocked={isLocked}
-                  isCompleted={isCompleted}
-                />
-              );
-            })}
-          </div>
+                return (
+                  <ExerciseCard 
+                    key={index} 
+                    exercise={exercise} 
+                    exIndex={index} 
+                    onLogChange={handleLogChange}
+                    isActive={isActive}
+                    isLocked={isLocked}
+                    isCompleted={isCompleted}
+                  />
+                );
+              })}
+            </div>
+          )}
           
-          <PostWorkout />
+          {/* Post Workout */}
+          {currentPhase === 'main' && overallProgress === 100 && (
+            <PostWorkout />
+          )}
         </div>
 
         {/* Enhanced Footer */}
