@@ -697,8 +697,8 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
   const { toast } = useToast();
   
-  // Integrate workout storage
-  const { currentSession, updateSession } = useWorkoutStorage(username);
+  // Integrate workout storage - SINGLE hook call
+  const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
 
   // Initialize workout storage
   useEffect(() => {
@@ -724,11 +724,10 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     }
   }, [continueSession, currentSession]);
 
-  // Initialize workout storage with current or new session
-  const { initializeSession } = useWorkoutStorage(username);
+  // Initialize session on mount
   useEffect(() => {
     initializeSession(continueSession);
-  }, [username, continueSession]);
+  }, [username, continueSession, initializeSession]);
 
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
