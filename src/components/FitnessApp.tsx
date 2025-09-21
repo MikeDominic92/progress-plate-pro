@@ -963,22 +963,32 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
 
   // Update session state (without auto-saving)
   useEffect(() => {
-    if (currentSession && updateSession) {
-      updateSession({
-        current_phase: currentPhase,
-        cardio_completed: cardioData.completed,
-        cardio_time: cardioData.time,
-        cardio_calories: cardioData.calories,
-        warmup_completed: warmupData.completed,
-        warmup_exercises_completed: warmupData.exercisesCompleted,
-        warmup_mood: warmupData.mood,
-        warmup_watched_videos: warmupData.watchedVideos,
-        workout_data: { logs: workoutLog, timers: {} }
-      });
-    }
-  }, [currentPhase, cardioData.completed, cardioData.time, cardioData.calories, 
-      warmupData.completed, warmupData.exercisesCompleted, warmupData.mood, 
-      warmupData.watchedVideos, workoutLog, currentSession, updateSession]);
+    if (!currentSession) return;
+
+    const updates = {
+      current_phase: currentPhase,
+      cardio_completed: cardioData.completed,
+      cardio_time: cardioData.time,
+      cardio_calories: cardioData.calories,
+      warmup_completed: warmupData.completed,
+      warmup_exercises_completed: warmupData.exercisesCompleted,
+      warmup_mood: warmupData.mood,
+      warmup_watched_videos: warmupData.watchedVideos,
+      workout_data: { logs: workoutLog, timers: {} }
+    };
+
+    updateSession(updates);
+  }, [
+    currentPhase,
+    cardioData.completed,
+    cardioData.time,
+    cardioData.calories,
+    warmupData.completed,
+    warmupData.exercisesCompleted,
+    warmupData.mood,
+    warmupData.watchedVideos,
+    workoutLog
+  ]);
 
   const handleLogChange = (exerciseIndex: number, setIndex: number, field: string, value: string, exerciseType = 'main') => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
