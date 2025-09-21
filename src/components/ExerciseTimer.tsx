@@ -101,7 +101,11 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
     return 'bg-success';
   };
 
-  if (!isActive) return null;
+  console.log("⏱️ ExerciseTimer render - isActive:", isActive, "duration:", duration, "exerciseType:", exerciseType);
+  if (!isActive) {
+    console.log("❌ ExerciseTimer not active, returning null");
+    return null;
+  }
 
   return (
     <Card className={`mb-4 transition-all duration-300 ${getTimerColor()}`}>

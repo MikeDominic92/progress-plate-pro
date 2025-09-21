@@ -1178,6 +1178,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   };
 
   const handleExerciseStart = () => {
+    console.log("🔥 handleExerciseStart called - setting currentExerciseStartTime");
     setCurrentExerciseStartTime(Date.now());
     setIsExerciseTimerPaused(false);
   };
@@ -1238,6 +1239,9 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
       setTimeout(() => setShowCelebration(false), 5000);
     }
   }, [overallProgress, showCelebration, currentPhase]);
+
+  // Debug logging for timer state
+  console.log("🎯 Main render - currentExerciseStartTime:", currentExerciseStartTime, "currentPhase:", currentPhase, "activeExerciseIndex:", activeExerciseIndex);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
