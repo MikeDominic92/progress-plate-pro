@@ -345,7 +345,12 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               placeholder="0"
               value={weightInput}
               onFocus={() => setIsWeightFocused(true)}
-              onBlur={() => setIsWeightFocused(false)}
+              onBlur={() => {
+                setIsWeightFocused(false);
+                if (!isConfirmed && !isDisabled) {
+                  onLogChange('weight', weightInput);
+                }
+              }}
               onChange={(e) => {
                 // Allow digits and one decimal point
                 let v = e.target.value.replace(/[^0-9.]/g, '');
@@ -354,9 +359,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
                 }
                 setWeightInput(v);
-                if (!isConfirmed && !isDisabled) {
-                  onLogChange('weight', v);
-                }
               }}
               variant={weightInput ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
@@ -369,14 +371,16 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               placeholder="0"
               value={repsInput}
               onFocus={() => setIsRepsFocused(true)}
-              onBlur={() => setIsRepsFocused(false)}
+              onBlur={() => {
+                setIsRepsFocused(false);
+                if (!isConfirmed && !isDisabled) {
+                  onLogChange('reps', repsInput);
+                }
+              }}
               onChange={(e) => {
                 // Digits only
                 const v = e.target.value.replace(/[^0-9]/g, '');
                 setRepsInput(v);
-                if (!isConfirmed && !isDisabled) {
-                  onLogChange('reps', v);
-                }
               }}
               variant={repsInput ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
