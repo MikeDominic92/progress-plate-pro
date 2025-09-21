@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,9 +29,23 @@ export const useWorkoutStorage = (username: string) => {
   const { toast } = useToast();
 
   // Initialize or load session
-  const initializeSession = async (existingSession?: WorkoutSession) => {
+  const initializeSession = useCallback(async (existingSession?: WorkoutSession) => {
     if (existingSession) {
-      setCurrentSession(existingSession);
+      const session: WorkoutSession = {
+        id: existingSession.id,
+        username: existingSession.username,
+        session_date: existingSession.session_date,
+        current_phase: existingSession.current_phase,
+        cardio_completed: existingSession.cardio_completed,
+        cardio_time: existingSession.cardio_time,
+        cardio_calories: existingSession.cardio_calories,
+        warmup_completed: existingSession.warmup_completed,
+        warmup_exercises_completed: existingSession.warmup_exercises_completed,
+        warmup_mood: existingSession.warmup_mood,
+        warmup_watched_videos: existingSession.warmup_watched_videos || [],
+        workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
+      };
+      setCurrentSession(session);
       return;
     }
 
@@ -87,7 +101,7 @@ export const useWorkoutStorage = (username: string) => {
 
     setCurrentSession(newSession);
     await saveSession(newSession);
-  };
+  }, [username]);
 
   // Save session to database
   const saveSession = async (session: WorkoutSession) => {

@@ -195,16 +195,24 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
             </div>
             <div className="flex flex-col gap-2">
               <Button 
-                asChild
                 disabled={isLocked}
+                onClick={() => {
+                  if (!isLocked) {
+                    const link = document.createElement('a');
+                    link.href = activeExercise.videoUrl;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }
+                }}
                 className={`transition-all duration-300 group ${
                   isLocked ? 'opacity-50 cursor-not-allowed' : 'bg-gradient-primary hover:shadow-glow'
                 }`}
               >
-                <a href={isLocked ? '#' : activeExercise.videoUrl} target={isLocked ? '' : '_blank'} rel="noopener noreferrer">
-                  <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                  Watch
-                </a>
+                <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                Watch
               </Button>
               <Button 
                 size="sm"
@@ -336,7 +344,15 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
           <p className="text-muted-foreground mb-3">Easy pace, focus on long steps to fully stretch the glutes.</p>
           <div className="text-xs text-muted-foreground mb-2">Watch [00:00:00 - 00:00:02] for proper form</div>
           <Button
-            onClick={() => window.open("https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s", "_blank")}
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = "https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s";
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
@@ -465,6 +481,23 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
       if (categoryIndex === 0 && exerciseIndex === 0 && !isTimerActive) {
         onStartTimer();
       }
+    }
+  };
+
+  const openVideoSafely = (videoUrl: string) => {
+    try {
+      // Create a temporary link element to ensure proper opening
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error opening video:', error);
+      // Fallback to window.open
+      window.open(videoUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -602,13 +635,13 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
                              <p className="text-xs text-success font-medium">✓ Watched</p>
                            )}
                          </div>
-                         <Button
-                           onClick={() => {
-                             if (isUnlocked) {
-                               handleVideoWatched(categoryIndex, exerciseIndex);
-                               window.open(exercise.videoUrl, "_blank");
-                             }
-                           }}
+                          <Button
+                            onClick={() => {
+                              if (isUnlocked) {
+                                handleVideoWatched(categoryIndex, exerciseIndex);
+                                openVideoSafely(exercise.videoUrl);
+                              }
+                            }}
                            variant={isWatched ? "default" : "outline"}
                            size="sm"
                            disabled={isLocked}
