@@ -129,7 +129,7 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
           </div>
         </div>
         
-        <div className="w-full h-3 bg-background/30 rounded-full overflow-hidden mb-4">
+        <div className="w-full h-3 bg-black border border-success rounded-full overflow-hidden mb-4">
           <div 
             className={`h-full transition-all duration-500 ${getProgressColor()}`}
             style={{ width: `${progress}%` }}
@@ -138,23 +138,23 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
         
         <div className="flex gap-2 justify-center">
           {!isRunning && !isPaused ? (
-            <Button onClick={handleStart} variant="default" size="sm">
+            <Button onClick={handleStart} variant="default" size="sm" className="border border-green-500 bg-black text-white">
               <Play className="h-4 w-4 mr-2" />
               {hasStarted ? 'Resume' : 'Start'}
             </Button>
           ) : isPaused ? (
-            <Button onClick={handleStart} variant="default" size="sm">
+            <Button onClick={handleStart} variant="default" size="sm" className="border border-green-500 bg-black text-white">
               <Play className="h-4 w-4 mr-2" />
               Resume After Set
             </Button>
           ) : (
-            <Button onClick={handlePause} variant="secondary" size="sm">
+            <Button onClick={handlePause} variant="secondary" size="sm" className="border border-gray-400 bg-black text-white">
               <Pause className="h-4 w-4 mr-2" />
               Pause
             </Button>
           )}
           
-          <Button onClick={handleReset} variant="outline" size="sm">
+          <Button onClick={handleReset} variant="outline" size="sm" className="border border-gray-400 bg-black text-white">
             <Square className="h-4 w-4 mr-2" />
             Reset
           </Button>

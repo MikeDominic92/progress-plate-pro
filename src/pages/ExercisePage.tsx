@@ -565,7 +565,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     ) : (
                       <Button 
                         size="lg"
-                        className="border-green-400 bg-green-400/20 text-green-400 hover:bg-green-400/30 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
+                        className="border-green-400 bg-black text-white hover:bg-black text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
                         variant="outline"
                         disabled
                       >
@@ -610,7 +610,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="border-green-400 bg-green-400/20 text-green-400 transition-all duration-300 whitespace-nowrap"
+                    className="border-green-400 bg-black text-white transition-all duration-300 whitespace-nowrap"
                     disabled
                   >
                     Demo Watched
@@ -737,7 +737,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="border-green-400 bg-green-400/20 text-green-400"
+                          className="border-green-400 bg-black text-white"
                           disabled
                         >
                           Demo Watched
