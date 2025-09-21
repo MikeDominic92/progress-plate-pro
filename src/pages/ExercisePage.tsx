@@ -618,11 +618,13 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               {currentExercise.substitute && (
                 <TabsContent value="substitute" className="space-y-4 mt-6">
                   <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-                    <h3 className="font-semibold text-foreground mb-2">{currentExercise.substitute.name}</h3>
-                    <Badge variant={getTierBadgeVariant(currentExercise.substitute.tier)} className="mb-2">
-                      {currentExercise.substitute.tier}
-                    </Badge>
-                    <div className="flex gap-2">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-foreground">{currentExercise.substitute.name}</h3>
+                        <Badge variant={getTierBadgeVariant(currentExercise.substitute.tier)}>
+                          {currentExercise.substitute.tier}
+                        </Badge>
+                      </div>
                       <Button 
                         variant="outline" 
                         size="sm"
