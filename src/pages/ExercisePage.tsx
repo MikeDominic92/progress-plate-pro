@@ -611,7 +611,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     value="substitute" 
                     className={`relative text-xs sm:text-sm ${
                       currentExercise.substitute 
-                        ? 'bg-yellow-400/20 text-yellow-600 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold shadow-lg' 
+                        ? 'text-yellow-600 border border-yellow-400/50 font-semibold' 
                         : ''
                     }`}
                   >
