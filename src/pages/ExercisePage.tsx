@@ -803,7 +803,18 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                               setIsExerciseTimerPaused(true);
                               setShowRestTimer(true);
                               
+                              // Clear any pending session updates
+                              if (updateTimeoutRef.current) {
+                                clearTimeout(updateTimeoutRef.current);
+                              }
+                              
+                              // Immediate update for substitute set completion
                               updateSession({
+                                workout_data: { logs: updatedLog, timers: {} }
+                              });
+                              
+                              // Force immediate save to ensure substitute progress is persisted
+                              manualSave({
                                 workout_data: { logs: updatedLog, timers: {} }
                               });
                               
