@@ -172,7 +172,7 @@ const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: 
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete, currentSetInProgress }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void, currentSetInProgress?: {exerciseIndex: number, setIndex: number} | null }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete, currentSetInProgress, activeExerciseIndex }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void, currentSetInProgress?: {exerciseIndex: number, setIndex: number} | null, activeExerciseIndex: number }) => {
   const [activeTab, setActiveTab] = useState('main');
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
@@ -316,15 +316,18 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
               let isCurrentSet = false;
               let canInteract = false;
 
-              if (currentSetInProgress) {
-                // If a set is in progress (during rest), only that set is current
-                isCurrentSet = currentSetInProgress.exerciseIndex === exIndex && currentSetInProgress.setIndex === setIndex;
-                canInteract = false; // No interaction during rest
-              } else {
-                // Find the first incomplete (not confirmed) set
-                const firstIncompleteIndex = activeExercise.sets.findIndex((s: any) => !s.confirmed);
-                isCurrentSet = setIndex === firstIncompleteIndex;
-                canInteract = isCurrentSet;
+              // Only allow interaction with current exercise
+              if (exIndex === activeExerciseIndex && !isLocked) {
+                if (currentSetInProgress) {
+                  // If a set is in progress (during rest), only that set is current
+                  isCurrentSet = currentSetInProgress.exerciseIndex === exIndex && currentSetInProgress.setIndex === setIndex;
+                  canInteract = false; // No interaction during rest
+                } else {
+                  // Find the first incomplete (not confirmed) set in current exercise
+                  const firstIncompleteIndex = activeExercise.sets.findIndex((s: any) => !s.confirmed);
+                  isCurrentSet = setIndex === firstIncompleteIndex;
+                  canInteract = isCurrentSet;
+                }
               }
               
               return (
@@ -1068,13 +1071,28 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     }
   };
 
-  // Calculate overall progress
+  // Calculate overall progress using confirmed sets
   const totalSets = workoutLog.reduce((acc: number, exercise: any) => acc + exercise.sets.length, 0);
   const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
-    return acc + exercise.sets.filter((set: any) => set.weight && set.reps).length;
+    return acc + exercise.sets.filter((set: any) => set.confirmed).length;
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
   
+  // Check if current exercise is completed and advance to next
+  const checkAndAdvanceExercise = () => {
+    const currentExercise = workoutLog[activeExerciseIndex];
+    if (!currentExercise) return;
+    
+    // Check if all sets in current exercise are confirmed
+    const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
+    
+    if (allSetsCompleted && activeExerciseIndex < workoutLog.length - 1) {
+      // Move to next exercise
+      setActiveExerciseIndex(prev => prev + 1);
+      console.log(`Exercise ${activeExerciseIndex + 1} completed! Moving to exercise ${activeExerciseIndex + 2}`);
+    }
+  };
+
   // Handle individual set completion (confirm set)
   const handleIndividualSetComplete = (exIndex: number, setIndex: number) => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
@@ -1097,6 +1115,14 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
           workout_data: { logs: updatedLog, timers: {} }
         });
       }, 500);
+    }
+    
+    // Check if this was the last set of the current exercise
+    const currentExercise = updatedLog[exIndex];
+    const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
+    
+    if (allSetsCompleted) {
+      console.log(`All sets completed for exercise ${exIndex + 1}!`);
     }
   };
 
@@ -1159,6 +1185,9 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     setIsExerciseTimerPaused(false); // Resume exercise timer
     setExerciseTimerCompleted(false);
     setCurrentSetInProgress(null); // Clear the current set in progress
+    
+    // Check if current exercise is fully completed and advance to next
+    checkAndAdvanceExercise();
     
     // User can continue to next set manually or timer will continue
     
@@ -1365,11 +1394,11 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
               )}
               
               {workoutLog.map((exercise: any, index: number) => {
-                const exerciseCompletedSets = exercise.sets.filter((set: any) => set.weight && set.reps).length;
+                const exerciseCompletedSets = exercise.sets.filter((set: any) => set.confirmed).length;
                 const exerciseTotalSets = exercise.sets.length;
                 const isCompleted = exerciseCompletedSets === exerciseTotalSets;
                 const isActive = index === activeExerciseIndex;
-                const isLocked = index > activeExerciseIndex;
+                const isLocked = index > activeExerciseIndex || isCompleted;
 
                   return (
                     <ExerciseCard 
@@ -1384,6 +1413,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                     isTimerActive={currentExerciseStartTime !== null}
                     onSetComplete={handleIndividualSetComplete}
                     currentSetInProgress={currentSetInProgress}
+                    activeExerciseIndex={activeExerciseIndex}
                   />
                 );
               })}
