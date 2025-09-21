@@ -88,10 +88,10 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
   };
 
   const getTimerColor = () => {
-    if (isCriticalTime) return 'bg-destructive/20 border-destructive text-destructive';
-    if (isLowTime) return 'bg-warning/20 border-warning text-warning';
-    if (progress > 50) return 'bg-accent/20 border-accent text-accent';
-    return 'bg-success/20 border-success text-success';
+    if (isCriticalTime) return 'bg-black border-destructive text-white';
+    if (isLowTime) return 'bg-black border-warning text-white';
+    if (progress > 50) return 'bg-black border-accent text-white';
+    return 'bg-black border-success text-white';
   };
 
   const getProgressColor = () => {
