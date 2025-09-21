@@ -389,7 +389,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${
         isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'
       } ${
-        isConfirmed ? 'ring-1 ring-success/50 bg-success/5' : 
+        isConfirmed ? 'ring-1 ring-warning/50 bg-warning/5' : 
         isCompleteLocal && isCurrentSet ? 'ring-1 ring-warning/50 bg-warning/5' : 
         isDisabled ? 'opacity-50' : ''
       }`}>
