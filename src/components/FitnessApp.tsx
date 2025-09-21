@@ -241,7 +241,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                       onStartTimer();
                     }
                     // Make sure the timer is visible to the user
-                    const timerEl = document.getElementById('exercise-timer');
+                    const timerEl = document.getElementById('main-exercise-timer');
                     try {
                       timerEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     } catch {}
@@ -1365,7 +1365,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
             <>
               {/* Only show timer after mood is selected */}
               {warmupData.mood && (
-                <div id="exercise-timer">
+                <div id="warmup-timer">
                   <ExerciseTimer
                     duration={25} // 25 minutes for comprehensive warm-up
                     onComplete={handleExerciseComplete}
@@ -1395,7 +1395,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                 <p className="text-muted-foreground">Focus on form and progressive overload</p>
               </div>
               {currentPhase === 'main' && (
-              <div id="exercise-timer">
+              <div id="main-exercise-timer">
                 <ExerciseTimer
                   duration={20} // 20 minutes for main exercises (countdown)
                   onComplete={handleExerciseComplete}
