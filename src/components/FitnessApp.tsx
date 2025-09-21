@@ -473,14 +473,14 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
                   variant={warmupData.mood === option.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
-                  className={`w-full justify-between ${option.color} ${
+                  className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                     warmupData.mood === option.value 
                       ? 'bg-primary text-primary-foreground' 
                       : 'bg-white/5 hover:bg-white/10 border-white/20'
                   }`}
                 >
-                  <span>{option.label}</span>
-                  <span className="font-bold">{option.score}</span>
+                  <span className="text-xs leading-tight flex-1 text-left truncate pr-2">{option.label}</span>
+                  <span className="font-bold text-sm">{option.score}</span>
                 </Button>
               ))}
             </div>
@@ -492,14 +492,14 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
                   variant={warmupData.mood === option.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
-                  className={`w-full justify-between ${option.color} ${
+                  className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                     warmupData.mood === option.value 
                       ? 'bg-primary text-primary-foreground' 
                       : 'bg-white/5 hover:bg-white/10 border-white/20'
                   }`}
                 >
-                  <span>{option.label}</span>
-                  <span className="font-bold">{option.score}</span>
+                  <span className="text-xs leading-tight flex-1 text-left truncate pr-2">{option.label}</span>
+                  <span className="font-bold text-sm">{option.score}</span>
                 </Button>
               ))}
             </div>
