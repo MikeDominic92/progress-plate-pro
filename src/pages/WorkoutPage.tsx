@@ -341,7 +341,10 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
   // Check for workout completion
   useEffect(() => {
-    if (overallProgress === 100 && !showCelebration) {
+    console.log('🎯 Checking completion:', { overallProgress, completedSets, showCelebration });
+    
+    if (completedSets >= 20 && !showCelebration) {
+      console.log('🎉 Workout completed! Starting celebration...');
       const completeWorkout = async () => {
         setShowCelebration(true);
         
@@ -355,18 +358,20 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
         // Persist to Supabase before navigating
         try {
           await manualSave(updates);
+          console.log('✅ Workout completion saved to database');
         } catch (e) {
           console.error('Failed to save workout completion, navigating anyway', e);
         }
 
         setTimeout(() => {
+          console.log('🚀 Navigating to post-workout page');
           navigate('/post-workout', { replace: true });
         }, 3000);
       };
 
       completeWorkout();
     }
-  }, [overallProgress, showCelebration, navigate, updateSession, manualSave]);
+  }, [completedSets, showCelebration, navigate, updateSession, manualSave]);
 
   const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
     set: any, 
