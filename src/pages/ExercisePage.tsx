@@ -530,25 +530,37 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 {/* Prominent Watch Demo Button - Only show if timer hasn't started */}
                 {!currentExerciseStartTime && (
                   <div className="w-full text-center">
-                    <Button 
-                      size="lg"
-                      onClick={() => {
-                        window.open(currentExercise.videoUrl, '_blank');
-                        setHasWatchedMainVideo(true);
-                        // Check if we should start timer after watching main video
-                        setTimeout(() => checkAndStartTimer(), 100);
-                        // Save that video was watched
-                        manualSave();
-                      }}
-                      className={`bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto ${
-                        !hasWatchedMainVideo ? 'animate-pulse' : ''
-                      }`}
-                    >
-                      <Play className={`h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 ${!hasWatchedMainVideo ? 'animate-bounce' : ''}`} />
-                      <span className="whitespace-nowrap">
-                        {!hasWatchedMainVideo ? 'Watch Demo to Begin Exercise' : 'Demo Watched ✓'}
-                      </span>
-                    </Button>
+                    {!hasWatchedMainVideo ? (
+                      <Button 
+                        size="lg"
+                        onClick={() => {
+                          window.open(currentExercise.videoUrl, '_blank');
+                          setHasWatchedMainVideo(true);
+                          // Check if we should start timer after watching main video
+                          setTimeout(() => checkAndStartTimer(), 100);
+                          // Save that video was watched
+                          manualSave();
+                        }}
+                        className="bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto animate-pulse"
+                      >
+                        <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 animate-bounce" />
+                        <span className="whitespace-nowrap">
+                          Watch Demo to Begin Exercise
+                        </span>
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="lg"
+                        className="border-green-500/50 bg-green-500/10 text-green-600 hover:bg-green-500/20 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
+                        variant="outline"
+                        disabled
+                      >
+                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-green-600" />
+                        <span className="whitespace-nowrap">
+                          Demo Watched
+                        </span>
+                      </Button>
+                    )}
                     {/* Substitute notification below button */}
                     {currentExercise.substitute && (
                       <div className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
@@ -564,7 +576,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 )}
                 
                 {/* Small demo button when timer is active */}
-                {currentExerciseStartTime && (
+                {currentExerciseStartTime && !hasWatchedMainVideo && (
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -578,6 +590,17 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Watch Demo
+                  </Button>
+                )}
+                {currentExerciseStartTime && hasWatchedMainVideo && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-green-500/50 bg-green-500/10 text-green-600 transition-all duration-300 whitespace-nowrap"
+                    disabled
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                    Demo Watched
                   </Button>
                 )}
               </div>
@@ -672,35 +695,39 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       <div className="space-y-2">
                         <h3 className="font-semibold text-foreground">{currentExercise.substitute.name}</h3>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          window.open(currentExercise.substitute.videoUrl, '_blank');
-                          setHasWatchedSubstituteVideo(true); // Mark substitute video as watched
-                          // Check if we should start timer after watching substitute video
-                          setTimeout(() => checkAndStartTimer(), 100);
-                          manualSave();
-                        }}
-                        className={`relative overflow-hidden transition-all duration-300 ${
-                          !hasWatchedSubstituteVideo 
-                            ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
-                            : ''
-                        }`}
-                      >
-                        {!hasWatchedSubstituteVideo && (
-                          <>
-                            {/* Multiple flashing indicators */}
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
-                          </>
-                        )}
-                        <Play className={`h-4 w-4 mr-2 ${!hasWatchedSubstituteVideo ? 'text-primary animate-bounce' : ''}`} />
-                        <span className={!hasWatchedSubstituteVideo ? 'text-primary font-semibold' : ''}>
-                          Watch Demo
-                        </span>
-                      </Button>
+                      {!hasWatchedSubstituteVideo ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            window.open(currentExercise.substitute.videoUrl, '_blank');
+                            setHasWatchedSubstituteVideo(true); // Mark substitute video as watched
+                            // Check if we should start timer after watching substitute video
+                            setTimeout(() => checkAndStartTimer(), 100);
+                            manualSave();
+                          }}
+                          className="relative overflow-hidden transition-all duration-300 border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20"
+                        >
+                          {/* Multiple flashing indicators */}
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
+                          <Play className="h-4 w-4 mr-2 text-primary animate-bounce" />
+                          <span className="text-primary font-semibold">
+                            Watch Demo
+                          </span>
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-green-500/50 bg-green-500/10 text-green-600"
+                          disabled
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                          Demo Watched
+                        </Button>
+                      )}
                     </div>
                   </div>
                   
