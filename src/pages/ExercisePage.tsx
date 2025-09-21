@@ -563,14 +563,14 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     ) : (
                       <Button 
                         size="lg"
-                        className="border-green-500/50 bg-green-500/10 text-green-600 hover:bg-green-500/20 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
+                        className="border-green-400 bg-green-400/20 text-green-400 hover:bg-green-400/30 text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
                         variant="outline"
                         disabled
                       >
-                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-green-600" />
                         <span className="whitespace-nowrap">
                           Demo Watched
                         </span>
+                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 ml-2 sm:ml-3 text-green-400" />
                       </Button>
                     )}
                     {/* Substitute notification below button */}
@@ -608,11 +608,11 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="border-green-500/50 bg-green-500/10 text-green-600 transition-all duration-300 whitespace-nowrap"
+                    className="border-green-400 bg-green-400/20 text-green-400 transition-all duration-300 whitespace-nowrap"
                     disabled
                   >
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
                     Demo Watched
+                    <CheckCircle2 className="h-4 w-4 ml-2 text-green-400" />
                   </Button>
                 )}
               </div>
@@ -733,11 +733,11 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="border-green-500/50 bg-green-500/10 text-green-600"
+                          className="border-green-400 bg-green-400/20 text-green-400"
                           disabled
                         >
-                          <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
                           Demo Watched
+                          <CheckCircle2 className="h-4 w-4 ml-2 text-green-400" />
                         </Button>
                       )}
                     </div>
