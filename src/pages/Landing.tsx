@@ -7,6 +7,8 @@ import { Clock, Calendar, Activity, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { ResetSessionButton } from '@/components/ResetSessionButton';
+import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 
 interface WorkoutSession {
   id: string;
@@ -28,6 +30,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   const [savedSessions, setSavedSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { clearSession } = useWorkoutStorage(username);
 
   useEffect(() => {
     if (username.trim()) {
@@ -259,6 +262,9 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
             </div>
           </div>
         </div>
+        
+        {/* Reset Session Button */}
+        <ResetSessionButton onClearSession={clearSession} />
       </div>
     </div>
   );
