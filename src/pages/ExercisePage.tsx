@@ -498,7 +498,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {/* Exercise Timer */}
             {currentExerciseStartTime && (
               <ExerciseTimer 
-                duration={20 * 60} // 20 minutes in seconds
+                duration={20} // 20 minutes
                 onComplete={handleExerciseComplete}
                 onStart={handleExerciseStart}
                 onSetComplete={() => {}}

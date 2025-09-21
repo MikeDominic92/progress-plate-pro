@@ -778,7 +778,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
         {/* Exercise Timer */}
         <div id="main-exercise-timer">
           <ExerciseTimer
-            duration={20 * 60} // 20 minutes in seconds
+            duration={20} // 20 minutes
             onComplete={handleExerciseComplete}
             onStart={handleExerciseStart}
             onSetComplete={() => {}}
