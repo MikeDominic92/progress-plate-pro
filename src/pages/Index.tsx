@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import FitnessApp from "@/components/FitnessApp";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Landing from "./Landing";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -20,35 +20,37 @@ interface WorkoutSession {
 }
 
 const Index = () => {
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [continueSession, setContinueSession] = useState<WorkoutSession | null>(null);
+  const navigate = useNavigate();
 
   const handleStartWorkout = (username: string, existingSession?: WorkoutSession) => {
-    setCurrentUsername(username);
-    setContinueSession(existingSession || null);
+    // If there's an existing session, navigate to the appropriate phase
+    if (existingSession) {
+      switch (existingSession.current_phase) {
+        case 'cardio':
+          navigate('/cardio');
+          break;
+        case 'warmup':
+          navigate('/warmup');
+          break;
+        case 'main':
+          navigate('/workout');
+          break;
+        case 'completed':
+          navigate('/post-workout');
+          break;
+        default:
+          navigate('/cardio');
+          break;
+      }
+    } else {
+      // New session starts with cardio
+      navigate('/cardio');
+    }
   };
-
-  const handleBackToLanding = () => {
-    setCurrentUsername(null);
-    setContinueSession(null);
-  };
-
-  if (!currentUsername) {
-    return (
-      <>
-        <Landing onStartWorkout={handleStartWorkout} />
-        <Toaster />
-      </>
-    );
-  }
 
   return (
     <>
-      <FitnessApp 
-        username={currentUsername}
-        continueSession={continueSession}
-        onBackToLanding={handleBackToLanding}
-      />
+      <Landing onStartWorkout={handleStartWorkout} />
       <Toaster />
     </>
   );
