@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      workout_sessions: {
+        Row: {
+          cardio_calories: string | null
+          cardio_completed: boolean | null
+          cardio_time: string | null
+          created_at: string
+          current_phase: string
+          id: string
+          session_date: string
+          updated_at: string
+          user_id: string
+          warmup_completed: boolean | null
+          warmup_exercises_completed: boolean | null
+          warmup_mood: string | null
+          warmup_watched_videos: string[] | null
+          workout_data: Json | null
+        }
+        Insert: {
+          cardio_calories?: string | null
+          cardio_completed?: boolean | null
+          cardio_time?: string | null
+          created_at?: string
+          current_phase?: string
+          id?: string
+          session_date?: string
+          updated_at?: string
+          user_id: string
+          warmup_completed?: boolean | null
+          warmup_exercises_completed?: boolean | null
+          warmup_mood?: string | null
+          warmup_watched_videos?: string[] | null
+          workout_data?: Json | null
+        }
+        Update: {
+          cardio_calories?: string | null
+          cardio_completed?: boolean | null
+          cardio_time?: string | null
+          created_at?: string
+          current_phase?: string
+          id?: string
+          session_date?: string
+          updated_at?: string
+          user_id?: string
+          warmup_completed?: boolean | null
+          warmup_exercises_completed?: boolean | null
+          warmup_mood?: string | null
+          warmup_watched_videos?: string[] | null
+          workout_data?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
