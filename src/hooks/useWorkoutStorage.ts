@@ -159,14 +159,14 @@ export const useWorkoutStorage = (username: string) => {
     }
   };
 
-  // Update session data
-  const updateSession = async (updates: Partial<WorkoutSession>) => {
+  // Update session data with useCallback to prevent infinite loops
+  const updateSession = useCallback(async (updates: Partial<WorkoutSession>) => {
     if (!currentSession) return;
 
     const updatedSession = { ...currentSession, ...updates };
     setCurrentSession(updatedSession);
     await saveSession(updatedSession);
-  };
+  }, [currentSession]);
 
   // Auto-save every 30 seconds
   useEffect(() => {

@@ -875,7 +875,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   const { toast } = useToast();
   
   // Integrate workout storage - SINGLE hook call
-  const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, saving } = useWorkoutStorage(username);
 
   // Initialize session on mount and clear localStorage for new sessions
   useEffect(() => {
@@ -889,12 +889,27 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     initializeSession(continueSession);
   }, [username, continueSession, initializeSession]);
 
+  // Debug: Log when continue session is being used
+  useEffect(() => {
+    if (continueSession) {
+      console.log('Continue session detected:', {
+        phase: continueSession.current_phase,
+        cardio: continueSession.cardio_completed,
+        warmup: continueSession.warmup_completed,
+        mood: continueSession.warmup_mood,
+        watchedVideos: continueSession.warmup_watched_videos?.length || 0
+      });
+    }
+  }, [continueSession]);
+
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
     localStorage.setItem('jackyCardioData', JSON.stringify(cardioData));
     localStorage.setItem('jackyWarmupData', JSON.stringify(warmupData));
-    
-    // Auto-save to database
+  }, [workoutLog, cardioData, warmupData]);
+
+  // Separate auto-save effect to prevent infinite loops
+  useEffect(() => {
     if (currentSession && updateSession) {
       updateSession({
         current_phase: currentPhase,
@@ -908,7 +923,9 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
         workout_data: { logs: workoutLog, timers: {} }
       });
     }
-  }, [workoutLog, cardioData, warmupData, currentPhase, currentSession, updateSession]);
+  }, [currentPhase, cardioData.completed, cardioData.time, cardioData.calories, 
+      warmupData.completed, warmupData.exercisesCompleted, warmupData.mood, 
+      warmupData.watchedVideos, workoutLog, currentSession]); // Removed updateSession from deps
 
   const handleLogChange = (exerciseIndex: number, setIndex: number, field: string, value: string, exerciseType = 'main') => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
@@ -1071,6 +1088,16 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
         startTime={sessionStartTime} 
         onMotivationalMessage={handleMotivationalMessage}
       />
+      
+      {/* Saving indicator */}
+      {saving && (
+        <div className="fixed top-4 right-4 z-50 bg-card/90 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2 shadow-lg">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span>Saving progress...</span>
+          </div>
+        </div>
+      )}
       
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Enhanced Header */}
