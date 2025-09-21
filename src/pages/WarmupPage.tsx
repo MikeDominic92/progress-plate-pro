@@ -15,7 +15,7 @@ interface WarmupPageProps {
 export default function WarmupPage({ username }: WarmupPageProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
@@ -180,22 +180,30 @@ export default function WarmupPage({ username }: WarmupPageProps) {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (warmupData.mood && (warmupData.exercisesCompleted || areAllVideosWatched())) {
       const updatedData = { ...warmupData, completed: true };
       setWarmupData(updatedData);
       
-      updateSession({
-        current_phase: 'main',
+      const updates = {
+        current_phase: 'main' as const,
         warmup_completed: true,
         warmup_exercises_completed: true,
         warmup_mood: warmupData.mood,
         warmup_watched_videos: warmupData.watchedVideos
-      });
+      };
 
-      setTimeout(() => {
-        navigate('/workout');
-      }, 1500);
+      // Update local session state immediately
+      updateSession(updates);
+
+      // Persist to Supabase before navigating to avoid redirect bounce
+      try {
+        await manualSave(updates);
+      } catch (e) {
+        console.error('Failed to save warmup completion, navigating anyway', e);
+      }
+
+      navigate('/workout', { replace: true });
     }
   };
 

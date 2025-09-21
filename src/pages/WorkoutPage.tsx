@@ -96,7 +96,7 @@ const getTierBadgeVariant = (tier: string) => {
 export default function WorkoutPage({ username }: WorkoutPageProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
@@ -119,21 +119,30 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
   useEffect(() => {
     if (currentSession) {
-      // Check if user should be on this page
-      if (!currentSession.cardio_completed) {
-        navigate('/cardio');
-        return;
-      }
-      
-      if (!currentSession.warmup_completed) {
-        navigate('/warmup');
-        return;
-      }
+      // Check if user should be on this page - but don't redirect immediately
+      const checkRedirect = setTimeout(() => {
+        if (!currentSession.cardio_completed) {
+          navigate('/cardio');
+          return;
+        }
+        
+        if (!currentSession.warmup_completed) {
+          navigate('/warmup');
+          return;
+        }
+
+        if (currentSession.current_phase === 'completed') {
+          navigate('/post-workout');
+          return;
+        }
+      }, 100); // Small delay to prevent race conditions
 
       // Load workout data if available
       if (currentSession.workout_data && currentSession.workout_data.logs) {
         setWorkoutLog(currentSession.workout_data.logs);
       }
+
+      return () => clearTimeout(checkRedirect);
     }
   }, [currentSession, navigate]);
 
@@ -213,15 +222,31 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
   // Check for workout completion
   useEffect(() => {
     if (overallProgress === 100 && !showCelebration) {
-      setShowCelebration(true);
-      updateSession({
-        current_phase: 'completed'
-      });
-      setTimeout(() => {
-        navigate('/post-workout');
-      }, 3000);
+      const completeWorkout = async () => {
+        setShowCelebration(true);
+        
+        const updates = {
+          current_phase: 'completed' as const
+        };
+
+        // Update local session state immediately
+        updateSession(updates);
+
+        // Persist to Supabase before navigating
+        try {
+          await manualSave(updates);
+        } catch (e) {
+          console.error('Failed to save workout completion, navigating anyway', e);
+        }
+
+        setTimeout(() => {
+          navigate('/post-workout', { replace: true });
+        }, 3000);
+      };
+
+      completeWorkout();
     }
-  }, [overallProgress, showCelebration, navigate, updateSession]);
+  }, [overallProgress, showCelebration, navigate, updateSession, manualSave]);
 
   const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
     set: any, 
