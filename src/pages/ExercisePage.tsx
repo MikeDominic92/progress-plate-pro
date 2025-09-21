@@ -506,37 +506,47 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 </Badge>
               </div>
               <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    window.open(currentExercise.videoUrl, '_blank');
-                    // Start timer when demo is watched
-                    if (!currentExerciseStartTime) {
-                      handleExerciseStart();
-                    }
-                    // Save that video was watched
-                    manualSave();
-                  }}
-                  className={`relative overflow-hidden transition-all duration-300 ${
-                    !currentExerciseStartTime 
-                      ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
-                      : ''
-                  }`}
-                >
-                  {!currentExerciseStartTime && (
-                    <>
-                      {/* Multiple flashing indicators */}
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
-                    </>
-                  )}
-                  <Play className={`h-4 w-4 mr-2 ${!currentExerciseStartTime ? 'text-primary animate-bounce' : ''}`} />
-                  <span className={!currentExerciseStartTime ? 'text-primary font-semibold' : ''}>
+                {/* Prominent Watch Demo Button - Only show if timer hasn't started */}
+                {!currentExerciseStartTime && (
+                  <div className="w-full text-center mb-6">
+                    <Button 
+                      size="lg"
+                      onClick={() => {
+                        window.open(currentExercise.videoUrl, '_blank');
+                        // Start timer when demo is watched
+                        handleExerciseStart();
+                        // Save that video was watched
+                        manualSave();
+                      }}
+                      className="bg-gradient-primary hover:shadow-glow text-lg px-8 py-4 rounded-xl animate-pulse"
+                    >
+                      <Play className="h-6 w-6 mr-3 animate-bounce" />
+                      Watch Demo to Begin Exercise
+                    </Button>
+                    {/* Substitute notification below button */}
+                    {currentExercise.substitute && (
+                      <p className="text-sm text-muted-foreground mt-3">
+                        Exercise {currentExerciseIndex + 1} has a substitute option
+                      </p>
+                    )}
+                  </div>
+                )}
+                
+                {/* Small demo button when timer is active */}
+                {currentExerciseStartTime && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      window.open(currentExercise.videoUrl, '_blank');
+                      manualSave();
+                    }}
+                    className="transition-all duration-300"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
                     Watch Demo
-                  </span>
-                </Button>
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -582,28 +592,29 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               </div>
             )}
 
-            {/* Main Exercise Sets */}
-            <Tabs defaultValue="main" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="main" className="relative">
-                  Main Exercise
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="substitute" 
-                  className={`relative ${
-                    currentExercise.substitute 
-                      ? 'bg-accent/10 border border-accent/30 ring-1 ring-accent/20 animate-pulse' 
-                      : ''
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    Substitute
-                    {currentExercise.substitute && (
-                      <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
-                    )}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
+            {/* Main Exercise Sets - Only show if timer has started */}
+            {currentExerciseStartTime && (
+              <Tabs defaultValue="main" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="main" className="relative">
+                    Main Exercise
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="substitute" 
+                    className={`relative ${
+                      currentExercise.substitute 
+                        ? 'bg-yellow-400/20 text-yellow-600 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold shadow-lg' 
+                        : ''
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      Substitute
+                      {currentExercise.substitute && (
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                      )}
+                    </span>
+                  </TabsTrigger>
+                </TabsList>
               
               <TabsContent value="main" className="space-y-4 mt-6">
                 {currentExercise.sets.map((set: any, setIndex: number) => {
@@ -640,31 +651,12 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         size="sm"
                         onClick={() => {
                           window.open(currentExercise.substitute.videoUrl, '_blank');
-                          // Start timer when demo is watched for substitute exercise
-                          if (!currentExerciseStartTime) {
-                            handleExerciseStart();
-                          }
-                          // Save that substitute video was watched
                           manualSave();
                         }}
-                        className={`relative overflow-hidden transition-all duration-300 ${
-                          !currentExerciseStartTime 
-                            ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
-                            : ''
-                        }`}
+                        className="transition-all duration-300"
                       >
-                        {!currentExerciseStartTime && (
-                          <>
-                            {/* Multiple flashing indicators */}
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
-                          </>
-                        )}
-                        <Play className={`h-4 w-4 mr-2 ${!currentExerciseStartTime ? 'text-primary animate-bounce' : ''}`} />
-                        <span className={!currentExerciseStartTime ? 'text-primary font-semibold' : ''}>
-                          Watch Demo
-                        </span>
+                        <Play className="h-4 w-4 mr-2" />
+                        Watch Demo
                       </Button>
                     </div>
                   </div>
@@ -718,6 +710,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 </TabsContent>
               )}
             </Tabs>
+            )}
           </CardContent>
         </Card>
         
