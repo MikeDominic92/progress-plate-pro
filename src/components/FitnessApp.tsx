@@ -468,6 +468,39 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
     return (warmupData.watchedVideos || []).includes(videoKey);
   };
 
+  // Check if an exercise is unlocked (can be watched)
+  const isExerciseUnlocked = (categoryIndex: number, exerciseIndex: number) => {
+    // First exercise is always unlocked
+    if (categoryIndex === 0 && exerciseIndex === 0) {
+      return true;
+    }
+
+    // Get all exercises in a flat array to determine order
+    let flatIndex = 0;
+    for (let catIdx = 0; catIdx < warmupExercises.length; catIdx++) {
+      for (let exIdx = 0; exIdx < warmupExercises[catIdx].exercises.length; exIdx++) {
+        if (catIdx === categoryIndex && exIdx === exerciseIndex) {
+          // This exercise is unlocked if the previous one is watched
+          const prevFlatIndex = flatIndex - 1;
+          if (prevFlatIndex < 0) return true; // First exercise
+          
+          // Find the previous exercise's category and index
+          let currentFlatIndex = 0;
+          for (let prevCatIdx = 0; prevCatIdx < warmupExercises.length; prevCatIdx++) {
+            for (let prevExIdx = 0; prevExIdx < warmupExercises[prevCatIdx].exercises.length; prevExIdx++) {
+              if (currentFlatIndex === prevFlatIndex) {
+                return isVideoWatched(prevCatIdx, prevExIdx);
+              }
+              currentFlatIndex++;
+            }
+          }
+        }
+        flatIndex++;
+      }
+    }
+    return false;
+  };
+
   return (
     <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
       <CardHeader>
@@ -531,38 +564,64 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
               <div key={categoryIndex} className="space-y-3">
                 <h4 className="font-semibold text-foreground">{category.category}</h4>
                 <p className="text-xs text-muted-foreground">2 sets of 10-20 reps per side/movement</p>
-                <div className="space-y-2">
-                  {category.exercises.map((exercise, exerciseIndex) => {
-                    const isWatched = isVideoWatched(categoryIndex, exerciseIndex);
-                    return (
-                      <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/50">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-foreground">{exercise.name}</p>
-                          <p className="text-xs text-muted-foreground">Watch {exercise.timeSegment}</p>
-                          {isWatched && (
-                            <p className="text-xs text-success font-medium">✓ Watched</p>
-                          )}
-                        </div>
-                        <Button
-                          onClick={() => {
-                            handleVideoWatched(categoryIndex, exerciseIndex);
-                            window.open(exercise.videoUrl, "_blank");
-                          }}
-                          variant={isWatched ? "default" : "outline"}
-                          size="sm"
-                          className={`flex items-center gap-1 transition-all duration-300 ${
-                            isWatched 
-                              ? 'bg-success hover:bg-success/80 text-success-foreground border-success' 
-                              : 'hover:bg-primary/10 hover:border-primary/30'
-                          }`}
-                        >
-                          <Play className="h-3 w-3" />
-                          {isWatched ? 'Watched' : 'Watch'}
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
+                 <div className="space-y-2">
+                   {category.exercises.map((exercise, exerciseIndex) => {
+                     const isWatched = isVideoWatched(categoryIndex, exerciseIndex);
+                     const isUnlocked = isExerciseUnlocked(categoryIndex, exerciseIndex);
+                     const isLocked = !isUnlocked;
+                     
+                     return (
+                       <div key={exerciseIndex} className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
+                         isLocked 
+                           ? 'bg-card/20 border-border/30 opacity-60' 
+                           : 'bg-card/50 border-border/50 hover:bg-card/70'
+                       }`}>
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2">
+                             <p className={`text-sm font-medium ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}>
+                               {exercise.name}
+                             </p>
+                             {isLocked && (
+                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                 <div className="w-3 h-3 rounded-full border border-muted-foreground/40 flex items-center justify-center">
+                                   <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full" />
+                                 </div>
+                                 <span>Locked</span>
+                               </div>
+                             )}
+                           </div>
+                           <p className={`text-xs ${isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+                             Watch {exercise.timeSegment}
+                           </p>
+                           {isWatched && (
+                             <p className="text-xs text-success font-medium">✓ Watched</p>
+                           )}
+                         </div>
+                         <Button
+                           onClick={() => {
+                             if (isUnlocked) {
+                               handleVideoWatched(categoryIndex, exerciseIndex);
+                               window.open(exercise.videoUrl, "_blank");
+                             }
+                           }}
+                           variant={isWatched ? "default" : "outline"}
+                           size="sm"
+                           disabled={isLocked}
+                           className={`flex items-center gap-1 transition-all duration-300 ${
+                             isLocked
+                               ? 'opacity-40 cursor-not-allowed'
+                               : isWatched 
+                                 ? 'bg-success hover:bg-success/80 text-success-foreground border-success' 
+                                 : 'hover:bg-primary/10 hover:border-primary/30'
+                           }`}
+                         >
+                           <Play className="h-3 w-3" />
+                           {isLocked ? 'Locked' : isWatched ? 'Watched' : 'Watch'}
+                         </Button>
+                       </div>
+                     );
+                   })}
+                 </div>
               </div>
             ))}
 
