@@ -415,13 +415,19 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
             <FitnessInput
               label="Weight"
               icon={<Weight className="h-4 w-4" />}
-              type="number"
+              type="text"
+              inputMode="decimal"
               placeholder="0"
               value={weightInput}
               onFocus={() => setIsWeightFocused(true)}
               onBlur={() => setIsWeightFocused(false)}
               onChange={(e) => {
-                const v = e.target.value;
+                // Allow digits and one decimal point
+                let v = e.target.value.replace(/[^0-9.]/g, '');
+                const firstDot = v.indexOf('.');
+                if (firstDot !== -1) {
+                  v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+                }
                 setWeightInput(v);
                 if (!isConfirmed && !isDisabled) {
                   onLogChange('weight', v);
@@ -433,13 +439,15 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
             <FitnessInput
               label="Reps"
               icon={<Repeat className="h-4 w-4" />}
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
               value={repsInput}
               onFocus={() => setIsRepsFocused(true)}
               onBlur={() => setIsRepsFocused(false)}
               onChange={(e) => {
-                const v = e.target.value;
+                // Digits only
+                const v = e.target.value.replace(/[^0-9]/g, '');
                 setRepsInput(v);
                 if (!isConfirmed && !isDisabled) {
                   onLogChange('reps', v);
