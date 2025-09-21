@@ -108,6 +108,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
   const [hasWatchedSubstituteVideo, setHasWatchedSubstituteVideo] = useState(false);
   const [hasWatchedMainVideo, setHasWatchedMainVideo] = useState(false);
+  const [hasClickedSubstitute, setHasClickedSubstitute] = useState(false);
   const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -150,6 +151,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     setIsExerciseTimerPaused(false);
     setHasWatchedSubstituteVideo(false); // Reset substitute video state
     setHasWatchedMainVideo(false); // Reset main video state
+    setHasClickedSubstitute(false); // Reset substitute clicked state
   }, [currentExerciseIndex]);
 
   // Check if timer should start based on watched videos
@@ -645,14 +647,24 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                   <TabsTrigger 
                     value="substitute" 
                     className={`relative text-xs sm:text-sm ${
-                      currentExercise.substitute 
+                      hasClickedSubstitute 
+                        ? 'bg-orange-500/20 border border-orange-400/50 text-orange-600 font-semibold' 
+                        : currentExercise.substitute 
                         ? 'text-yellow-600 border border-yellow-400/50 font-semibold' 
                         : ''
                     }`}
+                    onClick={() => {
+                      if (currentExercise.substitute && !hasClickedSubstitute) {
+                        setHasClickedSubstitute(true);
+                      }
+                    }}
                   >
                     <span className="flex items-center gap-1 sm:gap-2">
                       Substitute
-                      {currentExercise.substitute && (
+                      {currentExercise.substitute && !hasClickedSubstitute && (
+                        <span className="text-xs text-muted-foreground ml-1">click here</span>
+                      )}
+                      {currentExercise.substitute && !hasClickedSubstitute && (
                         <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-500 rounded-full animate-pulse" />
                       )}
                     </span>
@@ -660,14 +672,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 </TabsList>
               
               <TabsContent value="main" className="space-y-4 mt-6">
-                {/* Show message if main watched but timer not started */}
-                {hasWatchedMainVideo && !currentExerciseStartTime && currentExercise.substitute && (
-                  <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg text-center">
-                    <p className="text-warning font-medium">
-                      Click on the Substitute button
-                    </p>
-                  </div>
-                )}
                 
                 {currentExercise.sets.map((set: any, setIndex: number) => {
                   const allPreviousSetsCompleted = currentExercise.sets
