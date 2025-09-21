@@ -480,13 +480,24 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       handleExerciseStart();
                     }
                   }}
-                  className="relative overflow-hidden"
+                  className={`relative overflow-hidden transition-all duration-300 ${
+                    !currentExerciseStartTime 
+                      ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
+                      : ''
+                  }`}
                 >
                   {!currentExerciseStartTime && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
+                    <>
+                      {/* Multiple flashing indicators */}
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
+                    </>
                   )}
-                  <Play className="h-4 w-4 mr-2" />
-                  Watch Demo
+                  <Play className={`h-4 w-4 mr-2 ${!currentExerciseStartTime ? 'text-primary animate-bounce' : ''}`} />
+                  <span className={!currentExerciseStartTime ? 'text-primary font-semibold' : ''}>
+                    Watch Demo
+                  </span>
                 </Button>
               </div>
             </div>
