@@ -63,22 +63,29 @@ export default function CardioPage({ username }: CardioPageProps) {
     setSessionStartTime(Date.now());
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (cardioData.time && cardioData.calories) {
       const updatedData = { ...cardioData, completed: true };
       setCardioData(updatedData);
       
-      // Update session and navigate to warmup
-      updateSession({
-        current_phase: 'warmup',
+      const updates = {
+        current_phase: 'warmup' as const,
         cardio_completed: true,
         cardio_time: cardioData.time,
         cardio_calories: cardioData.calories
-      });
+      };
 
-      setTimeout(() => {
-        navigate('/warmup');
-      }, 2000); // Increased delay to ensure session is saved
+      // Update local session state immediately
+      updateSession(updates);
+
+      // Persist to Supabase before navigating to avoid redirect bounce
+      try {
+        await manualSave(updates);
+      } catch (e) {
+        console.error('Failed to save cardio completion, navigating anyway', e);
+      }
+
+      navigate('/warmup', { replace: true });
     }
   };
 
