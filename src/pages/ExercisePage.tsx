@@ -531,22 +531,40 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               />
             )}
 
-            {/* Rest Timer */}
-            {showRestTimer && currentSetInProgress && (
-              <div className="mb-6">
-                <RestTimerSelector 
-                  onComplete={handleRestComplete}
-                  onClose={() => setShowRestTimer(false)}
-                  isVisible={showRestTimer}
-                />
+            {/* Substitute Exercise Available Notification */}
+            {currentExercise.substitute && (
+              <div className="mb-4 p-3 bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/30 rounded-lg animate-pulse">
+                <div className="flex items-center gap-2 text-accent">
+                  <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
+                  <span className="text-sm font-medium">
+                    💪 Alternative exercise available! Check the "Substitute" tab below.
+                  </span>
+                  <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
+                </div>
               </div>
             )}
 
             {/* Main Exercise Sets */}
             <Tabs defaultValue="main" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="main">Main Exercise</TabsTrigger>
-                <TabsTrigger value="substitute">Substitute</TabsTrigger>
+                <TabsTrigger value="main" className="relative">
+                  Main Exercise
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="substitute" 
+                  className={`relative ${
+                    currentExercise.substitute 
+                      ? 'bg-accent/10 border border-accent/30 ring-1 ring-accent/20 animate-pulse' 
+                      : ''
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    Substitute
+                    {currentExercise.substitute && (
+                      <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
+                    )}
+                  </span>
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="main" className="space-y-4 mt-6">
@@ -582,10 +600,31 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.open(currentExercise.substitute.videoUrl, '_blank')}
+                        onClick={() => {
+                          window.open(currentExercise.substitute.videoUrl, '_blank');
+                          // Start timer when demo is watched for substitute exercise
+                          if (!currentExerciseStartTime) {
+                            handleExerciseStart();
+                          }
+                        }}
+                        className={`relative overflow-hidden transition-all duration-300 ${
+                          !currentExerciseStartTime 
+                            ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
+                            : ''
+                        }`}
                       >
-                        <Play className="h-4 w-4 mr-2" />
-                        Watch Demo
+                        {!currentExerciseStartTime && (
+                          <>
+                            {/* Multiple flashing indicators */}
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
+                          </>
+                        )}
+                        <Play className={`h-4 w-4 mr-2 ${!currentExerciseStartTime ? 'text-primary animate-bounce' : ''}`} />
+                        <span className={!currentExerciseStartTime ? 'text-primary font-semibold' : ''}>
+                          Watch Demo
+                        </span>
                       </Button>
                     </div>
                   </div>
