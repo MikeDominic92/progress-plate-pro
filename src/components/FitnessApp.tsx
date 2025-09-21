@@ -811,15 +811,18 @@ export default function FitnessApp() {
           {/* Warmup Phase */}
           {(currentPhase === 'warmup' || warmupData.completed) && cardioData.completed && (
             <>
-              <ExerciseTimer
-                duration={15} // 15 minutes for warm-up
-                onComplete={handleExerciseComplete}
-                onStart={handleExerciseStart}
-                onSetComplete={handleExerciseSetComplete}
-                isActive={currentPhase === 'warmup' && !warmupData.completed}
-                isPaused={false}
-                exerciseType="warmup"
-              />
+              {/* Only show timer after mood is selected */}
+              {warmupData.mood && (
+                <ExerciseTimer
+                  duration={15} // 15 minutes for warm-up
+                  onComplete={handleExerciseComplete}
+                  onStart={handleExerciseStart}
+                  onSetComplete={handleExerciseSetComplete}
+                  isActive={currentPhase === 'warmup' && !warmupData.completed && !!warmupData.mood}
+                  isPaused={false}
+                  exerciseType="warmup"
+                />
+              )}
               <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
             </>
           )}
