@@ -324,15 +324,12 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   }
 
   // Calculate overall progress - with safety checks
-  const totalSets = workoutLog.reduce((acc: number, exercise: any) => {
-    return acc + (exercise?.sets?.length || 0);
-  }, 0);
-    
   const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
     if (!exercise?.sets) return acc;
     return acc + exercise.sets.filter((set: any) => set.confirmed).length;
   }, 0);
-  const overallProgress = (completedSets / totalSets) * 100;
+  const overallProgress = (completedSets / 20) * 100; // 20 total sets, 5% per set
+  const progressPercentage = Math.round(overallProgress / 5) * 5; // Round to nearest 5%
 
   const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
     set: any, 
@@ -509,15 +506,15 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         </div>
 
         {/* Progress Bar */}
-        <Card className="p-3 sm:p-4">
+        <Card className="p-3 sm:p-4 bg-black border-white/20">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm font-medium">Overall Progress</span>
-            <span className="text-xs sm:text-sm text-muted-foreground">{completedSets}/{totalSets} sets</span>
+            <span className="text-xs sm:text-sm font-medium text-white">Overall Progress</span>
+            <span className="text-xs sm:text-sm text-white">{completedSets}/20 sets</span>
           </div>
-          <div className="w-full bg-secondary rounded-full h-2">
+          <div className="w-full bg-black border border-orange-500 rounded-full h-2">
             <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300" 
-              style={{ width: `${overallProgress}%` }}
+              className="bg-orange-500 h-2 rounded-full transition-all duration-300" 
+              style={{ width: `${progressPercentage}%` }}
             />
           </div>
         </Card>
