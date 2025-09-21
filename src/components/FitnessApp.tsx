@@ -330,9 +330,18 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm">
+        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
           <h4 className="font-semibold text-foreground mb-2">Stair Master - 10 minutes</h4>
-          <p className="text-muted-foreground mb-4">Easy pace, focus on long steps to fully stretch the glutes.</p>
+          <p className="text-muted-foreground mb-3">Easy pace, focus on long steps to fully stretch the glutes.</p>
+          <Button
+            onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0", "_blank")}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Play className="h-4 w-4" />
+            Watch Stairmaster Demo
+          </Button>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -468,23 +477,6 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
         {/* Show warm-up routine only after mood is selected */}
         {warmupData.mood && (
           <>
-            {/* Initial Instructions */}
-            <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-              <h4 className="font-semibold text-foreground mb-3">Light Cardio (5-10 minutes)</h4>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Stairmaster - Perform any light cardio here to get warm</p>
-                <Button
-                  onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0", "_blank")}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Play className="h-4 w-4" />
-                  Watch Stairmaster Demo
-                </Button>
-              </div>
-            </div>
-
             {/* Warm-up Exercise Categories */}
             {warmupExercises.map((category, categoryIndex) => (
               <div key={categoryIndex} className="space-y-3">
