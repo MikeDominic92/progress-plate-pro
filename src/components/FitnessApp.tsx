@@ -476,19 +476,40 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
     });
   };
 
+  // Check if all videos have been watched
+  const areAllVideosWatched = () => {
+    const totalVideos = warmupExercises.reduce((acc, category) => acc + category.exercises.length, 0);
+    const watchedVideos = warmupData.watchedVideos || [];
+    return watchedVideos.length >= totalVideos;
+  };
+
+  // Auto-complete exercises when all videos are watched
+  const checkAutoComplete = () => {
+    if (areAllVideosWatched() && !warmupData.exercisesCompleted) {
+      setWarmupData({ 
+        ...warmupData, 
+        exercisesCompleted: true 
+      });
+    }
+  };
+
   const handleVideoWatched = (categoryIndex: number, exerciseIndex: number) => {
     const videoKey = `${categoryIndex}-${exerciseIndex}`;
     const watchedVideos = warmupData.watchedVideos || [];
     if (!watchedVideos.includes(videoKey)) {
-      setWarmupData({ 
+      const updatedWarmupData = { 
         ...warmupData, 
         watchedVideos: [...watchedVideos, videoKey]
-      });
+      };
+      setWarmupData(updatedWarmupData);
       
       // Start warmup timer automatically when first video is clicked
       if (categoryIndex === 0 && exerciseIndex === 0 && !isTimerActive) {
         onStartTimer();
       }
+      
+      // Check for auto-completion after state update
+      setTimeout(checkAutoComplete, 100);
     }
   };
 
@@ -681,7 +702,7 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
             </div>
 
             {/* Exercise Completion Button */}
-            {!warmupData.exercisesCompleted && (
+            {!warmupData.exercisesCompleted && !areAllVideosWatched() && (
               <Button 
                 onClick={handleExerciseComplete}
                 className="w-full bg-gradient-primary hover:shadow-glow"
@@ -690,13 +711,24 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
               </Button>
             )}
 
-            {warmupData.exercisesCompleted && !warmupData.completed && (
-              <Button 
-                onClick={handleComplete}
-                className="w-full bg-gradient-primary hover:shadow-glow"
-              >
-                Complete Warm-up
-              </Button>
+            {/* Auto-show complete button when all videos watched OR manually marked complete */}
+            {(warmupData.exercisesCompleted || areAllVideosWatched()) && !warmupData.completed && (
+              <div className="space-y-4">
+                {areAllVideosWatched() && (
+                  <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
+                    <div className="flex items-center justify-center gap-2 text-success font-medium text-sm">
+                      <CheckCircle2 className="h-4 w-4" />
+                      All warmup videos watched! Ready to complete.
+                    </div>
+                  </div>
+                )}
+                <Button 
+                  onClick={handleComplete}
+                  className="w-full bg-gradient-primary hover:shadow-glow"
+                >
+                  Complete Warm-up & Continue to Main Workout
+                </Button>
+              </div>
             )}
           </>
         )}
