@@ -391,12 +391,14 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
 
 const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWarmupData: any }) => {
   const moodOptions = [
-    { value: 'perfect', label: 'Perfect 💯', color: 'text-success' },
-    { value: 'good', label: 'Good 😊', color: 'text-primary' },
-    { value: 'okay', label: 'Okay 😐', color: 'text-accent' },
-    { value: 'feeling-off', label: 'Feeling Off 😕', color: 'text-warning' },
-    { value: 'tired', label: 'Tired 😴', color: 'text-muted-foreground' },
-    { value: 'fatigued', label: 'Fatigued 😰', color: 'text-destructive' }
+    // Left side - higher scores
+    { value: 'perfect', label: 'Perfect 💯', score: '100', color: 'text-success' },
+    { value: 'great', label: 'Great 😄', score: '90', color: 'text-success' },
+    { value: 'good', label: 'Good 😊', score: '80', color: 'text-primary' },
+    // Right side - lower scores  
+    { value: 'okay', label: 'Okay 😐', score: '70', color: 'text-accent' },
+    { value: 'feeling-off', label: 'Feeling Off/Weak 😕', score: '60', color: 'text-warning' },
+    { value: 'fatigued', label: 'Fatigued 😰', score: '50', color: 'text-destructive' }
   ];
 
   const warmupExercises = [
@@ -462,22 +464,45 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
         {/* Mood Selection */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">How are you feeling today?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {moodOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={warmupData.mood === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
-                className={`justify-start ${option.color} ${
-                  warmupData.mood === option.value 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-white/5 hover:bg-white/10 border-white/20'
-                }`}
-              >
-                {option.label}
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Left column - higher scores */}
+            <div className="space-y-2">
+              {moodOptions.slice(0, 3).map((option) => (
+                <Button
+                  key={option.value}
+                  variant={warmupData.mood === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                  className={`w-full justify-between ${option.color} ${
+                    warmupData.mood === option.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-white/5 hover:bg-white/10 border-white/20'
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  <span className="font-bold">{option.score}</span>
+                </Button>
+              ))}
+            </div>
+            {/* Right column - lower scores */}
+            <div className="space-y-2">
+              {moodOptions.slice(3, 6).map((option) => (
+                <Button
+                  key={option.value}
+                  variant={warmupData.mood === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                  className={`w-full justify-between ${option.color} ${
+                    warmupData.mood === option.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-white/5 hover:bg-white/10 border-white/20'
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  <span className="font-bold">{option.score}</span>
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
