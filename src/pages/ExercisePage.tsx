@@ -621,9 +621,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <h3 className="font-semibold text-foreground">{currentExercise.substitute.name}</h3>
-                        <Badge variant={getTierBadgeVariant(currentExercise.substitute.tier)}>
-                          {currentExercise.substitute.tier}
-                        </Badge>
                       </div>
                       <Button 
                         variant="outline" 
