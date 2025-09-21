@@ -271,13 +271,38 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     setIsExerciseTimerPaused(false);
     setCurrentSetInProgress(null);
     
+    // Check if current exercise is fully completed and advance to next
     const currentExercise = workoutLog[activeExerciseIndex];
+    if (currentExercise) {
+      const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
+      
+      if (allSetsCompleted && activeExerciseIndex < workoutLog.length - 1) {
+        console.log(`Exercise ${activeExerciseIndex + 1} completed! Moving to exercise ${activeExerciseIndex + 2}`);
+        setActiveExerciseIndex(prev => prev + 1);
+      }
+    }
+  };
+
+  // Check for automatic exercise advancement when sets are completed
+  useEffect(() => {
+    if (!Array.isArray(workoutLog) || workoutLog.length === 0) return;
+    
+    const currentExercise = workoutLog[activeExerciseIndex];
+    if (!currentExercise) return;
+    
+    // Check if all sets in current exercise are confirmed
     const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
     
     if (allSetsCompleted && activeExerciseIndex < workoutLog.length - 1) {
-      setActiveExerciseIndex(prev => prev + 1);
+      // Small delay to let user see completion message before advancing
+      const advanceTimer = setTimeout(() => {
+        console.log(`Auto-advancing from exercise ${activeExerciseIndex + 1} to ${activeExerciseIndex + 2}`);
+        setActiveExerciseIndex(prev => prev + 1);
+      }, 2000);
+      
+      return () => clearTimeout(advanceTimer);
     }
-  };
+  }, [workoutLog, activeExerciseIndex]);
 
   // Calculate overall progress - with safety checks
   const totalSets = Array.isArray(workoutLog) ? 
@@ -689,7 +714,8 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
             const exerciseTotalSets = exercise.sets.length;
             const isCompleted = exerciseCompletedSets === exerciseTotalSets;
             const isActive = index === activeExerciseIndex;
-            const isLocked = index > activeExerciseIndex || isCompleted;
+            // Only lock exercises that are ahead of current active exercise AND not completed
+            const isLocked = index > activeExerciseIndex && !isCompleted;
 
             return (
               <div 
