@@ -19,6 +19,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [hasShown30SecWarning, setHasShown30SecWarning] = useState(false);
 
   const restOptions = [
     { value: 1, label: '1 min', color: 'bg-success/20 border-success text-success' },
@@ -46,10 +47,19 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
     return () => clearInterval(interval);
   }, [isRunning, timeLeft]);
 
+  // 30-second warning
+  useEffect(() => {
+    if (timeLeft === 30 && !hasShown30SecWarning && isRunning) {
+      setHasShown30SecWarning(true);
+      // You can add a toast notification here if needed
+    }
+  }, [timeLeft, hasShown30SecWarning, isRunning]);
+
   const handleSelectTime = (minutes: number) => {
     setSelectedMinutes(minutes);
     setTimeLeft(minutes * 60);
     setIsCompleted(false);
+    setHasShown30SecWarning(false);
   };
 
   const handleStart = () => {
@@ -66,6 +76,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
     setIsRunning(false);
     setTimeLeft(selectedMinutes ? selectedMinutes * 60 : 0);
     setIsCompleted(false);
+    setHasShown30SecWarning(false);
   };
 
   const handleComplete = () => {
@@ -76,6 +87,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
     setTimeLeft(0);
     setIsRunning(false);
     setIsCompleted(false);
+    setHasShown30SecWarning(false);
   };
 
   const minutes = Math.floor(timeLeft / 60);
@@ -83,7 +95,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   const progress = selectedMinutes ? ((selectedMinutes * 60 - timeLeft) / (selectedMinutes * 60)) * 100 : 0;
 
   const getProgressColor = () => {
-    if (timeLeft <= 30) return 'bg-destructive';
+    if (timeLeft <= 30) return 'bg-destructive animate-pulse';
     if (timeLeft <= 60) return 'bg-warning';
     return 'bg-success';
   };
@@ -126,6 +138,9 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
                 </div>
                 <Badge variant="outline" className="bg-primary/10">
                   {selectedMinutes} minute rest
+                  {timeLeft <= 30 && timeLeft > 0 && (
+                    <span className="ml-2 text-destructive font-bold animate-pulse">⚠️ 30s left!</span>
+                  )}
                 </Badge>
               </div>
 

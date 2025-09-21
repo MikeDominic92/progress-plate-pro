@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, Square, Timer, AlertTriangle } from 'lucide-react';
+import { Play, Pause, Square, Timer, AlertTriangle, Clock } from 'lucide-react';
 
 interface ExerciseTimerProps {
   duration: number; // in minutes
   onComplete: () => void;
   onStart: () => void;
+  onSetComplete: () => void;
   isActive: boolean;
+  isPaused: boolean;
   exerciseType: 'warmup' | 'main';
 }
 
@@ -16,7 +18,9 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
   duration, 
   onComplete, 
   onStart, 
+  onSetComplete,
   isActive,
+  isPaused,
   exerciseType 
 }) => {
   const [timeLeft, setTimeLeft] = useState(duration * 60); // convert to seconds
@@ -28,13 +32,15 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
       setIsRunning(false);
       setTimeLeft(duration * 60);
       setHasStarted(false);
+    } else if (isPaused) {
+      setIsRunning(false);
     }
-  }, [isActive, duration]);
+  }, [isActive, duration, isPaused]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isRunning && timeLeft > 0) {
+    if (isRunning && timeLeft > 0 && !isPaused) {
       interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -48,7 +54,7 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, onComplete]);
+  }, [isRunning, timeLeft, onComplete, isPaused]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -121,10 +127,15 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
         </div>
         
         <div className="flex gap-2 justify-center">
-          {!isRunning ? (
+          {!isRunning && !isPaused ? (
             <Button onClick={handleStart} variant="default" size="sm">
               <Play className="h-4 w-4 mr-2" />
               {hasStarted ? 'Resume' : 'Start'}
+            </Button>
+          ) : isPaused ? (
+            <Button onClick={handleStart} variant="default" size="sm">
+              <Play className="h-4 w-4 mr-2" />
+              Resume After Set
             </Button>
           ) : (
             <Button onClick={handlePause} variant="secondary" size="sm">
@@ -137,6 +148,13 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
             <Square className="h-4 w-4 mr-2" />
             Reset
           </Button>
+          
+          {isPaused && (
+            <Button onClick={onSetComplete} variant="default" size="sm" className="bg-success hover:bg-success/80">
+              <Clock className="h-4 w-4 mr-2" />
+              Set Complete
+            </Button>
+          )}
         </div>
         
         {timeLeft === 0 && (

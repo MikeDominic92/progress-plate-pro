@@ -133,7 +133,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onExerciseFinish }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onExerciseFinish?: () => void }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean }) => {
   const [activeTab, setActiveTab] = useState('main');
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
@@ -209,7 +209,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                 size="sm"
                 variant="outline"
                 disabled={isLocked}
-                onClick={() => !isLocked && onExerciseFinish?.()}
+                onClick={() => !isLocked && console.log('Rest button clicked')}
                 className={`${
                   isLocked 
                     ? 'opacity-50 cursor-not-allowed' 
@@ -217,7 +217,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                 }`}
               >
                 <Clock className="h-4 w-4 mr-2" />
-                Finish & Rest
+                Manual Rest
               </Button>
             </div>
           </div>
@@ -586,6 +586,8 @@ export default function FitnessApp() {
   const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [exerciseTimerCompleted, setExerciseTimerCompleted] = useState(false);
+  const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
+  const [currentSetIndex, setCurrentSetIndex] = useState(0);
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -622,6 +624,32 @@ export default function FitnessApp() {
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
   
+  // Handle set completion and timer pausing
+  const handleSetComplete = (exIndex: number, setIndex: number, field: string, value: string, activeTab: string = 'main') => {
+    handleLogChange(exIndex, setIndex, field, value, activeTab);
+    
+    // Check if both weight and reps are filled for this set
+    const exercise = workoutLog[exIndex];
+    const targetSets = activeTab === 'main' ? exercise.sets : exercise.substitute?.sets;
+    const currentSet = targetSets[setIndex];
+    
+    if (currentSet.weight && currentSet.reps) {
+      // Set is complete, pause the exercise timer
+      setIsExerciseTimerPaused(true);
+      setCurrentSetIndex(setIndex);
+      
+      toast({
+        title: "Set Complete!",
+        description: "Timer paused. Select your rest time to continue.",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleExerciseSetComplete = () => {
+    setShowRestTimer(true);
+  };
+
   // Timer management
   const handleMotivationalMessage = (message: string) => {
     toast({
@@ -638,6 +666,7 @@ export default function FitnessApp() {
 
   const handleExerciseStart = () => {
     setCurrentExerciseStartTime(Date.now());
+    setIsExerciseTimerPaused(false);
   };
 
   const handleExerciseComplete = () => {
@@ -645,15 +674,19 @@ export default function FitnessApp() {
     setCurrentExerciseStartTime(null);
   };
 
-  const handleExerciseFinish = () => {
-    setShowRestTimer(true);
-  };
-
   const handleRestComplete = () => {
     setShowRestTimer(false);
+    setIsExerciseTimerPaused(false); // Resume exercise timer
     setExerciseTimerCompleted(false);
-    if (activeExerciseIndex < workoutLog.length - 1) {
+    
+    // Check if we should advance to next exercise
+    const currentExercise = workoutLog[activeExerciseIndex];
+    const completedSets = currentExercise.sets.filter((set: any) => set.weight && set.reps).length;
+    const totalSets = currentExercise.sets.length;
+    
+    if (completedSets === totalSets && activeExerciseIndex < workoutLog.length - 1) {
       setActiveExerciseIndex(activeExerciseIndex + 1);
+      setCurrentSetIndex(0);
     }
   };
 
@@ -782,7 +815,9 @@ export default function FitnessApp() {
                 duration={15} // 15 minutes for warm-up
                 onComplete={handleExerciseComplete}
                 onStart={handleExerciseStart}
+                onSetComplete={handleExerciseSetComplete}
                 isActive={currentPhase === 'warmup' && !warmupData.completed}
+                isPaused={false}
                 exerciseType="warmup"
               />
               <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
@@ -797,13 +832,15 @@ export default function FitnessApp() {
                 <p className="text-muted-foreground">Focus on form and progressive overload</p>
               </div>
               {currentPhase === 'main' && (
-                <ExerciseTimer
-                  duration={20} // 20 minutes for main exercises
-                  onComplete={handleExerciseComplete}
-                  onStart={handleExerciseStart}
-                  isActive={currentExerciseStartTime !== null}
-                  exerciseType="main"
-                />
+              <ExerciseTimer
+                duration={20} // 20 minutes for main exercises (countdown)
+                onComplete={handleExerciseComplete}
+                onStart={handleExerciseStart}
+                onSetComplete={handleExerciseSetComplete}
+                isActive={currentExerciseStartTime !== null}
+                isPaused={isExerciseTimerPaused}
+                exerciseType="main"
+              />
               )}
               
               {workoutLog.map((exercise: any, index: number) => {
@@ -818,11 +855,10 @@ export default function FitnessApp() {
                     key={index} 
                     exercise={exercise} 
                     exIndex={index} 
-                    onLogChange={handleLogChange}
+                    onLogChange={handleSetComplete}
                     isActive={isActive}
                     isLocked={isLocked}
                     isCompleted={isCompleted}
-                    onExerciseFinish={handleExerciseFinish}
                   />
                 );
               })}
