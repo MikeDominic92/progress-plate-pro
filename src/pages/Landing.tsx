@@ -45,10 +45,22 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
         .select('*')
         .eq('username', username.trim())
         .order('updated_at', { ascending: false })
-        .limit(5);
+        .limit(1); // Only get the most recent session
 
       if (error) throw error;
-      setSavedSessions(data || []);
+      
+      // Only show the session if it's not 100% complete
+      const recentSession = data?.[0];
+      if (recentSession) {
+        const progress = calculateProgress(recentSession);
+        if (progress < 100) {
+          setSavedSessions([recentSession]);
+        } else {
+          setSavedSessions([]); // Don't show completed sessions
+        }
+      } else {
+        setSavedSessions([]);
+      }
     } catch (error) {
       console.error('Error fetching saved sessions:', error);
       setSavedSessions([]);

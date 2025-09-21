@@ -35,10 +35,48 @@ export const useWorkoutStorage = (username: string) => {
       return;
     }
 
-    // Create new session
+    // Check if there's already a session for today
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const { data, error } = await supabase
+        .from('workout_sessions')
+        .select('*')
+        .eq('username', username)
+        .eq('session_date', today)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      // If there's an existing session for today, use it
+      if (data && data.length > 0) {
+        const existingSession = data[0];
+        // Cast the database response to our WorkoutSession type
+        const session: WorkoutSession = {
+          id: existingSession.id,
+          username: existingSession.username,
+          session_date: existingSession.session_date,
+          current_phase: existingSession.current_phase,
+          cardio_completed: existingSession.cardio_completed,
+          cardio_time: existingSession.cardio_time,
+          cardio_calories: existingSession.cardio_calories,
+          warmup_completed: existingSession.warmup_completed,
+          warmup_exercises_completed: existingSession.warmup_exercises_completed,
+          warmup_mood: existingSession.warmup_mood,
+          warmup_watched_videos: existingSession.warmup_watched_videos || [],
+          workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
+        };
+        setCurrentSession(session);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking for existing session:', error);
+    }
+
+    // Create new session only if no existing session for today
     const newSession: WorkoutSession = {
       username,
-      session_date: new Date().toISOString().split('T')[0],
+      session_date: today,
       current_phase: 'cardio',
       cardio_completed: false,
       warmup_completed: false,
