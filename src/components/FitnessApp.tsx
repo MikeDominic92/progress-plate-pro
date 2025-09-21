@@ -134,7 +134,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean }) => {
   const [activeTab, setActiveTab] = useState('main');
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
@@ -198,6 +198,10 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                 disabled={isLocked}
                 onClick={() => {
                   if (!isLocked) {
+                    // Start main workout timer if not already active
+                    if (!isTimerActive) {
+                      onStartTimer();
+                    }
                     const link = document.createElement('a');
                     link.href = activeExercise.videoUrl;
                     link.target = '_blank';
@@ -322,7 +326,7 @@ const WorkoutIntro = () => (
   </Card>
 );
 
-const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCardioData: any }) => {
+const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStartTime }: { cardioData: any, setCardioData: any, onStartSession: () => void, sessionStartTime: number | null }) => {
   const handleComplete = () => {
     if (cardioData.time && cardioData.calories) {
       setCardioData({ ...cardioData, completed: true });
@@ -345,6 +349,10 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
           <div className="text-xs text-muted-foreground mb-2">Watch [00:00:00 - 00:00:02] for proper form</div>
           <Button
             onClick={() => {
+              // Start session timer when cardio video is clicked
+              if (!sessionStartTime) {
+                onStartSession();
+              }
               const link = document.createElement('a');
               link.href = "https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s";
               link.target = '_blank';
@@ -927,6 +935,10 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     // Will trigger warmup phase
   };
 
+  const handleSessionStart = () => {
+    setSessionStartTime(Date.now());
+  };
+
   const handleExerciseStart = () => {
     setCurrentExerciseStartTime(Date.now());
     setIsExerciseTimerPaused(false);
@@ -1081,7 +1093,12 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
           
           {/* Cardio Phase */}
           {(currentPhase === 'cardio' || cardioData.completed) && (
-            <CardioTracking cardioData={cardioData} setCardioData={setCardioData} />
+            <CardioTracking 
+              cardioData={cardioData} 
+              setCardioData={setCardioData} 
+              onStartSession={handleSessionStart}
+              sessionStartTime={sessionStartTime}
+            />
           )}
           
           {/* Warmup Phase */}
@@ -1143,6 +1160,8 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                     isActive={isActive}
                     isLocked={isLocked}
                     isCompleted={isCompleted}
+                    onStartTimer={handleExerciseStart}
+                    isTimerActive={currentExerciseStartTime !== null}
                   />
                 );
               })}
