@@ -240,6 +240,13 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                     if (!isTimerActive) {
                       onStartTimer();
                     }
+                    // Make sure the timer is visible to the user
+                    const timerEl = document.getElementById('exercise-timer');
+                    try {
+                      timerEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } catch {}
+
+                    // Open video in a new tab
                     const link = document.createElement('a');
                     link.href = activeExercise.videoUrl;
                     link.target = '_blank';
@@ -1354,15 +1361,17 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
             <>
               {/* Only show timer after mood is selected */}
               {warmupData.mood && (
-                <ExerciseTimer
-                  duration={25} // 25 minutes for comprehensive warm-up
-                  onComplete={handleExerciseComplete}
-                  onStart={handleExerciseStart}
-                  onSetComplete={handleExerciseSetComplete}
-                  isActive={currentPhase === 'warmup' && !warmupData.completed && !!warmupData.mood && currentExerciseStartTime !== null}
-                  isPaused={false}
-                  exerciseType="warmup"
-                />
+                <div id="exercise-timer">
+                  <ExerciseTimer
+                    duration={25} // 25 minutes for comprehensive warm-up
+                    onComplete={handleExerciseComplete}
+                    onStart={handleExerciseStart}
+                    onSetComplete={handleExerciseSetComplete}
+                    isActive={currentPhase === 'warmup' && !warmupData.completed && !!warmupData.mood && currentExerciseStartTime !== null}
+                    isPaused={false}
+                    exerciseType="warmup"
+                  />
+                </div>
               )}
               <WarmupTracking 
                 warmupData={warmupData} 
@@ -1382,15 +1391,17 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                 <p className="text-muted-foreground">Focus on form and progressive overload</p>
               </div>
               {currentPhase === 'main' && (
-              <ExerciseTimer
-                duration={20} // 20 minutes for main exercises (countdown)
-                onComplete={handleExerciseComplete}
-                onStart={handleExerciseStart}
-                onSetComplete={handleExerciseSetComplete}
-                isActive={currentExerciseStartTime !== null}
-                isPaused={isExerciseTimerPaused}
-                exerciseType="main"
-              />
+              <div id="exercise-timer">
+                <ExerciseTimer
+                  duration={20} // 20 minutes for main exercises (countdown)
+                  onComplete={handleExerciseComplete}
+                  onStart={handleExerciseStart}
+                  onSetComplete={handleExerciseSetComplete}
+                  isActive={currentExerciseStartTime !== null}
+                  isPaused={isExerciseTimerPaused}
+                  exerciseType="main"
+                />
+              </div>
               )}
               
               {workoutLog.map((exercise: any, index: number) => {
