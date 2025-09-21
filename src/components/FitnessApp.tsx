@@ -312,13 +312,20 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
 
           <div className="space-y-4">
             {activeExercise.sets.map((set: any, setIndex: number) => {
-              const isCurrentSet = !currentSetInProgress ? 
-                // If no set in progress, first incomplete set is current
-                !set.confirmed && activeExercise.sets.slice(0, setIndex).every((s: any) => s.confirmed) :
-                // If set in progress, only that specific set is current
-                currentSetInProgress?.exerciseIndex === exIndex && currentSetInProgress?.setIndex === setIndex;
-              
-              const canInteract = !currentSetInProgress || isCurrentSet;
+              // Determine if this is the current set
+              let isCurrentSet = false;
+              let canInteract = false;
+
+              if (currentSetInProgress) {
+                // If a set is in progress (during rest), only that set is current
+                isCurrentSet = currentSetInProgress.exerciseIndex === exIndex && currentSetInProgress.setIndex === setIndex;
+                canInteract = false; // No interaction during rest
+              } else {
+                // Find the first incomplete (not confirmed) set
+                const firstIncompleteIndex = activeExercise.sets.findIndex((s: any) => !s.confirmed);
+                isCurrentSet = setIndex === firstIncompleteIndex;
+                canInteract = isCurrentSet;
+              }
               
               return (
                 <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
