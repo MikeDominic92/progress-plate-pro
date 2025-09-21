@@ -148,28 +148,28 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                 </p>
               </div>
 
-              {/* Username input */}
-              <div className="space-y-3 mb-6">
+              {/* Username input - centered */}
+              <div className="space-y-3 mb-6 text-center">
                 <label htmlFor="username" className="text-sm font-medium text-foreground/90 block">
                   Username
                 </label>
-                <div className="relative">
+                <div className="relative max-w-xs mx-auto">
                   <Input
                     id="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
-                    className="bg-card/30 backdrop-blur-sm border-white/20 text-foreground placeholder:text-muted-foreground/60 rounded-xl h-12 transition-all duration-300 focus:border-primary/50 focus:bg-card/40 focus:shadow-glow"
+                    className="bg-card/30 backdrop-blur-sm border-white/20 text-foreground placeholder:text-muted-foreground/60 rounded-xl h-12 transition-all duration-300 focus:border-primary/50 focus:bg-card/40 focus:shadow-glow text-center"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Begin button */}
-              <div className="mb-8">
+              {/* Begin button - centered */}
+              <div className="mb-8 flex justify-center">
                 <Button 
                   onClick={handleBegin}
-                  className="w-full h-12 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary/90 hover:via-primary-glow/90 hover:to-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
+                  className="w-full max-w-xs h-12 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary/90 hover:via-primary-glow/90 hover:to-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
                   disabled={!username.trim() || loading}
                 >
                   <div className="flex items-center justify-center gap-2">
