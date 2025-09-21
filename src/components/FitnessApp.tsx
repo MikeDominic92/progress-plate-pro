@@ -390,7 +390,7 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
   );
 };
 
-const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWarmupData: any }) => {
+const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive }: { warmupData: any, setWarmupData: any, onStartTimer: () => void, isTimerActive: boolean }) => {
   const moodOptions = [
     // Left side - higher scores
     { value: 'perfect', label: 'Perfect 💯', score: '100', color: 'text-success' },
@@ -460,6 +460,11 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
         ...warmupData, 
         watchedVideos: [...watchedVideos, videoKey]
       });
+      
+      // Start warmup timer automatically when first video is clicked
+      if (categoryIndex === 0 && exerciseIndex === 0 && !isTimerActive) {
+        onStartTimer();
+      }
     }
   };
 
@@ -1061,7 +1066,12 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                   exerciseType="warmup"
                 />
               )}
-              <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
+              <WarmupTracking 
+                warmupData={warmupData} 
+                setWarmupData={setWarmupData} 
+                onStartTimer={handleExerciseStart}
+                isTimerActive={currentExerciseStartTime !== null}
+              />
             </>
           )}
           
