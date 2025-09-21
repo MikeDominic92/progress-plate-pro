@@ -298,11 +298,18 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
       const advanceTimer = setTimeout(() => {
         console.log(`Auto-advancing from exercise ${activeExerciseIndex + 1} to ${activeExerciseIndex + 2}`);
         setActiveExerciseIndex(prev => prev + 1);
+        
+        // Auto-start timer for new exercise
+        setTimeout(() => {
+          if (!currentExerciseStartTime) {
+            handleExerciseStart();
+          }
+        }, 1000);
       }, 2000);
       
       return () => clearTimeout(advanceTimer);
     }
-  }, [workoutLog, activeExerciseIndex]);
+  }, [workoutLog, activeExerciseIndex, currentExerciseStartTime, handleExerciseStart]);
 
   // Calculate overall progress - with safety checks
   const totalSets = Array.isArray(workoutLog) ? 
@@ -436,6 +443,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
   const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete, currentSetInProgress, activeExerciseIndex }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void, currentSetInProgress?: {exerciseIndex: number, setIndex: number} | null, activeExerciseIndex: number }) => {
     const [activeTab, setActiveTab] = useState('main');
+    const [isMinimized, setIsMinimized] = useState(false);
     const hasSubstitute = !!exercise.substitute;
     const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
     
@@ -443,17 +451,28 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     const totalSets = activeExercise.sets.length;
     const completionPercentage = (completedSets / totalSets) * 100;
 
+    // Auto-minimize completed exercises that are not active
+    useEffect(() => {
+      if (isCompleted && !isActive) {
+        setIsMinimized(true);
+      } else if (isActive) {
+        setIsMinimized(false);
+      }
+    }, [isCompleted, isActive]);
+
     return (
       <Card className={`transition-all duration-500 overflow-hidden group ${
         isActive 
           ? 'bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur-glass border-primary shadow-lg shadow-primary/20 scale-[1.02]' 
           : isCompleted 
-            ? 'bg-gradient-card/60 backdrop-blur-glass border-success/30 shadow-md opacity-90' 
+            ? isMinimized
+              ? 'bg-gradient-card/40 backdrop-blur-glass border-success/20 shadow-sm opacity-75 hover:opacity-100'
+              : 'bg-gradient-card/60 backdrop-blur-glass border-success/30 shadow-md opacity-90' 
             : isLocked 
               ? 'bg-card/30 backdrop-blur-glass border-white/5 shadow-sm opacity-50 cursor-not-allowed'
               : 'bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow hover:scale-[1.01]'
       }`}>
-        <CardHeader className="pb-6">
+        <CardHeader className={`${isMinimized ? 'pb-3' : 'pb-6'}`}>
           <div className="flex items-start justify-between">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -491,58 +510,78 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Button 
-                disabled={isLocked}
-                onClick={() => {
-                  if (!isLocked) {
-                    if (!isTimerActive) {
-                      onStartTimer();
-                    }
-                    const timerEl = document.getElementById('main-exercise-timer');
-                    try {
-                      timerEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    } catch {}
+              {/* Minimize/Expand button for completed exercises */}
+              {isCompleted && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="bg-white/5 hover:bg-white/10 border-white/20"
+                >
+                  {isMinimized ? '📖' : '📕'}
+                </Button>
+              )}
+              
+              {/* Watch button - only show if not minimized */}
+              {!isMinimized && (
+                <Button 
+                  disabled={isLocked}
+                  onClick={() => {
+                    if (!isLocked) {
+                      if (!isTimerActive) {
+                        onStartTimer();
+                      }
+                      const timerEl = document.getElementById('main-exercise-timer');
+                      try {
+                        timerEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      } catch {}
 
-                    const link = document.createElement('a');
-                    link.href = activeExercise.videoUrl;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }
-                }}
-                className={`transition-all duration-300 group ${
-                  isLocked ? 'opacity-50 cursor-not-allowed' : 'bg-gradient-primary hover:shadow-glow'
-                }`}
-              >
-                <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                Watch
-              </Button>
+                      const link = document.createElement('a');
+                      link.href = activeExercise.videoUrl;
+                      link.target = '_blank';
+                      link.rel = 'noopener noreferrer';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
+                  }}
+                  className={`transition-all duration-300 group ${
+                    isLocked ? 'opacity-50 cursor-not-allowed' : 'bg-gradient-primary hover:shadow-glow'
+                  }`}
+                >
+                  <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Watch
+                </Button>
+              )}
             </div>
           </div>
           
-          <div className="flex items-center gap-4 mt-4">
-            <div className="flex-1">
-              <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
-                <div 
-                  className="h-full bg-gradient-primary transition-all duration-1000 ease-out rounded-full relative"
-                  style={{ width: `${completionPercentage}%` }}
-                >
-                  <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse" />
+          {/* Progress Display - only show if not minimized */}
+          {!isMinimized && (
+            <div className="flex items-center gap-4 mt-4">
+              <div className="flex-1">
+                <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                  <div 
+                    className="h-full bg-gradient-primary transition-all duration-1000 ease-out rounded-full relative"
+                    style={{ width: `${completionPercentage}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse" />
+                  </div>
                 </div>
               </div>
+              <CircularProgress 
+                percentage={completionPercentage} 
+                size={50} 
+                strokeWidth={6}
+                showText={false}
+              />
             </div>
-            <CircularProgress 
-              percentage={completionPercentage} 
-              size={50} 
-              strokeWidth={6}
-              showText={false}
-            />
-          </div>
+          )}
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        {/* Exercise Content - hide if minimized */}
+        {!isMinimized && (
+          <CardContent className="space-y-6">
           {hasSubstitute && !isLocked && (
             <>
               <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
@@ -588,15 +627,25 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
             })}
           </div>
 
-          {isCompleted && (
-            <div className="text-center p-4 bg-gradient-to-r from-success/20 to-success/10 rounded-lg border border-success/30 animate-slide-in">
-              <div className="flex items-center justify-center gap-2 text-success font-semibold">
-                <CheckCircle2 className="h-5 w-5" />
-                Exercise Complete! Great job! 🎉
+            {isCompleted && (
+              <div className="text-center p-4 bg-gradient-to-r from-success/20 to-success/10 rounded-lg border border-success/30 animate-slide-in">
+                <div className="flex items-center justify-center gap-2 text-success font-semibold">
+                  <CheckCircle2 className="h-5 w-5" />
+                  Exercise Complete! Great job! 🎉
+                </div>
               </div>
+            )}
+          </CardContent>
+        )}
+        
+        {/* Minimized view for completed exercises */}
+        {isMinimized && (
+          <CardContent className="p-4">
+            <div className="text-center text-sm text-muted-foreground">
+              Exercise completed - Click 📖 to expand
             </div>
-          )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
     );
   };
