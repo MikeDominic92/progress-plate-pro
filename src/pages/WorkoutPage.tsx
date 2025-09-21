@@ -108,7 +108,8 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
   
   // Ref for debouncing session updates
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  // Prevent overwriting local typing with session re-hydration
+  const hasHydratedFromSession = useRef(false);
   const [workoutLog, setWorkoutLog] = useState(() => {
     // Always ensure we return an array, never undefined/null
     try {
@@ -147,15 +148,21 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
         }
       }, 100); // Small delay to prevent race conditions
 
-      // Load workout data if available
+      // Load workout data if available (hydrate once to avoid focus loss while typing)
       if (currentSession.workout_data && currentSession.workout_data.logs) {
         const logs = currentSession.workout_data.logs;
         // Ensure logs is an array before setting state
         if (Array.isArray(logs)) {
-          setWorkoutLog(logs);
+          if (!hasHydratedFromSession.current) {
+            setWorkoutLog(logs);
+            hasHydratedFromSession.current = true;
+          }
         } else {
           console.warn('Workout logs is not an array, using initial data');
-          setWorkoutLog(initialWorkoutData);
+          if (!hasHydratedFromSession.current) {
+            setWorkoutLog(initialWorkoutData);
+            hasHydratedFromSession.current = true;
+          }
         }
       }
 
