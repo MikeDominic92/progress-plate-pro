@@ -451,6 +451,22 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
     });
   };
 
+  const handleVideoWatched = (categoryIndex: number, exerciseIndex: number) => {
+    const videoKey = `${categoryIndex}-${exerciseIndex}`;
+    const watchedVideos = warmupData.watchedVideos || [];
+    if (!watchedVideos.includes(videoKey)) {
+      setWarmupData({ 
+        ...warmupData, 
+        watchedVideos: [...watchedVideos, videoKey]
+      });
+    }
+  };
+
+  const isVideoWatched = (categoryIndex: number, exerciseIndex: number) => {
+    const videoKey = `${categoryIndex}-${exerciseIndex}`;
+    return (warmupData.watchedVideos || []).includes(videoKey);
+  };
+
   return (
     <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
       <CardHeader>
@@ -515,23 +531,36 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
                 <h4 className="font-semibold text-foreground">{category.category}</h4>
                 <p className="text-xs text-muted-foreground">2 sets of 10-20 reps per side/movement</p>
                 <div className="space-y-2">
-                  {category.exercises.map((exercise, exerciseIndex) => (
-                    <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/50">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{exercise.name}</p>
-                        <p className="text-xs text-muted-foreground">Watch {exercise.timeSegment}</p>
+                  {category.exercises.map((exercise, exerciseIndex) => {
+                    const isWatched = isVideoWatched(categoryIndex, exerciseIndex);
+                    return (
+                      <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/50">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">{exercise.name}</p>
+                          <p className="text-xs text-muted-foreground">Watch {exercise.timeSegment}</p>
+                          {isWatched && (
+                            <p className="text-xs text-success font-medium">✓ Watched</p>
+                          )}
+                        </div>
+                        <Button
+                          onClick={() => {
+                            handleVideoWatched(categoryIndex, exerciseIndex);
+                            window.open(exercise.videoUrl, "_blank");
+                          }}
+                          variant={isWatched ? "default" : "outline"}
+                          size="sm"
+                          className={`flex items-center gap-1 transition-all duration-300 ${
+                            isWatched 
+                              ? 'bg-success hover:bg-success/80 text-success-foreground border-success' 
+                              : 'hover:bg-primary/10 hover:border-primary/30'
+                          }`}
+                        >
+                          <Play className="h-3 w-3" />
+                          {isWatched ? 'Watched' : 'Watch'}
+                        </Button>
                       </div>
-                      <Button
-                        onClick={() => window.open(exercise.videoUrl, "_blank")}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-1"
-                      >
-                        <Play className="h-3 w-3" />
-                        Watch
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -655,7 +684,8 @@ export default function FitnessApp() {
   const [warmupData, setWarmupData] = useState({
     mood: '',
     exercisesCompleted: false,
-    completed: false
+    completed: false,
+    watchedVideos: [] as string[]
   });
   const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
   const { toast } = useToast();
