@@ -328,6 +328,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
       return acc + exercise.sets.filter((set: any) => set.confirmed).length;
     }, 0) : 0;
   const overallProgress = (completedSets / totalSets) * 100;
+  const remainingProgress = 100 - overallProgress;
 
   // Check for workout completion
   useEffect(() => {
@@ -747,13 +748,13 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
           {/* Enhanced overall progress */}
           <div className="max-w-lg mx-auto space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground font-medium">Overall Progress</span>
-              <span className="text-primary font-bold text-lg">{Math.round(overallProgress)}%</span>
+              <span className="text-white font-medium">Remaining Progress</span>
+              <span className="text-orange-500 font-bold text-lg">{Math.round(remainingProgress)}%</span>
             </div>
             <div className="relative">
-              <div className="w-full bg-muted/50 rounded-full h-4 overflow-hidden backdrop-blur-sm">
+              <div className="w-full bg-black border border-orange-500 rounded-full h-4 overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-primary rounded-full transition-all duration-1000 ease-out relative"
+                  className="h-full bg-orange-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{ width: `${overallProgress}%` }}
                 >
                   <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse" />
@@ -761,14 +762,14 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               </div>
               <div className="absolute -top-2 right-0 transform translate-x-1/2">
                 <CircularProgress 
-                  percentage={overallProgress} 
+                  percentage={remainingProgress} 
                   size={60} 
                   strokeWidth={8}
                   showText={false}
                 />
               </div>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-xs text-white">
               <span>{completedSets} sets completed</span>
               <span>{totalSets - completedSets} remaining</span>
             </div>
