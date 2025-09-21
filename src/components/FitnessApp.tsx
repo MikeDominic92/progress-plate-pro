@@ -130,7 +130,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exIndex: number, onLogChange: any }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean }) => {
   const [activeTab, setActiveTab] = useState('main');
   const [showRestTimer, setShowRestTimer] = useState(false);
   const hasSubstitute = !!exercise.substitute;
@@ -144,18 +144,36 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
 
   return (
     <>
-      <Card className="bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow transition-all duration-500 overflow-hidden group hover:scale-[1.01]">
+      <Card className={`transition-all duration-500 overflow-hidden group ${
+        isActive 
+          ? 'bg-gradient-to-br from-primary/20 to-primary/5 backdrop-blur-glass border-primary shadow-lg shadow-primary/20 scale-[1.02]' 
+          : isCompleted 
+            ? 'bg-gradient-card/60 backdrop-blur-glass border-success/30 shadow-md opacity-90' 
+            : isLocked 
+              ? 'bg-card/30 backdrop-blur-glass border-white/5 shadow-sm opacity-50 cursor-not-allowed'
+              : 'bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow hover:scale-[1.01]'
+      }`}>
         <CardHeader className="pb-6">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <CardTitle className="text-xl font-bold text-foreground">
+                <CardTitle className={`text-xl font-bold ${isActive ? 'text-primary' : 'text-foreground'}`}>
                   {activeExercise.name}
                 </CardTitle>
-                {isFullyComplete && (
+                {isCompleted && (
                   <div className="animate-bounce">
-                    <Trophy className="h-5 w-5 text-primary" />
+                    <CheckCircle2 className="h-5 w-5 text-success" />
                   </div>
+                )}
+                {isActive && (
+                  <Badge className="bg-primary text-primary-foreground animate-pulse">
+                    Active
+                  </Badge>
+                )}
+                {isLocked && (
+                  <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30">
+                    Locked
+                  </Badge>
                 )}
               </div>
               <Badge variant={getTierBadgeVariant(activeExercise.tier) as any} className="w-fit font-medium">
@@ -175,9 +193,12 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
             <div className="flex flex-col gap-2">
               <Button 
                 asChild
-                className="bg-gradient-primary hover:shadow-glow transition-all duration-300 group"
+                disabled={isLocked}
+                className={`transition-all duration-300 group ${
+                  isLocked ? 'opacity-50 cursor-not-allowed' : 'bg-gradient-primary hover:shadow-glow'
+                }`}
               >
-                <a href={activeExercise.videoUrl} target="_blank" rel="noopener noreferrer">
+                <a href={isLocked ? '#' : activeExercise.videoUrl} target={isLocked ? '' : '_blank'} rel="noopener noreferrer">
                   <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                   Watch
                 </a>
@@ -185,8 +206,13 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
               <Button 
                 size="sm"
                 variant="outline"
-                onClick={() => setShowRestTimer(true)}
-                className="bg-white/5 hover:bg-white/10 border-white/20"
+                disabled={isLocked}
+                onClick={() => !isLocked && setShowRestTimer(true)}
+                className={`${
+                  isLocked 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'bg-white/5 hover:bg-white/10 border-white/20'
+                }`}
               >
                 <Clock className="h-4 w-4 mr-2" />
                 Rest
@@ -216,7 +242,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {hasSubstitute && (
+          {hasSubstitute && !isLocked && (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 bg-muted/30 backdrop-blur-sm">
                 <TabsTrigger value="main" className="data-[state=active]:bg-primary/20">Main Exercise</TabsTrigger>
@@ -227,18 +253,19 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
 
           <div className="space-y-4">
             {activeExercise.sets.map((set: any, setIndex: number) => (
-              <SetLog 
-                key={`${activeTab}-${set.id}`} 
-                set={set} 
-                onLogChange={(field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)} 
-              />
+              <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
+                <SetLog 
+                  set={set} 
+                  onLogChange={isLocked ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)} 
+                />
+              </div>
             ))}
           </div>
 
-          {isFullyComplete && (
-            <div className="text-center p-4 bg-gradient-primary/10 rounded-lg border border-primary/20 animate-slide-in">
-              <div className="flex items-center justify-center gap-2 text-primary font-semibold">
-                <Trophy className="h-5 w-5" />
+          {isCompleted && (
+            <div className="text-center p-4 bg-gradient-to-r from-success/20 to-success/10 rounded-lg border border-success/30 animate-slide-in">
+              <div className="flex items-center justify-center gap-2 text-success font-semibold">
+                <CheckCircle2 className="h-5 w-5" />
                 Exercise Complete! Great job! 🎉
               </div>
             </div>
@@ -246,7 +273,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
         </CardContent>
       </Card>
       
-      {showRestTimer && (
+      {showRestTimer && isActive && (
         <RestTimer onClose={() => setShowRestTimer(false)} />
       )}
     </>
@@ -345,6 +372,7 @@ export default function FitnessApp() {
     }
   });
 
+  const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
@@ -367,6 +395,22 @@ export default function FitnessApp() {
     return acc + exercise.sets.filter((set: any) => set.weight && set.reps).length;
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
+  
+  // Check if current exercise is complete and advance to next
+  useEffect(() => {
+    if (activeExerciseIndex < workoutLog.length) {
+      const currentExercise = workoutLog[activeExerciseIndex];
+      const currentCompletedSets = currentExercise.sets.filter((set: any) => set.weight && set.reps).length;
+      const currentTotalSets = currentExercise.sets.length;
+      
+      if (currentCompletedSets === currentTotalSets && activeExerciseIndex < workoutLog.length - 1) {
+        // Auto-advance to next exercise after a short delay
+        setTimeout(() => {
+          setActiveExerciseIndex(activeExerciseIndex + 1);
+        }, 1000);
+      }
+    }
+  }, [workoutLog, activeExerciseIndex]);
   
   // Check for workout completion
   useEffect(() => {
@@ -460,14 +504,25 @@ export default function FitnessApp() {
               <h2 className="text-3xl font-bold text-foreground mb-2">Main Workout</h2>
               <p className="text-muted-foreground">Focus on form and progressive overload</p>
             </div>
-            {workoutLog.map((exercise: any, exIndex: number) => (
-              <ExerciseCard 
-                key={exercise.name} 
-                exercise={exercise} 
-                exIndex={exIndex} 
-                onLogChange={handleLogChange} 
-              />
-            ))}
+            {workoutLog.map((exercise: any, index: number) => {
+              const exerciseCompletedSets = exercise.sets.filter((set: any) => set.weight && set.reps).length;
+              const exerciseTotalSets = exercise.sets.length;
+              const isCompleted = exerciseCompletedSets === exerciseTotalSets;
+              const isActive = index === activeExerciseIndex;
+              const isLocked = index > activeExerciseIndex;
+
+              return (
+                <ExerciseCard 
+                  key={index} 
+                  exercise={exercise} 
+                  exIndex={index} 
+                  onLogChange={handleLogChange}
+                  isActive={isActive}
+                  isLocked={isLocked}
+                  isCompleted={isCompleted}
+                />
+              );
+            })}
           </div>
           
           <PostWorkout />
