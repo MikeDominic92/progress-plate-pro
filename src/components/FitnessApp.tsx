@@ -51,7 +51,7 @@ const initialWorkoutData = [
   {
     name: 'Romanian Deadlift (RDL)', 
     tier: 'Great - A Tier',
-    videoUrl: 'http://www.youtube.com/watch?v=5rIqP63yWFg',
+    videoUrl: 'https://www.youtube.com/watch?v=5rIqP63yWFg',
     sets: [
       { id: 12, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
       { id: 13, type: 'Medium/Primer Set', instructions: '12 reps @ 3-4 RIR', weight: '', reps: '' },
@@ -336,7 +336,7 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
           <p className="text-muted-foreground mb-3">Easy pace, focus on long steps to fully stretch the glutes.</p>
           <div className="text-xs text-muted-foreground mb-2">Watch [00:00:00 - 00:00:02] for proper form</div>
           <Button
-            onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0&t=0s", "_blank")}
+            onClick={() => window.open("https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s", "_blank")}
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
@@ -406,32 +406,32 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
     {
       category: "Dynamic Stretches",
       exercises: [
-        { name: "Leg Swings", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=3s", timeSegment: "[00:00:03 - 00:00:04]" }
+        { name: "Leg Swings", videoUrl: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=3s", timeSegment: "[00:00:03 - 00:00:04]" }
       ]
     },
     {
       category: "Mobility Drills", 
       exercises: [
-        { name: "Deep Lunge (pushing knee outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=3s", timeSegment: "[00:00:03 - 00:00:05]" },
-        { name: "90/90", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=9s", timeSegment: "[00:00:09 - 00:00:11]" },
-        { name: "Frog", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=6s", timeSegment: "[00:00:06 - 00:00:08]" },
-        { name: "Single Leg Groin Stretch", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=9s", timeSegment: "[00:00:09 - 00:00:11]" }
+        { name: "Deep Lunge (pushing knee outwards)", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=3s", timeSegment: "[00:00:03 - 00:00:05]" },
+        { name: "90/90", videoUrl: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=9s", timeSegment: "[00:00:09 - 00:00:11]" },
+        { name: "Frog", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=6s", timeSegment: "[00:00:06 - 00:00:08]" },
+        { name: "Single Leg Groin Stretch", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=9s", timeSegment: "[00:00:09 - 00:00:11]" }
       ]
     },
     {
       category: "Activation Exercises",
       exercises: [
-        { name: "Deep Squat (pushing knees outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=12s", timeSegment: "[00:00:12 - 00:00:14]" },
-        { name: "Deep Squat w/ Knee Taps", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=15s", timeSegment: "[00:00:15 - 00:00:17]" },
-        { name: "Cossack Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=4s", timeSegment: "[00:00:04 - 00:00:06]" },
-        { name: "Cossack Squat w/ Internal Rotation", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=19s", timeSegment: "[00:00:19 - 00:00:22]" },
-        { name: "ATG Split Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=6s", timeSegment: "[00:00:06 - 00:00:08]" }
+        { name: "Deep Squat (pushing knees outwards)", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=12s", timeSegment: "[00:00:12 - 00:00:14]" },
+        { name: "Deep Squat w/ Knee Taps", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=15s", timeSegment: "[00:00:15 - 00:00:17]" },
+        { name: "Cossack Squat", videoUrl: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=4s", timeSegment: "[00:00:04 - 00:00:06]" },
+        { name: "Cossack Squat w/ Internal Rotation", videoUrl: "https://www.youtube.com/watch?v=yWuqjSFz2vc&t=19s", timeSegment: "[00:00:19 - 00:00:22]" },
+        { name: "ATG Split Squat", videoUrl: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=6s", timeSegment: "[00:00:06 - 00:00:08]" }
       ]
     },
     {
       category: "Specific Warm-up Sets",
       exercises: [
-        { name: "Warmup sets before working sets", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=13s", timeSegment: "[00:00:13 - 00:00:15]" }
+        { name: "Warmup sets before working sets", videoUrl: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=13s", timeSegment: "[00:00:13 - 00:00:15]" }
       ]
     }
   ];
