@@ -14,25 +14,29 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/cardio" element={<CardioPage username="user" />} />
-          <Route path="/warmup" element={<WarmupPage username="user" />} />
-          <Route path="/workout" element={<WorkoutOverviewPage username="user" />} />
-          <Route path="/exercise/:exerciseIndex" element={<ExercisePage username="user" />} />
-          <Route path="/post-workout" element={<PostWorkoutPage username="user" />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const storedUsername = (typeof window !== 'undefined' && localStorage.getItem('username')) || 'user';
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/cardio" element={<CardioPage username={storedUsername} />} />
+            <Route path="/warmup" element={<WarmupPage username={storedUsername} />} />
+            <Route path="/workout" element={<WorkoutOverviewPage username={storedUsername} />} />
+            <Route path="/exercise/:exerciseIndex" element={<ExercisePage username={storedUsername} />} />
+            <Route path="/post-workout" element={<PostWorkoutPage username={storedUsername} />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

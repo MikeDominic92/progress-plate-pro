@@ -46,6 +46,8 @@ export default function PostWorkoutPage({ username }: PostWorkoutPageProps) {
     localStorage.removeItem('jackyWorkoutLog');
     localStorage.removeItem('jackyCardioData');
     localStorage.removeItem('jackyWarmupData');
+    // Force creation of a brand new session on next page
+    localStorage.setItem('forceNewSession', '1');
     
     // Create a new session in Supabase by updating the current one to completed
     // and letting the system create a fresh one

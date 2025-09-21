@@ -23,6 +23,17 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleStartWorkout = (username: string, existingSession?: WorkoutSession) => {
+    // Persist chosen username for the rest of the app
+    try {
+      localStorage.setItem('username', username);
+      if (!existingSession) {
+        // Force a brand new session when starting fresh from Landing
+        localStorage.setItem('forceNewSession', '1');
+      }
+    } catch (e) {
+      console.warn('Unable to persist username/flags:', e);
+    }
+
     // If there's an existing session, navigate to the appropriate phase
     if (existingSession) {
       switch (existingSession.current_phase) {

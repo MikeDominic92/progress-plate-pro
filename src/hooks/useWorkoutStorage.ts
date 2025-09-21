@@ -56,6 +56,26 @@ export const useWorkoutStorage = (username: string) => {
 
     // Check if there's already a session for today
     const today = new Date().toISOString().split('T')[0];
+
+    // If user explicitly started a new workout, skip lookup and create one
+    const forceNew = typeof window !== 'undefined' && localStorage.getItem('forceNewSession') === '1';
+    if (forceNew) {
+      try { localStorage.removeItem('forceNewSession'); } catch {}
+      const newSession: WorkoutSession = {
+        username,
+        session_date: today,
+        current_phase: 'cardio',
+        cardio_completed: false,
+        warmup_completed: false,
+        warmup_exercises_completed: false,
+        warmup_watched_videos: [],
+        workout_data: { logs: {}, timers: {} }
+      };
+      setCurrentSession(newSession);
+      await saveSession(newSession);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('workout_sessions')
