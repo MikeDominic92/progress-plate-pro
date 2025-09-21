@@ -90,26 +90,27 @@ const getTierBadgeVariant = (tier: string) => {
   return 'destructive';
 };
 
-const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, value: string) => void }) => {
+const SetLog = ({ set, onLogChange, onSetComplete }: { set: any, onLogChange: (field: string, value: string) => void, onSetComplete?: () => void }) => {
   const isWarmUp = set.type === 'Warm Up Set';
   const isComplete = set.weight && set.reps;
+  const isConfirmed = set.confirmed;
   
   return (
-    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'} ${isComplete ? 'ring-1 ring-success/50 bg-success/5' : ''}`}>
+    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'} ${isConfirmed ? 'ring-1 ring-success/50 bg-success/5' : isComplete ? 'ring-1 ring-warning/50 bg-warning/5' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="space-y-1">
             <h4 className="font-semibold text-foreground">{set.type}</h4>
             <p className="text-sm text-muted-foreground">{set.instructions}</p>
           </div>
-          {isComplete && (
+          {isConfirmed && (
             <Badge variant="outline" className="text-success border-success/50 bg-success/10">
-              Complete
+              ✓ Set Complete
             </Badge>
           )}
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <FitnessInput
             label="Weight"
             icon={<Weight className="h-4 w-4" />}
@@ -118,6 +119,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
             value={set.weight}
             onChange={(e) => onLogChange('weight', e.target.value)}
             variant={set.weight ? 'success' : 'default'}
+            disabled={isConfirmed}
           />
           <FitnessInput
             label="Reps"
@@ -127,14 +129,26 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
             value={set.reps}
             onChange={(e) => onLogChange('reps', e.target.value)}
             variant={set.reps ? 'success' : 'default'}
+            disabled={isConfirmed}
           />
         </div>
+
+        {isComplete && !isConfirmed && onSetComplete && (
+          <Button 
+            onClick={onSetComplete}
+            className="w-full bg-gradient-primary hover:shadow-glow"
+            size="sm"
+          >
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Set Complete?
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void }) => {
   const [activeTab, setActiveTab] = useState('main');
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
@@ -277,7 +291,8 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
               <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
                 <SetLog 
                   set={set} 
-                  onLogChange={isLocked ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)} 
+                  onLogChange={isLocked ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)}
+                  onSetComplete={isLocked ? undefined : () => onSetComplete && onSetComplete(exIndex, setIndex)}
                 />
               </div>
             ))}
@@ -1016,6 +1031,28 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
   
+  // Handle individual set completion (confirm set)
+  const handleIndividualSetComplete = (exIndex: number, setIndex: number) => {
+    const updatedLog = JSON.parse(JSON.stringify(workoutLog));
+    updatedLog[exIndex].sets[setIndex].confirmed = true;
+    setWorkoutLog(updatedLog);
+    
+    // Pause the exercise timer
+    setIsExerciseTimerPaused(true);
+    
+    // Show rest timer selector
+    setShowRestTimer(true);
+    
+    // Save the completion
+    if (manualSave) {
+      setTimeout(() => {
+        manualSave({
+          workout_data: { logs: updatedLog, timers: {} }
+        });
+      }, 500);
+    }
+  };
+
   // Handle set completion and timer pausing
   const handleSetComplete = (exIndex: number, setIndex: number, field: string, value: string, activeTab: string = 'main') => {
     handleLogChange(exIndex, setIndex, field, value, activeTab);
@@ -1074,6 +1111,8 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     setShowRestTimer(false);
     setIsExerciseTimerPaused(false); // Resume exercise timer
     setExerciseTimerCompleted(false);
+    
+    // User can continue to next set manually or timer will continue
     
     // Check if we should advance to next exercise
     const currentExercise = workoutLog[activeExerciseIndex];
@@ -1284,8 +1323,8 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                 const isActive = index === activeExerciseIndex;
                 const isLocked = index > activeExerciseIndex;
 
-                return (
-                  <ExerciseCard 
+                  return (
+                    <ExerciseCard 
                     key={index} 
                     exercise={exercise} 
                     exIndex={index} 
@@ -1295,6 +1334,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                     isCompleted={isCompleted}
                     onStartTimer={handleExerciseStart}
                     isTimerActive={currentExerciseStartTime !== null}
+                    onSetComplete={handleIndividualSetComplete}
                   />
                 );
               })}
@@ -1320,7 +1360,10 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
         <RestTimerSelector
           isVisible={showRestTimer}
           onComplete={handleRestComplete}
-          onClose={() => setShowRestTimer(false)}
+          onClose={() => {
+            setShowRestTimer(false);
+            setIsExerciseTimerPaused(false); // Resume timer if they close without completing rest
+          }}
         />
       </div>
     </div>
