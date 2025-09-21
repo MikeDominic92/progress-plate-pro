@@ -30,16 +30,18 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
   useEffect(() => {
     if (!isActive) {
       setIsRunning(false);
-      setTimeLeft(duration * 60);
       setHasStarted(false);
+      // Do not reset timeLeft here to avoid unintended resets during re-renders
+      // It will reset only when user presses Reset
     } else if (isPaused) {
       setIsRunning(false);
     } else if (isActive && !hasStarted) {
       // Auto-start timer when it becomes active
       setHasStarted(true);
       setIsRunning(true);
+      try { onStart(); } catch {}
     }
-  }, [isActive, duration, isPaused, hasStarted]);
+  }, [isActive, isPaused, hasStarted, onStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
