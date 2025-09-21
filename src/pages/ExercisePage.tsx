@@ -600,8 +600,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             )}
 
 
-            {/* Main Exercise Sets - Only show if timer has started */}
-            {currentExerciseStartTime && (
+            {/* Main Exercise Sets - Show if main video watched OR timer started */}
+            {(hasWatchedMainVideo || currentExerciseStartTime) && (
               <Tabs defaultValue="main" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
                   <TabsTrigger value="main" className="relative text-xs sm:text-sm">
@@ -625,13 +625,23 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 </TabsList>
               
               <TabsContent value="main" className="space-y-4 mt-6">
+                {/* Show message if main watched but timer not started */}
+                {hasWatchedMainVideo && !currentExerciseStartTime && currentExercise.substitute && (
+                  <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg text-center">
+                    <p className="text-warning font-medium">
+                      ⏱️ Watch the substitute exercise demo to start your timer
+                    </p>
+                  </div>
+                )}
+                
                 {currentExercise.sets.map((set: any, setIndex: number) => {
                   const allPreviousSetsCompleted = currentExercise.sets
                     .slice(0, setIndex)
                     .every((s: any) => s.confirmed);
                   
                   const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
-                  const canInteract = allPreviousSetsCompleted;
+                  // Only allow interaction if timer has started
+                  const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime);
                   
                   return (
                     <SetLog
@@ -648,6 +658,15 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               
               {currentExercise.substitute && (
                 <TabsContent value="substitute" className="space-y-4 mt-6">
+                  {/* Show message if substitute not watched yet */}
+                  {!hasWatchedSubstituteVideo && (
+                    <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg text-center mb-4">
+                      <p className="text-primary font-medium">
+                        👀 Watch the substitute exercise demo below to unlock this section
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="mb-4 p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -685,52 +704,58 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     </div>
                   </div>
                   
-                  {currentExercise.substitute.sets.map((set: any, setIndex: number) => {
-                    const allPreviousSetsCompleted = currentExercise.substitute.sets
-                      .slice(0, setIndex)
-                      .every((s: any) => s.confirmed);
+                  {/* Show substitute sets only if substitute video watched AND timer started */}
+                  {hasWatchedSubstituteVideo && currentExerciseStartTime && (
+                    <>
+                      {currentExercise.substitute.sets.map((set: any, setIndex: number) => {
+                        const allPreviousSetsCompleted = currentExercise.substitute.sets
+                          .slice(0, setIndex)
+                          .every((s: any) => s.confirmed);
+                        
+                        const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
+                        // Only allow interaction if timer has started
+                        const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime);
                     
-                    const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
-                    const canInteract = allPreviousSetsCompleted;
-                    
-                    return (
-                      <SetLog
-                        key={set.id}
-                        set={set}
-                        onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
-                        onSetComplete={() => {
-                          const updatedLog = JSON.parse(JSON.stringify(workoutLog));
-                          updatedLog[currentExerciseIndex].substitute.sets[setIndex].confirmed = true;
-                          setWorkoutLog(updatedLog);
-                          
-                          setCurrentSetInProgress({exerciseIndex: currentExerciseIndex, setIndex: setIndex});
-                          setIsExerciseTimerPaused(true);
-                          setShowRestTimer(true);
-                          
-                          updateSession({
-                            workout_data: { logs: updatedLog, timers: {} }
-                          });
-                          
-                          const allSetsCompleted = updatedLog[currentExerciseIndex].substitute.sets.every((s: any) => s.confirmed);
-                          
-                          if (allSetsCompleted) {
-                            console.log(`All substitute sets completed for exercise ${currentExerciseIndex + 1}!`);
-                            // Auto-navigate to next exercise after completing all sets
-                            setTimeout(() => {
-                              if (currentExerciseIndex < workoutLog.length - 1) {
-                                navigate(`/exercise/${currentExerciseIndex + 1}`);
-                              } else {
-                                // All exercises completed, navigate to post-workout
-                                navigate('/post-workout');
+                        return (
+                          <SetLog
+                            key={set.id}
+                            set={set}
+                            onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
+                            onSetComplete={() => {
+                              const updatedLog = JSON.parse(JSON.stringify(workoutLog));
+                              updatedLog[currentExerciseIndex].substitute.sets[setIndex].confirmed = true;
+                              setWorkoutLog(updatedLog);
+                              
+                              setCurrentSetInProgress({exerciseIndex: currentExerciseIndex, setIndex: setIndex});
+                              setIsExerciseTimerPaused(true);
+                              setShowRestTimer(true);
+                              
+                              updateSession({
+                                workout_data: { logs: updatedLog, timers: {} }
+                              });
+                              
+                              const allSetsCompleted = updatedLog[currentExerciseIndex].substitute.sets.every((s: any) => s.confirmed);
+                              
+                              if (allSetsCompleted) {
+                                console.log(`All substitute sets completed for exercise ${currentExerciseIndex + 1}!`);
+                                // Auto-navigate to next exercise after completing all sets
+                                setTimeout(() => {
+                                  if (currentExerciseIndex < workoutLog.length - 1) {
+                                    navigate(`/exercise/${currentExerciseIndex + 1}`);
+                                  } else {
+                                    // All exercises completed, navigate to post-workout
+                                    navigate('/post-workout');
+                                  }
+                                }, 2000);
                               }
-                            }, 2000);
-                          }
-                        }}
-                        isCurrentSet={isCurrentSet}
-                        canInteract={canInteract}
-                      />
-                    );
-                  })}
+                            }}
+                            isCurrentSet={isCurrentSet}
+                            canInteract={canInteract}
+                          />
+                        );
+                      })}
+                    </>
+                  )}
                 </TabsContent>
               )}
             </Tabs>
