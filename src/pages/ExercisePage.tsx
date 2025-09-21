@@ -533,7 +533,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         <Card className="p-3 sm:p-4 bg-black border-white/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs sm:text-sm font-medium text-white">Overall Progress</span>
-            <span className="text-xs sm:text-sm text-white">{Math.round(progressPercentage)}%</span>
+            <span className="text-xs sm:text-sm text-white">{completedSets}/20 {Math.round(progressPercentage)}%</span>
           </div>
           <div className="w-full bg-black border border-orange-500 rounded-full h-2">
             <div 
