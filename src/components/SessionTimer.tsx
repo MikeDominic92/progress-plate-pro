@@ -20,6 +20,25 @@ export const SessionTimer: React.FC<SessionTimerProps> = ({ startTime, onMotivat
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!startTime) return;
+    
+    const elapsedMs = currentTime - startTime;
+    const totalMinutes = Math.floor(elapsedMs / 60000) + 10; // Start from 10 minutes
+    const maxSessionMinutes = 130; // 2 hours 10 minutes (including the initial 10)
+    const warningThreshold = 110; // 1h 50min total
+    
+    // Show motivational messages
+    if (totalMinutes >= warningThreshold && !hasShownWarning) {
+      setHasShownWarning(true);
+      onMotivationalMessage("You're doing great! 20 minutes left - let's finish strong! 💪");
+    }
+    if (totalMinutes >= maxSessionMinutes) {
+      onMotivationalMessage("Amazing effort! You've hit the 2-hour mark. Consider wrapping up for optimal recovery. 🏆");
+    }
+  }, [currentTime, startTime, hasShownWarning, onMotivationalMessage]);
+
+  // Early return AFTER all hooks are called
   if (!startTime) return null;
 
   const elapsedMs = currentTime - startTime;
@@ -35,17 +54,6 @@ export const SessionTimer: React.FC<SessionTimerProps> = ({ startTime, onMotivat
   const progress = (totalMinutes / maxSessionMinutes) * 100;
   const isNearLimit = totalMinutes >= warningThreshold;
   const isOverLimit = totalMinutes >= maxSessionMinutes;
-
-  // Show motivational messages
-  useEffect(() => {
-    if (totalMinutes >= warningThreshold && !hasShownWarning) {
-      setHasShownWarning(true);
-      onMotivationalMessage("You're doing great! 20 minutes left - let's finish strong! 💪");
-    }
-    if (totalMinutes >= maxSessionMinutes) {
-      onMotivationalMessage("Amazing effort! You've hit the 2-hour mark. Consider wrapping up for optimal recovery. 🏆");
-    }
-  }, [totalMinutes, hasShownWarning, onMotivationalMessage, warningThreshold, maxSessionMinutes]);
 
   const getTimerColor = () => {
     if (isOverLimit) return 'bg-destructive/20 border-destructive text-destructive';
