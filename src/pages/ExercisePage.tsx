@@ -132,6 +132,16 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     initializeSession();
   }, [initializeSession]);
 
+  // Listen for manual save events
+  useEffect(() => {
+    const handleSaveWorkout = () => {
+      manualSave();
+    };
+
+    window.addEventListener('saveWorkout', handleSaveWorkout);
+    return () => window.removeEventListener('saveWorkout', handleSaveWorkout);
+  }, [manualSave]);
+
   // Reset timer when exercise changes
   useEffect(() => {
     setCurrentExerciseStartTime(null);
@@ -313,6 +323,32 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       if (!isRepsFocused) setRepsInput(set.reps ?? '');
     }, [set.reps, isRepsFocused]);
 
+    const handleWeightBlur = () => {
+      setIsWeightFocused(false);
+      // Save immediately when user finishes inputting weight
+      if (weightInput !== set.weight) {
+        onLogChange('weight', weightInput);
+        // Trigger immediate save
+        setTimeout(() => {
+          const event = new CustomEvent('saveWorkout');
+          window.dispatchEvent(event);
+        }, 100);
+      }
+    };
+
+    const handleRepsBlur = () => {
+      setIsRepsFocused(false);
+      // Save immediately when user finishes inputting reps
+      if (repsInput !== set.reps) {
+        onLogChange('reps', repsInput);
+        // Trigger immediate save
+        setTimeout(() => {
+          const event = new CustomEvent('saveWorkout');
+          window.dispatchEvent(event);
+        }, 100);
+      }
+    };
+
     const isWarmUp = set.type === 'Warm Up Set';
     const isCompleteLocal = Boolean(weightInput && repsInput);
     const isConfirmed = set.confirmed;
@@ -479,6 +515,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     if (!currentExerciseStartTime) {
                       handleExerciseStart();
                     }
+                    // Save that video was watched
+                    manualSave();
                   }}
                   className={`relative overflow-hidden transition-all duration-300 ${
                     !currentExerciseStartTime 
@@ -606,6 +644,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                           if (!currentExerciseStartTime) {
                             handleExerciseStart();
                           }
+                          // Save that substitute video was watched
+                          manualSave();
                         }}
                         className={`relative overflow-hidden transition-all duration-300 ${
                           !currentExerciseStartTime 

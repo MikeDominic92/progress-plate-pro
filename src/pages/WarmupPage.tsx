@@ -268,7 +268,11 @@ export default function WarmupPage({ username }: WarmupPageProps) {
                       key={option.value}
                       variant={warmupData.mood === option.value ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                      onClick={() => {
+                        setWarmupData({ ...warmupData, mood: option.value });
+                        // Save immediately after mood selection
+                        setTimeout(() => manualSave(), 100);
+                      }}
                       className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                         warmupData.mood === option.value 
                           ? 'bg-primary text-primary-foreground' 
@@ -287,7 +291,11 @@ export default function WarmupPage({ username }: WarmupPageProps) {
                       key={option.value}
                       variant={warmupData.mood === option.value ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                      onClick={() => {
+                        setWarmupData({ ...warmupData, mood: option.value });
+                        // Save immediately after mood selection
+                        setTimeout(() => manualSave(), 100);
+                      }}
                       className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                         warmupData.mood === option.value 
                           ? 'bg-primary text-primary-foreground' 
@@ -351,6 +359,8 @@ export default function WarmupPage({ username }: WarmupPageProps) {
                                 if (isUnlocked) {
                                   handleVideoWatched(categoryIndex, exerciseIndex);
                                   openVideoSafely(exercise.videoUrl);
+                                  // Save immediately after watching video
+                                  manualSave();
                                 }
                               }}
                               variant={isWatched ? "default" : "outline"}
