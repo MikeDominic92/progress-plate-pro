@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Trophy, Target, CheckCircle2, Home } from 'lucide-react';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PostWorkoutPageProps {
   username: string;
@@ -11,7 +12,7 @@ interface PostWorkoutPageProps {
 
 export default function PostWorkoutPage({ username }: PostWorkoutPageProps) {
   const navigate = useNavigate();
-  const { currentSession, initializeSession } = useWorkoutStorage(username);
+  const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username);
 
   useEffect(() => {
     initializeSession();
@@ -40,12 +41,32 @@ export default function PostWorkoutPage({ username }: PostWorkoutPageProps) {
     }
   }, [currentSession, navigate]);
 
-  const handleNewWorkout = () => {
+  const handleNewWorkout = async () => {
     // Clear current session and start fresh
     localStorage.removeItem('jackyWorkoutLog');
     localStorage.removeItem('jackyCardioData');
     localStorage.removeItem('jackyWarmupData');
-    navigate('/');
+    
+    // Create a new session in Supabase by updating the current one to completed
+    // and letting the system create a fresh one
+    if (currentSession) {
+      try {
+        await supabase
+          .from('workout_sessions')
+          .update({ 
+            current_phase: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentSession.id);
+      } catch (error) {
+        console.error('Error marking session as completed:', error);
+      }
+    }
+    
+    // Reset the session state in the hook
+    resetSession();
+    
+    navigate('/', { replace: true });
   };
 
   return (
