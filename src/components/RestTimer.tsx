@@ -52,9 +52,9 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
           </h3>
           <Button 
             size="sm" 
-            variant="ghost" 
+            variant="outline" 
             onClick={onClose}
-            className="h-6 w-6 p-0 hover:bg-white/10"
+            className="h-8 w-8 p-0 bg-destructive/20 hover:bg-destructive border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-lg"
           >
             ×
           </Button>
