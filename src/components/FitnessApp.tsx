@@ -7,6 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2 } from 'lucide-react';
 import { CircularProgress } from './CircularProgress';
 import { RestTimer } from './RestTimer';
+import { SessionTimer } from './SessionTimer';
+import { ExerciseTimer } from './ExerciseTimer';
+import { RestTimerSelector } from './RestTimerSelector';
 import { useToast } from '@/hooks/use-toast';
 
 // --- Data Structure for the Workout ---
@@ -130,9 +133,8 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onExerciseFinish }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onExerciseFinish?: () => void }) => {
   const [activeTab, setActiveTab] = useState('main');
-  const [showRestTimer, setShowRestTimer] = useState(false);
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
   
@@ -207,7 +209,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                 size="sm"
                 variant="outline"
                 disabled={isLocked}
-                onClick={() => !isLocked && setShowRestTimer(true)}
+                onClick={() => !isLocked && onExerciseFinish?.()}
                 className={`${
                   isLocked 
                     ? 'opacity-50 cursor-not-allowed' 
@@ -215,7 +217,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
                 }`}
               >
                 <Clock className="h-4 w-4 mr-2" />
-                Rest
+                Finish & Rest
               </Button>
             </div>
           </div>
@@ -278,10 +280,6 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
           )}
         </CardContent>
       </Card>
-      
-      {showRestTimer && isActive && (
-        <RestTimer onClose={() => setShowRestTimer(false)} />
-      )}
     </>
   );
 };
@@ -583,6 +581,11 @@ export default function FitnessApp() {
       return initialWorkoutData;
     }
   });
+  
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
+  const [showRestTimer, setShowRestTimer] = useState(false);
+  const [exerciseTimerCompleted, setExerciseTimerCompleted] = useState(false);
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -594,6 +597,7 @@ export default function FitnessApp() {
     completed: false
   });
   const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
+  const { toast } = useToast();
 
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
@@ -618,10 +622,46 @@ export default function FitnessApp() {
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
   
+  // Timer management
+  const handleMotivationalMessage = (message: string) => {
+    toast({
+      title: "Training Update",
+      description: message,
+      duration: 5000,
+    });
+  };
+
+  const handleCardioComplete = () => {
+    setSessionStartTime(Date.now());
+    // Will trigger warmup phase
+  };
+
+  const handleExerciseStart = () => {
+    setCurrentExerciseStartTime(Date.now());
+  };
+
+  const handleExerciseComplete = () => {
+    setExerciseTimerCompleted(true);
+    setCurrentExerciseStartTime(null);
+  };
+
+  const handleExerciseFinish = () => {
+    setShowRestTimer(true);
+  };
+
+  const handleRestComplete = () => {
+    setShowRestTimer(false);
+    setExerciseTimerCompleted(false);
+    if (activeExerciseIndex < workoutLog.length - 1) {
+      setActiveExerciseIndex(activeExerciseIndex + 1);
+    }
+  };
+
   // Check if current exercise is complete and advance to next
   useEffect(() => {
     // Auto-progress through phases
     if (currentPhase === 'cardio' && cardioData.completed) {
+      handleCardioComplete();
       setTimeout(() => setCurrentPhase('warmup'), 1000);
     } else if (currentPhase === 'warmup' && warmupData.completed) {
       setTimeout(() => setCurrentPhase('main'), 1000);
@@ -674,6 +714,11 @@ export default function FitnessApp() {
         </div>
       )}
 
+      <SessionTimer 
+        startTime={sessionStartTime} 
+        onMotivationalMessage={handleMotivationalMessage}
+      />
+      
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Enhanced Header */}
         <div className="text-center mb-12">
@@ -732,7 +777,16 @@ export default function FitnessApp() {
           
           {/* Warmup Phase */}
           {(currentPhase === 'warmup' || warmupData.completed) && cardioData.completed && (
-            <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
+            <>
+              <ExerciseTimer
+                duration={15} // 15 minutes for warm-up
+                onComplete={handleExerciseComplete}
+                onStart={handleExerciseStart}
+                isActive={currentPhase === 'warmup' && !warmupData.completed}
+                exerciseType="warmup"
+              />
+              <WarmupTracking warmupData={warmupData} setWarmupData={setWarmupData} />
+            </>
           )}
           
           {/* Main Workout Phase */}
@@ -742,6 +796,16 @@ export default function FitnessApp() {
                 <h2 className="text-3xl font-bold text-foreground mb-2">Main Workout</h2>
                 <p className="text-muted-foreground">Focus on form and progressive overload</p>
               </div>
+              {currentPhase === 'main' && (
+                <ExerciseTimer
+                  duration={20} // 20 minutes for main exercises
+                  onComplete={handleExerciseComplete}
+                  onStart={handleExerciseStart}
+                  isActive={currentExerciseStartTime !== null}
+                  exerciseType="main"
+                />
+              )}
+              
               {workoutLog.map((exercise: any, index: number) => {
                 const exerciseCompletedSets = exercise.sets.filter((set: any) => set.weight && set.reps).length;
                 const exerciseTotalSets = exercise.sets.length;
@@ -758,6 +822,7 @@ export default function FitnessApp() {
                     isActive={isActive}
                     isLocked={isLocked}
                     isCompleted={isCompleted}
+                    onExerciseFinish={handleExerciseFinish}
                   />
                 );
               })}
@@ -779,6 +844,12 @@ export default function FitnessApp() {
             </p>
           </div>
         </footer>
+        
+        <RestTimerSelector
+          isVisible={showRestTimer}
+          onComplete={handleRestComplete}
+          onClose={() => setShowRestTimer(false)}
+        />
       </div>
     </div>
   );
