@@ -296,6 +296,18 @@ export default function ExercisePage({ username }: ExercisePageProps) {
 
   const currentExercise = workoutLog[currentExerciseIndex];
   
+  // Auto-start timer once required demos are watched
+  useEffect(() => {
+    const hasSubstitute = Boolean(currentExercise?.substitute);
+    const shouldStartTimer = hasSubstitute
+      ? hasWatchedMainVideo && hasWatchedSubstituteVideo
+      : hasWatchedMainVideo;
+
+    if (shouldStartTimer && !currentExerciseStartTime) {
+      handleExerciseStart();
+    }
+  }, [hasWatchedMainVideo, hasWatchedSubstituteVideo, currentExerciseStartTime, currentExercise]);
+  
   if (!currentExercise) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
