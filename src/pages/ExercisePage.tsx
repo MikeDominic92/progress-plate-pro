@@ -107,6 +107,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
   const [hasWatchedSubstituteVideo, setHasWatchedSubstituteVideo] = useState(false);
+  const [hasWatchedMainVideo, setHasWatchedMainVideo] = useState(false);
   const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -148,7 +149,23 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     setCurrentExerciseStartTime(null);
     setIsExerciseTimerPaused(false);
     setHasWatchedSubstituteVideo(false); // Reset substitute video state
+    setHasWatchedMainVideo(false); // Reset main video state
   }, [currentExerciseIndex]);
+
+  // Check if timer should start based on watched videos
+  const checkAndStartTimer = () => {
+    const hasSubstitute = currentExercise.substitute;
+    const mainWatched = hasWatchedMainVideo;
+    const subWatched = hasWatchedSubstituteVideo;
+    
+    // If no substitute, just need main video watched
+    // If substitute exists, need both videos watched
+    const shouldStartTimer = hasSubstitute ? (mainWatched && subWatched) : mainWatched;
+    
+    if (shouldStartTimer && !currentExerciseStartTime) {
+      handleExerciseStart();
+    }
+  };
 
   useEffect(() => {
     if (currentSession) {
@@ -517,21 +534,31 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       size="lg"
                       onClick={() => {
                         window.open(currentExercise.videoUrl, '_blank');
-                        // Start timer when demo is watched
-                        handleExerciseStart();
+                        setHasWatchedMainVideo(true);
+                        // Check if we should start timer after watching main video
+                        setTimeout(() => checkAndStartTimer(), 100);
                         // Save that video was watched
                         manualSave();
                       }}
-                      className="bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl animate-pulse w-full sm:w-auto"
+                      className={`bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto ${
+                        !hasWatchedMainVideo ? 'animate-pulse' : ''
+                      }`}
                     >
-                      <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 animate-bounce" />
-                      <span className="whitespace-nowrap">Watch Demo to Begin Exercise</span>
+                      <Play className={`h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 ${!hasWatchedMainVideo ? 'animate-bounce' : ''}`} />
+                      <span className="whitespace-nowrap">
+                        {!hasWatchedMainVideo ? 'Watch Demo to Begin Exercise' : 'Demo Watched ✓'}
+                      </span>
                     </Button>
                     {/* Substitute notification below button */}
                     {currentExercise.substitute && (
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
-                        Exercise {currentExerciseIndex + 1} has a substitute option
-                      </p>
+                      <div className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
+                        <p>Exercise {currentExerciseIndex + 1} has a substitute option</p>
+                        {!currentExerciseStartTime && (
+                          <p className="text-warning font-medium mt-1">
+                            ⚠️ Watch both videos to start timer
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -543,6 +570,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     size="sm"
                     onClick={() => {
                       window.open(currentExercise.videoUrl, '_blank');
+                      setHasWatchedMainVideo(true);
+                      setTimeout(() => checkAndStartTimer(), 100);
                       manualSave();
                     }}
                     className="transition-all duration-300 whitespace-nowrap"
@@ -630,6 +659,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         onClick={() => {
                           window.open(currentExercise.substitute.videoUrl, '_blank');
                           setHasWatchedSubstituteVideo(true); // Mark substitute video as watched
+                          // Check if we should start timer after watching substitute video
+                          setTimeout(() => checkAndStartTimer(), 100);
                           manualSave();
                         }}
                         className={`relative overflow-hidden transition-all duration-300 ${
