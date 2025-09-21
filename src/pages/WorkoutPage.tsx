@@ -253,25 +253,23 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     scrollToActiveExercise();
   }, [activeExerciseIndex]);
 
-  // Also scroll when page loads and there's an active exercise
+  // Also scroll once on initial mount to the active exercise
   useEffect(() => {
-    if (currentSession && activeExerciseIndex >= 0) {
-      const scrollToActiveExercise = () => {
-        const activeExerciseElement = document.getElementById(`exercise-${activeExerciseIndex}`);
-        if (activeExerciseElement) {
-          setTimeout(() => {
-            activeExerciseElement.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
-            });
-          }, 1000); // Longer delay for initial page load
-        }
-      };
-
-      scrollToActiveExercise();
+    const activeExerciseElement = document.getElementById(`exercise-${activeExerciseIndex}`);
+    if (activeExerciseElement) {
+      setTimeout(() => {
+        try {
+          activeExerciseElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        } catch {}
+      }, 600); // One-time initial scroll
     }
-  }, [currentSession, activeExerciseIndex]);
+    // Run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRestComplete = () => {
     setShowRestTimer(false);
