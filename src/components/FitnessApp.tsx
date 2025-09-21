@@ -90,18 +90,36 @@ const getTierBadgeVariant = (tier: string) => {
   return 'destructive';
 };
 
-const SetLog = ({ set, onLogChange, onSetComplete }: { set: any, onLogChange: (field: string, value: string) => void, onSetComplete?: () => void }) => {
+const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
+  set: any, 
+  onLogChange: (field: string, value: string) => void, 
+  onSetComplete?: () => void, 
+  isCurrentSet?: boolean,
+  canInteract?: boolean
+}) => {
   const isWarmUp = set.type === 'Warm Up Set';
   const isComplete = set.weight && set.reps;
   const isConfirmed = set.confirmed;
+  const isDisabled = !canInteract && !isCurrentSet;
   
   return (
-    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'} ${isConfirmed ? 'ring-1 ring-success/50 bg-success/5' : isComplete ? 'ring-1 ring-warning/50 bg-warning/5' : ''}`}>
+    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${
+      isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'
+    } ${
+      isConfirmed ? 'ring-1 ring-success/50 bg-success/5' : 
+      isComplete && isCurrentSet ? 'ring-1 ring-warning/50 bg-warning/5' : 
+      isDisabled ? 'opacity-50' : ''
+    }`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="space-y-1">
             <h4 className="font-semibold text-foreground">{set.type}</h4>
             <p className="text-sm text-muted-foreground">{set.instructions}</p>
+            {isCurrentSet && !isConfirmed && (
+              <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
+                Current Set
+              </Badge>
+            )}
           </div>
           {isConfirmed && (
             <Badge variant="outline" className="text-success border-success/50 bg-success/10">
@@ -119,7 +137,7 @@ const SetLog = ({ set, onLogChange, onSetComplete }: { set: any, onLogChange: (f
             value={set.weight}
             onChange={(e) => onLogChange('weight', e.target.value)}
             variant={set.weight ? 'success' : 'default'}
-            disabled={isConfirmed}
+            disabled={isConfirmed || isDisabled}
           />
           <FitnessInput
             label="Reps"
@@ -129,11 +147,11 @@ const SetLog = ({ set, onLogChange, onSetComplete }: { set: any, onLogChange: (f
             value={set.reps}
             onChange={(e) => onLogChange('reps', e.target.value)}
             variant={set.reps ? 'success' : 'default'}
-            disabled={isConfirmed}
+            disabled={isConfirmed || isDisabled}
           />
         </div>
 
-        {isComplete && !isConfirmed && onSetComplete && (
+        {isComplete && !isConfirmed && isCurrentSet && onSetComplete && (
           <Button 
             onClick={onSetComplete}
             className="w-full bg-gradient-primary hover:shadow-glow"
@@ -143,12 +161,18 @@ const SetLog = ({ set, onLogChange, onSetComplete }: { set: any, onLogChange: (f
             Set Complete?
           </Button>
         )}
+        
+        {isDisabled && !isConfirmed && (
+          <div className="text-center text-sm text-muted-foreground">
+            Complete current set to unlock
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void }) => {
+const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete, currentSetInProgress }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void, currentSetInProgress?: {exerciseIndex: number, setIndex: number} | null }) => {
   const [activeTab, setActiveTab] = useState('main');
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
@@ -287,15 +311,27 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCo
           )}
 
           <div className="space-y-4">
-            {activeExercise.sets.map((set: any, setIndex: number) => (
-              <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
-                <SetLog 
-                  set={set} 
-                  onLogChange={isLocked ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)}
-                  onSetComplete={isLocked ? undefined : () => onSetComplete && onSetComplete(exIndex, setIndex)}
-                />
-              </div>
-            ))}
+            {activeExercise.sets.map((set: any, setIndex: number) => {
+              const isCurrentSet = !currentSetInProgress ? 
+                // If no set in progress, first incomplete set is current
+                !set.confirmed && activeExercise.sets.slice(0, setIndex).every((s: any) => s.confirmed) :
+                // If set in progress, only that specific set is current
+                currentSetInProgress?.exerciseIndex === exIndex && currentSetInProgress?.setIndex === setIndex;
+              
+              const canInteract = !currentSetInProgress || isCurrentSet;
+              
+              return (
+                <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
+                  <SetLog 
+                    set={set} 
+                    onLogChange={isLocked || !canInteract ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)}
+                    onSetComplete={isLocked || !canInteract ? undefined : () => onSetComplete && onSetComplete(exIndex, setIndex)}
+                    isCurrentSet={isCurrentSet}
+                    canInteract={canInteract}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {isCompleted && (
@@ -901,6 +937,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   const [exerciseTimerCompleted, setExerciseTimerCompleted] = useState(false);
   const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
+  const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -1037,6 +1074,9 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     updatedLog[exIndex].sets[setIndex].confirmed = true;
     setWorkoutLog(updatedLog);
     
+    // Track which set is currently in progress
+    setCurrentSetInProgress({exerciseIndex: exIndex, setIndex: setIndex});
+    
     // Pause the exercise timer
     setIsExerciseTimerPaused(true);
     
@@ -1111,6 +1151,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     setShowRestTimer(false);
     setIsExerciseTimerPaused(false); // Resume exercise timer
     setExerciseTimerCompleted(false);
+    setCurrentSetInProgress(null); // Clear the current set in progress
     
     // User can continue to next set manually or timer will continue
     
@@ -1335,6 +1376,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                     onStartTimer={handleExerciseStart}
                     isTimerActive={currentExerciseStartTime !== null}
                     onSetComplete={handleIndividualSetComplete}
+                    currentSetInProgress={currentSetInProgress}
                   />
                 );
               })}
@@ -1363,6 +1405,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
           onClose={() => {
             setShowRestTimer(false);
             setIsExerciseTimerPaused(false); // Resume timer if they close without completing rest
+            setCurrentSetInProgress(null); // Clear current set tracking
           }}
         />
       </div>

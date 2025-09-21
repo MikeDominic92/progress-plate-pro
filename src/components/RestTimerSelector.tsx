@@ -58,6 +58,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   const handleSelectTime = (minutes: number) => {
     setSelectedMinutes(minutes);
     setTimeLeft(minutes * 60);
+    setIsRunning(true); // Auto-start timer immediately
     setIsCompleted(false);
     setHasShown30SecWarning(false);
   };
@@ -153,21 +154,32 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
 
               {!isCompleted ? (
                 <div className="flex gap-3 justify-center">
-                  {!isRunning ? (
-                    <Button onClick={handleStart} disabled={timeLeft === 0}>
-                      <Play className="h-4 w-4 mr-2" />
-                      Start Rest
-                    </Button>
-                  ) : (
-                    <Button onClick={handlePause} variant="secondary">
-                      <Pause className="h-4 w-4 mr-2" />
-                      Pause
-                    </Button>
-                  )}
-                  
-                  <Button onClick={handleReset} variant="outline">
+                  <Button 
+                    onClick={handlePause}
+                    variant="secondary" 
+                    size="sm"
+                    className="bg-white/10 hover:bg-white/20 border-white/20"
+                  >
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause
+                  </Button>
+                  <Button 
+                    onClick={handleReset}
+                    variant="outline" 
+                    size="sm"
+                    className="bg-white/5 hover:bg-white/10 border-white/20"
+                  >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
+                  </Button>
+                  <Button 
+                    onClick={handleComplete}
+                    variant="default" 
+                    size="sm"
+                    className="bg-gradient-primary hover:shadow-glow"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Continue to Next Set
                   </Button>
                 </div>
               ) : (
