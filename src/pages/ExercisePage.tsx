@@ -552,19 +552,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Watch Demo First Message */}
-            {!currentExerciseStartTime && (
-              <Card className="p-4 text-center bg-primary/5 border-primary/20 border-dashed">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                  <span className="text-primary font-medium">Click "Watch Demo" to start your exercise timer</span>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Review proper form before beginning your exercise
-                </p>
-              </Card>
-            )}
 
             {/* Exercise Timer */}
             {currentExerciseStartTime && (
@@ -579,18 +566,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
               />
             )}
 
-            {/* Substitute Exercise Available Notification */}
-            {currentExercise.substitute && (
-              <div className="mb-4 p-3 bg-gradient-to-r from-accent/10 to-accent/5 border border-accent/30 rounded-lg animate-pulse">
-                <div className="flex items-center gap-2 text-accent">
-                  <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
-                  <span className="text-sm font-medium">
-                    💪 Alternative exercise available! Check the "Substitute" tab below.
-                  </span>
-                  <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
-                </div>
-              </div>
-            )}
 
             {/* Main Exercise Sets - Only show if timer has started */}
             {currentExerciseStartTime && (
