@@ -228,6 +228,44 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     }
   };
 
+  // Auto-scroll to active exercise
+  useEffect(() => {
+    const scrollToActiveExercise = () => {
+      const activeExerciseElement = document.getElementById(`exercise-${activeExerciseIndex}`);
+      if (activeExerciseElement) {
+        setTimeout(() => {
+          activeExerciseElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }, 500); // Small delay to ensure page is loaded
+      }
+    };
+
+    scrollToActiveExercise();
+  }, [activeExerciseIndex]);
+
+  // Also scroll when page loads and there's an active exercise
+  useEffect(() => {
+    if (currentSession && activeExerciseIndex >= 0) {
+      const scrollToActiveExercise = () => {
+        const activeExerciseElement = document.getElementById(`exercise-${activeExerciseIndex}`);
+        if (activeExerciseElement) {
+          setTimeout(() => {
+            activeExerciseElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            });
+          }, 1000); // Longer delay for initial page load
+        }
+      };
+
+      scrollToActiveExercise();
+    }
+  }, [currentSession, activeExerciseIndex]);
+
   const handleRestComplete = () => {
     setShowRestTimer(false);
     setIsExerciseTimerPaused(false);
@@ -576,7 +614,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
           <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-primary/20 backdrop-blur-glass rounded-full text-primary-foreground font-medium text-sm mb-6 border border-primary/30">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             <Target className="h-4 w-4" />
-            Phase 3: Main Workout
+            Phase 3: Main Workout - Exercise {activeExerciseIndex + 1} of {workoutLog.length}
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
           </div>
           <h1 className="text-4xl md:text-6xl font-black bg-gradient-hero bg-clip-text text-transparent mb-4 tracking-tight">
@@ -585,6 +623,15 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
             Focus on form and progressive overload
           </p>
+          
+          {/* Show current exercise name */}
+          {Array.isArray(workoutLog) && workoutLog[activeExerciseIndex] && (
+            <div className="mb-6">
+              <p className="text-primary font-semibold text-xl">
+                Current: {workoutLog[activeExerciseIndex].name}
+              </p>
+            </div>
+          )}
           
           {/* Enhanced overall progress */}
           <div className="max-w-lg mx-auto space-y-4">
@@ -645,20 +692,27 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
             const isLocked = index > activeExerciseIndex || isCompleted;
 
             return (
-              <ExerciseCard 
+              <div 
                 key={index} 
-                exercise={exercise} 
-                exIndex={index} 
-                onLogChange={handleLogChange}
-                isActive={isActive}
-                isLocked={isLocked}
-                isCompleted={isCompleted}
-                onStartTimer={handleExerciseStart}
-                isTimerActive={currentExerciseStartTime !== null}
-                onSetComplete={handleIndividualSetComplete}
-                currentSetInProgress={currentSetInProgress}
-                activeExerciseIndex={activeExerciseIndex}
-              />
+                id={`exercise-${index}`}
+                className={`transition-all duration-500 ${
+                  isActive ? 'ring-2 ring-primary/30 ring-offset-4 ring-offset-background animate-fade-in' : ''
+                }`}
+              >
+                <ExerciseCard 
+                  exercise={exercise} 
+                  exIndex={index} 
+                  onLogChange={handleLogChange}
+                  isActive={isActive}
+                  isLocked={isLocked}
+                  isCompleted={isCompleted}
+                  onStartTimer={handleExerciseStart}
+                  isTimerActive={currentExerciseStartTime !== null}
+                  onSetComplete={handleIndividualSetComplete}
+                  currentSetInProgress={currentSetInProgress}
+                  activeExerciseIndex={activeExerciseIndex}
+                />
+              </div>
             );
           })}
         </div>
