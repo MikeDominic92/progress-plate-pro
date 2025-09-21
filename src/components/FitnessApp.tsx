@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2 } from 'lucide-react';
+import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { CircularProgress } from './CircularProgress';
 import { RestTimer } from './RestTimer';
 import { SessionTimer } from './SessionTimer';
 import { ExerciseTimer } from './ExerciseTimer';
 import { RestTimerSelector } from './RestTimerSelector';
 import { useToast } from '@/hooks/use-toast';
+import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 
 // --- Data Structure for the Workout ---
 const initialWorkoutData = [
@@ -660,7 +661,13 @@ const PostWorkout = () => (
   </Card>
 );
 
-export default function FitnessApp() {
+interface FitnessAppProps {
+  username: string;
+  continueSession?: any;
+  onBackToLanding: () => void;
+}
+
+export default function FitnessApp({ username, continueSession, onBackToLanding }: FitnessAppProps) {
   const [workoutLog, setWorkoutLog] = useState(() => {
     try {
       const savedLog = localStorage.getItem('jackyWorkoutLog');
@@ -689,12 +696,60 @@ export default function FitnessApp() {
   });
   const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
   const { toast } = useToast();
+  
+  // Integrate workout storage
+  const { currentSession, updateSession } = useWorkoutStorage(username);
+
+  // Initialize workout storage
+  useEffect(() => {
+    if (currentSession) return; // Already initialized
+    
+    if (continueSession) {
+      // Initialize from continue session
+      setCurrentPhase(continueSession.current_phase);
+      setCardioData({
+        time: continueSession.cardio_time || '',
+        calories: continueSession.cardio_calories || '',
+        completed: continueSession.cardio_completed || false
+      });
+      setWarmupData({
+        mood: continueSession.warmup_mood || '',
+        exercisesCompleted: continueSession.warmup_exercises_completed || false,
+        completed: continueSession.warmup_completed || false,
+        watchedVideos: continueSession.warmup_watched_videos || []
+      });
+      if (continueSession.workout_data && continueSession.workout_data.logs) {
+        setWorkoutLog(continueSession.workout_data.logs);
+      }
+    }
+  }, [continueSession, currentSession]);
+
+  // Initialize workout storage with current or new session
+  const { initializeSession } = useWorkoutStorage(username);
+  useEffect(() => {
+    initializeSession(continueSession);
+  }, [username, continueSession]);
 
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
     localStorage.setItem('jackyCardioData', JSON.stringify(cardioData));
     localStorage.setItem('jackyWarmupData', JSON.stringify(warmupData));
-  }, [workoutLog, cardioData, warmupData]);
+    
+    // Auto-save to database
+    if (currentSession && updateSession) {
+      updateSession({
+        current_phase: currentPhase,
+        cardio_completed: cardioData.completed,
+        cardio_time: cardioData.time,
+        cardio_calories: cardioData.calories,
+        warmup_completed: warmupData.completed,
+        warmup_exercises_completed: warmupData.exercisesCompleted,
+        warmup_mood: warmupData.mood,
+        warmup_watched_videos: warmupData.watchedVideos,
+        workout_data: { logs: workoutLog, timers: {} }
+      });
+    }
+  }, [workoutLog, cardioData, warmupData, currentPhase, currentSession, updateSession]);
 
   const handleLogChange = (exerciseIndex: number, setIndex: number, field: string, value: string, exerciseType = 'main') => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
@@ -815,6 +870,19 @@ export default function FitnessApp() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(24_95%_53%/0.1),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,hsl(24_95%_53%/0.05),transparent_50%)]" />
+      
+      {/* Back button */}
+      <div className="absolute top-4 left-4 z-10">
+        <Button
+          onClick={onBackToLanding}
+          variant="outline"
+          size="sm"
+          className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card/80"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Landing
+        </Button>
+      </div>
       
       {/* Celebration overlay */}
       {showCelebration && (

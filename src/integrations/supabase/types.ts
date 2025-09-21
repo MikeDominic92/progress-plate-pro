@@ -24,7 +24,7 @@ export type Database = {
           id: string
           session_date: string
           updated_at: string
-          user_id: string
+          username: string
           warmup_completed: boolean | null
           warmup_exercises_completed: boolean | null
           warmup_mood: string | null
@@ -40,7 +40,7 @@ export type Database = {
           id?: string
           session_date?: string
           updated_at?: string
-          user_id: string
+          username?: string
           warmup_completed?: boolean | null
           warmup_exercises_completed?: boolean | null
           warmup_mood?: string | null
@@ -56,7 +56,7 @@ export type Database = {
           id?: string
           session_date?: string
           updated_at?: string
-          user_id?: string
+          username?: string
           warmup_completed?: boolean | null
           warmup_exercises_completed?: boolean | null
           warmup_mood?: string | null
