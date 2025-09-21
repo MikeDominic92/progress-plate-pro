@@ -26,7 +26,7 @@ interface LandingProps {
 }
 
 const Landing = ({ onStartWorkout }: LandingProps) => {
-  const [username, setUsername] = useState('JackyLove');
+  const [username, setUsername] = useState('JackyBaebae');
   const [savedSessions, setSavedSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -140,14 +140,20 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
               <div className="text-center mb-8">
                 <div className="relative">
                   <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                    Fitness Tracker
+                    Big Booty Builder Program
                   </h1>
+                  <h2 className="text-2xl font-semibold mb-3 text-primary">
+                    40 Day Challenge
+                  </h2>
                   <div className="absolute inset-0 text-4xl font-bold blur-sm bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 bg-clip-text text-transparent">
-                    Fitness Tracker
+                    Big Booty Builder Program
                   </div>
                 </div>
-                <p className="text-muted-foreground/80 text-lg">
-                  Track your workouts with precision
+                <p className="text-muted-foreground/80 text-lg mb-2">
+                  Transform your physique with precision tracking
+                </p>
+                <p className="text-sm text-muted-foreground/60">
+                  This App was made by DaBaebae
                 </p>
               </div>
 
