@@ -78,7 +78,7 @@ export default function CardioPage({ username }: CardioPageProps) {
 
       setTimeout(() => {
         navigate('/warmup');
-      }, 1500);
+      }, 2000); // Increased delay to ensure session is saved
     }
   };
 

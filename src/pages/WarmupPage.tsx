@@ -69,23 +69,29 @@ export default function WarmupPage({ username }: WarmupPageProps) {
 
   useEffect(() => {
     if (currentSession) {
-      // Check if user should be on this page
-      if (!currentSession.cardio_completed) {
-        navigate('/cardio');
-        return;
-      }
-      
-      if (currentSession.warmup_completed) {
-        navigate('/workout');
-        return;
-      }
+      // Check if user should be on this page - but don't redirect immediately
+      // Give some time for session to update after navigation
+      const checkRedirect = setTimeout(() => {
+        if (!currentSession.cardio_completed) {
+          navigate('/cardio');
+          return;
+        }
+        
+        if (currentSession.warmup_completed) {
+          navigate('/workout');
+          return;
+        }
+      }, 100); // Small delay to prevent race conditions
 
+      // Load warmup data
       setWarmupData({
         mood: currentSession.warmup_mood || '',
         exercisesCompleted: currentSession.warmup_exercises_completed || false,
         completed: currentSession.warmup_completed || false,
         watchedVideos: currentSession.warmup_watched_videos || []
       });
+
+      return () => clearTimeout(checkRedirect);
     }
   }, [currentSession, navigate]);
 
