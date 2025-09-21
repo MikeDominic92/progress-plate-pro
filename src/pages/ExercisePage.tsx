@@ -106,6 +106,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
+  const [hasWatchedSubstituteVideo, setHasWatchedSubstituteVideo] = useState(false);
   const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -146,6 +147,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   useEffect(() => {
     setCurrentExerciseStartTime(null);
     setIsExerciseTimerPaused(false);
+    setHasWatchedSubstituteVideo(false); // Reset substitute video state
   }, [currentExerciseIndex]);
 
   useEffect(() => {
@@ -627,15 +629,16 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         size="sm"
                         onClick={() => {
                           window.open(currentExercise.substitute.videoUrl, '_blank');
+                          setHasWatchedSubstituteVideo(true); // Mark substitute video as watched
                           manualSave();
                         }}
                         className={`relative overflow-hidden transition-all duration-300 ${
-                          !currentExerciseStartTime 
+                          !hasWatchedSubstituteVideo 
                             ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20' 
                             : ''
                         }`}
                       >
-                        {!currentExerciseStartTime && (
+                        {!hasWatchedSubstituteVideo && (
                           <>
                             {/* Multiple flashing indicators */}
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
@@ -643,8 +646,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
                           </>
                         )}
-                        <Play className={`h-4 w-4 mr-2 ${!currentExerciseStartTime ? 'text-primary animate-bounce' : ''}`} />
-                        <span className={!currentExerciseStartTime ? 'text-primary font-semibold' : ''}>
+                        <Play className={`h-4 w-4 mr-2 ${!hasWatchedSubstituteVideo ? 'text-primary animate-bounce' : ''}`} />
+                        <span className={!hasWatchedSubstituteVideo ? 'text-primary font-semibold' : ''}>
                           Watch Demo
                         </span>
                       </Button>
