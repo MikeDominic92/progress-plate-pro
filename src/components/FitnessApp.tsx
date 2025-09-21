@@ -538,7 +538,7 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
       setWarmupData(updatedWarmupData);
       
       // Start warmup timer automatically when first video is clicked
-      if (categoryIndex === 0 && exerciseIndex === 0 && !isTimerActive) {
+      if (watchedVideos.length === 0 && !isTimerActive) {
         onStartTimer();
       }
       
