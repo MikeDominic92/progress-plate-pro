@@ -226,11 +226,28 @@ export const useWorkoutStorage = (username: string) => {
     return () => clearInterval(interval);
   }, [currentSession]);
 
-  // Clear session and storage
+  // Clear session and storage completely including database records
   const clearSession = useCallback(async () => {
     try {
-      // Clear local state
+      // Clear local state first
       setCurrentSession(null);
+      
+      // Delete all database records for this username
+      const { error } = await supabase
+        .from('workout_sessions')
+        .delete()
+        .eq('username', username);
+
+      if (error) {
+        console.error('Error deleting sessions from database:', error);
+        toast({
+          title: "Partial Clear",
+          description: "Local session cleared, but some saved data may remain.",
+          variant: "destructive",
+        });
+      } else {
+        console.log(`All sessions deleted for username: ${username}`);
+      }
       
       // Clear localStorage
       if (typeof window !== 'undefined') {
@@ -239,18 +256,18 @@ export const useWorkoutStorage = (username: string) => {
       }
       
       toast({
-        title: "Session Cleared",
-        description: "All workout data has been cleared. You can start fresh!",
+        title: "Everything Cleared",
+        description: "All workout data and saved sessions have been completely removed!",
       });
     } catch (error) {
-      console.error('Error clearing session:', error);
+      console.error('Error clearing all session data:', error);
       toast({
         title: "Clear Error",
-        description: "Failed to clear session. Please refresh the page.",
+        description: "Failed to clear all data. Please refresh the page and try again.",
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [username, toast]);
 
   return {
     currentSession,
