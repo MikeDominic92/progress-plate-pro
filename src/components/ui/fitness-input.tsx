@@ -28,7 +28,6 @@ export const FitnessInput = React.forwardRef<HTMLInputElement, FitnessInputProps
               "focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none",
               "hover:border-orange-500/70",
               icon && "pl-10",
-              variant === 'success' && "border-success bg-success/5 focus:border-success focus:ring-success/20",
               className
             )}
             ref={ref}

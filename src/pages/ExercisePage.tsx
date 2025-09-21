@@ -391,8 +391,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${
         isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'
       } ${
-        isConfirmed ? 'ring-1 ring-warning/50 bg-warning/5' : 
-        isCompleteLocal && isCurrentSet ? 'ring-1 ring-warning/50 bg-warning/5' : 
+        isConfirmed ? 'ring-1 ring-warning/50' : 
+        isCompleteLocal && isCurrentSet ? 'ring-1 ring-warning/50' : 
         isDisabled ? 'opacity-50' : ''
       }`}>
         <CardContent className="p-4">
@@ -641,16 +641,16 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {(hasWatchedMainVideo || currentExerciseStartTime) && (
               <Tabs defaultValue="main" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
-                  <TabsTrigger value="main" className="relative text-xs sm:text-sm border border-orange-400/50 bg-orange-500/10">
+                  <TabsTrigger value="main" className="relative text-xs sm:text-sm border border-orange-400/50">
                     Main Exercise
                   </TabsTrigger>
                   <TabsTrigger 
                     value="substitute" 
                     className={`relative text-xs sm:text-sm ${
                       hasClickedSubstitute 
-                        ? 'bg-orange-500/20 border border-orange-400/50 text-orange-600 font-semibold' 
+                        ? 'border border-orange-400/50 text-orange-600 font-semibold' 
                         : currentExercise.substitute 
-                        ? 'text-yellow-600 border border-yellow-400/50 font-semibold' 
+                        ? 'text-yellow-600 border border-yellow-400/50 font-semibold'
                         : ''
                     }`}
                     onClick={() => {
