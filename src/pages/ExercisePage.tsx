@@ -132,6 +132,11 @@ export default function ExercisePage({ username }: ExercisePageProps) {
 
   useEffect(() => {
     if (currentSession) {
+      // Initialize session start time if not set
+      if (!sessionStartTime) {
+        setSessionStartTime(Date.now());
+      }
+
       // Check if user should be on this page - but don't redirect immediately
       const checkRedirect = setTimeout(() => {
         if (!currentSession.cardio_completed) {
@@ -170,7 +175,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
 
       return () => clearTimeout(checkRedirect);
     }
-  }, [currentSession, navigate]);
+  }, [currentSession, navigate, sessionStartTime]);
 
   const handleMotivationalMessage = (message: string) => {
     toast({
@@ -472,6 +477,20 @@ export default function ExercisePage({ username }: ExercisePageProps) {
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {/* Start Exercise Button */}
+            {!currentExerciseStartTime && (
+              <Card className="p-4 text-center bg-primary/5 border-primary/20">
+                <Button 
+                  onClick={handleExerciseStart}
+                  size="lg"
+                  className="w-full"
+                >
+                  <Timer className="h-4 w-4 mr-2" />
+                  Start Exercise Timer
+                </Button>
+              </Card>
+            )}
+
             {/* Exercise Timer */}
             {currentExerciseStartTime && (
               <ExerciseTimer 
