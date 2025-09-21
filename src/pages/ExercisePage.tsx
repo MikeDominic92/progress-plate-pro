@@ -10,6 +10,7 @@ import { CircularProgress } from '@/components/CircularProgress';
 import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { RestTimerSelector } from '@/components/RestTimerSelector';
 import { SessionTimer } from '@/components/SessionTimer';
+import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -97,7 +98,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const navigate = useNavigate();
   const { exerciseIndex } = useParams();
   const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, manualSave, clearSession } = useWorkoutStorage(username);
   
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
   
@@ -629,6 +630,9 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             </Tabs>
           </CardContent>
         </Card>
+        
+        {/* Reset Session Button */}
+        <ResetSessionButton onClearSession={clearSession} />
       </div>
     </div>
   );

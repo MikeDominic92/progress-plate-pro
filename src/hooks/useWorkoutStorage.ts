@@ -226,6 +226,32 @@ export const useWorkoutStorage = (username: string) => {
     return () => clearInterval(interval);
   }, [currentSession]);
 
+  // Clear session and storage
+  const clearSession = useCallback(async () => {
+    try {
+      // Clear local state
+      setCurrentSession(null);
+      
+      // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('forceNewSession');
+        // Clear any other workout-related storage if needed
+      }
+      
+      toast({
+        title: "Session Cleared",
+        description: "All workout data has been cleared. You can start fresh!",
+      });
+    } catch (error) {
+      console.error('Error clearing session:', error);
+      toast({
+        title: "Clear Error",
+        description: "Failed to clear session. Please refresh the page.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   return {
     currentSession,
     saving,
@@ -233,6 +259,7 @@ export const useWorkoutStorage = (username: string) => {
     updateSession,
     manualSave,
     resetSession,
+    clearSession,
     saveSession: () => currentSession && saveSession(currentSession)
   };
 };
