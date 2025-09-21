@@ -2,41 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Modern Fitness App Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark theme backgrounds */
+    --background: 220 26% 7%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card and surface colors */
+    --card: 220 25% 9%;
+    --card-foreground: 210 40% 98%;
+    --card-secondary: 220 20% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Fitness-focused primary colors */
+    --primary: 162 73% 46%;
+    --primary-foreground: 220 26% 7%;
+    --primary-glow: 162 85% 55%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Secondary accent colors */
+    --secondary: 220 25% 15%;
+    --secondary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Muted colors for subtle elements */
+    --muted: 220 20% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Accent colors for highlights */
+    --accent: 270 70% 65%;
+    --accent-foreground: 220 26% 7%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    /* Status colors */
+    --success: 142 71% 45%;
+    --success-foreground: 220 26% 7%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 26% 7%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* UI elements */
+    --border: 220 20% 18%;
+    --input: 220 20% 12%;
+    --ring: 162 73% 46%;
 
-    --radius: 0.5rem;
+    /* Design tokens */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(162 73% 46%), hsl(162 85% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(270 70% 65%), hsl(270 85% 75%));
+    --gradient-card: linear-gradient(145deg, hsl(220 25% 9%), hsl(220 20% 12%));
+    --gradient-hero: linear-gradient(135deg, hsl(162 73% 46%), hsl(270 70% 65%));
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(220 26% 7% / 0.3);
+    --shadow-md: 0 4px 16px -4px hsl(220 26% 7% / 0.4);
+    --shadow-lg: 0 8px 32px -8px hsl(220 26% 7% / 0.5);
+    --shadow-glow: 0 0 32px hsl(162 73% 46% / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
