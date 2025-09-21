@@ -30,18 +30,26 @@ export default function CardioPage({ username }: CardioPageProps) {
 
   useEffect(() => {
     if (currentSession) {
-      setCardioData({
+      // Only update state if values are different to prevent loops
+      const sessionCardioData = {
         time: currentSession.cardio_time || '',
         calories: currentSession.cardio_calories || '',
         completed: currentSession.cardio_completed || false
-      });
+      };
+      
+      // Check if current state is different from session state
+      if (sessionCardioData.time !== cardioData.time || 
+          sessionCardioData.calories !== cardioData.calories || 
+          sessionCardioData.completed !== cardioData.completed) {
+        setCardioData(sessionCardioData);
+      }
       
       // If cardio is already completed, redirect to warmup
-      if (currentSession.cardio_completed) {
+      if (currentSession.cardio_completed && !cardioData.completed) {
         navigate('/warmup');
       }
     }
-  }, [currentSession, navigate]);
+  }, [currentSession]); // Removed navigate and cardioData from dependencies to prevent loops
 
   const handleMotivationalMessage = (message: string) => {
     toast({
@@ -158,7 +166,16 @@ export default function CardioPage({ username }: CardioPageProps) {
                 type="number"
                 placeholder="10"
                 value={cardioData.time}
-                onChange={(e) => setCardioData({ ...cardioData, time: e.target.value })}
+                onChange={(e) => {
+                  const newData = { ...cardioData, time: e.target.value };
+                  setCardioData(newData);
+                  // Debounced update to session
+                  setTimeout(() => {
+                    updateSession({
+                      cardio_time: e.target.value
+                    });
+                  }, 500);
+                }}
                 variant={cardioData.time ? 'success' : 'default'}
                 disabled={cardioData.completed}
               />
@@ -168,7 +185,16 @@ export default function CardioPage({ username }: CardioPageProps) {
                 type="number"
                 placeholder="0"
                 value={cardioData.calories}
-                onChange={(e) => setCardioData({ ...cardioData, calories: e.target.value })}
+                onChange={(e) => {
+                  const newData = { ...cardioData, calories: e.target.value };
+                  setCardioData(newData);
+                  // Debounced update to session
+                  setTimeout(() => {
+                    updateSession({
+                      cardio_calories: e.target.value
+                    });
+                  }, 500);
+                }}
                 variant={cardioData.calories ? 'success' : 'default'}
                 disabled={cardioData.completed}
               />
