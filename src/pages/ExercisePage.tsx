@@ -641,7 +641,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {(hasWatchedMainVideo || currentExerciseStartTime) && (
               <Tabs defaultValue="main" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
-                  <TabsTrigger value="main" className="relative text-xs sm:text-sm">
+                  <TabsTrigger value="main" className="relative text-xs sm:text-sm border border-orange-400/50 bg-orange-500/10">
                     Main Exercise
                   </TabsTrigger>
                   <TabsTrigger 
