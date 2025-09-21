@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Weight, Repeat, Play, Target, Timer, TrendingUp } from 'lucide-react';
+import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2 } from 'lucide-react';
+import { CircularProgress } from './CircularProgress';
+import { RestTimer } from './RestTimer';
+import { useToast } from '@/hooks/use-toast';
 
 // --- Data Structure for the Workout ---
 const initialWorkoutData = [
@@ -129,6 +132,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
 
 const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exIndex: number, onLogChange: any }) => {
   const [activeTab, setActiveTab] = useState('main');
+  const [showRestTimer, setShowRestTimer] = useState(false);
   const hasSubstitute = !!exercise.substitute;
   const activeExercise = activeTab === 'main' ? exercise : exercise.substitute;
   
@@ -136,64 +140,116 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
   const completedSets = activeExercise.sets.filter((set: any) => set.weight && set.reps).length;
   const totalSets = activeExercise.sets.length;
   const completionPercentage = (completedSets / totalSets) * 100;
+  const isFullyComplete = completionPercentage === 100;
 
   return (
-    <Card className="bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow transition-all duration-300 overflow-hidden">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <CardTitle className="text-xl font-bold text-foreground">
-              {activeExercise.name}
-            </CardTitle>
-            <Badge variant={getTierBadgeVariant(activeExercise.tier) as any} className="w-fit">
-              {activeExercise.tier}
-            </Badge>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Target className="h-4 w-4" />
-              <span>{completedSets}/{totalSets} sets completed</span>
+    <>
+      <Card className="bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow transition-all duration-500 overflow-hidden group hover:scale-[1.01]">
+        <CardHeader className="pb-6">
+          <div className="flex items-start justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl font-bold text-foreground">
+                  {activeExercise.name}
+                </CardTitle>
+                {isFullyComplete && (
+                  <div className="animate-bounce">
+                    <Trophy className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+              </div>
+              <Badge variant={getTierBadgeVariant(activeExercise.tier) as any} className="w-fit font-medium">
+                {activeExercise.tier}
+              </Badge>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  <span>{completedSets}/{totalSets} sets</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  <span>{Math.round(completionPercentage)}% done</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button 
+                asChild
+                className="bg-gradient-primary hover:shadow-glow transition-all duration-300 group"
+              >
+                <a href={activeExercise.videoUrl} target="_blank" rel="noopener noreferrer">
+                  <Play className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Watch
+                </a>
+              </Button>
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={() => setShowRestTimer(true)}
+                className="bg-white/5 hover:bg-white/10 border-white/20"
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                Rest
+              </Button>
             </div>
           </div>
-          <Button 
-            asChild
-            className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
-          >
-            <a href={activeExercise.videoUrl} target="_blank" rel="noopener noreferrer">
-              <Play className="h-4 w-4 mr-2" />
-              Watch
-            </a>
-          </Button>
-        </div>
-        
-        {/* Progress bar */}
-        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-          <div 
-            className="h-full bg-gradient-primary transition-all duration-500 ease-out"
-            style={{ width: `${completionPercentage}%` }}
-          />
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {hasSubstitute && (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-              <TabsTrigger value="main">Main Exercise</TabsTrigger>
-              <TabsTrigger value="substitute">Substitute</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        )}
-
-        <div className="space-y-3">
-          {activeExercise.sets.map((set: any, setIndex: number) => (
-            <SetLog 
-              key={`${activeTab}-${set.id}`} 
-              set={set} 
-              onLogChange={(field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)} 
+          
+          {/* Enhanced Progress Display */}
+          <div className="flex items-center gap-4 mt-4">
+            <div className="flex-1">
+              <div className="w-full bg-muted/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="h-full bg-gradient-primary transition-all duration-1000 ease-out rounded-full relative"
+                  style={{ width: `${completionPercentage}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <CircularProgress 
+              percentage={completionPercentage} 
+              size={50} 
+              strokeWidth={6}
+              showText={false}
             />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {hasSubstitute && (
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 bg-muted/30 backdrop-blur-sm">
+                <TabsTrigger value="main" className="data-[state=active]:bg-primary/20">Main Exercise</TabsTrigger>
+                <TabsTrigger value="substitute" className="data-[state=active]:bg-primary/20">Substitute</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+
+          <div className="space-y-4">
+            {activeExercise.sets.map((set: any, setIndex: number) => (
+              <SetLog 
+                key={`${activeTab}-${set.id}`} 
+                set={set} 
+                onLogChange={(field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)} 
+              />
+            ))}
+          </div>
+
+          {isFullyComplete && (
+            <div className="text-center p-4 bg-gradient-primary/10 rounded-lg border border-primary/20 animate-slide-in">
+              <div className="flex items-center justify-center gap-2 text-primary font-semibold">
+                <Trophy className="h-5 w-5" />
+                Exercise Complete! Great job! 🎉
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      {showRestTimer && (
+        <RestTimer onClose={() => setShowRestTimer(false)} />
+      )}
+    </>
   );
 };
 
@@ -289,6 +345,8 @@ export default function FitnessApp() {
     }
   });
 
+  const [showCelebration, setShowCelebration] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('jackyWorkoutLog', JSON.stringify(workoutLog));
   }, [workoutLog]);
@@ -309,34 +367,85 @@ export default function FitnessApp() {
     return acc + exercise.sets.filter((set: any) => set.weight && set.reps).length;
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
+  
+  // Check for workout completion
+  useEffect(() => {
+    if (overallProgress === 100 && !showCelebration) {
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 5000);
+    }
+  }, [overallProgress, showCelebration]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-primary rounded-full text-primary-foreground font-medium text-sm mb-4">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(24_95%_53%/0.1),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,hsl(24_95%_53%/0.05),transparent_50%)]" />
+      
+      {/* Celebration overlay */}
+      {showCelebration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+          <Card className="bg-gradient-card/95 backdrop-blur-glass border-primary/30 shadow-2xl max-w-md mx-4">
+            <CardContent className="p-8 text-center space-y-4">
+              <div className="text-6xl animate-bounce">🎉</div>
+              <h2 className="text-2xl font-bold text-foreground">Workout Complete!</h2>
+              <p className="text-muted-foreground">Amazing work! You've completed all exercises.</p>
+              <Button 
+                onClick={() => setShowCelebration(false)}
+                className="bg-gradient-primary hover:shadow-glow"
+              >
+                <Trophy className="h-4 w-4 mr-2" />
+                Continue
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
+        {/* Enhanced Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-primary/20 backdrop-blur-glass rounded-full text-primary-foreground font-medium text-sm mb-6 border border-primary/30">
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
             <Target className="h-4 w-4" />
-            Week 1, Day 1
+            Week 1, Day 1 - Foundation
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-2">
-            The Perfect Glute Workout
+          <h1 className="text-4xl md:text-6xl font-black bg-gradient-hero bg-clip-text text-transparent mb-4 tracking-tight">
+            Fitness Pro
           </h1>
-          <p className="text-muted-foreground text-lg">
-            Focus: Foundation & Strength
+          <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
+            The Ultimate Glute Workout Journal
           </p>
           
-          {/* Overall progress */}
-          <div className="mt-6 max-w-md mx-auto">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Overall Progress</span>
-              <span className="text-primary font-medium">{Math.round(overallProgress)}%</span>
+          {/* Enhanced overall progress */}
+          <div className="max-w-lg mx-auto space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Overall Progress</span>
+              <span className="text-primary font-bold text-lg">{Math.round(overallProgress)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-3">
-              <div 
-                className="h-full bg-gradient-primary rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${overallProgress}%` }}
-              />
+            <div className="relative">
+              <div className="w-full bg-muted/50 rounded-full h-4 overflow-hidden backdrop-blur-sm">
+                <div 
+                  className="h-full bg-gradient-primary rounded-full transition-all duration-1000 ease-out relative"
+                  style={{ width: `${overallProgress}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse" />
+                </div>
+              </div>
+              <div className="absolute -top-2 right-0 transform translate-x-1/2">
+                <CircularProgress 
+                  percentage={overallProgress} 
+                  size={60} 
+                  strokeWidth={8}
+                  showText={false}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{completedSets} sets completed</span>
+              <span>{totalSets - completedSets} remaining</span>
             </div>
           </div>
         </div>
@@ -346,8 +455,11 @@ export default function FitnessApp() {
           <WorkoutIntro />
           <WorkoutWarmup />
           
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-foreground">Main Workout</h2>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Main Workout</h2>
+              <p className="text-muted-foreground">Focus on form and progressive overload</p>
+            </div>
             {workoutLog.map((exercise: any, exIndex: number) => (
               <ExerciseCard 
                 key={exercise.name} 
@@ -361,11 +473,14 @@ export default function FitnessApp() {
           <PostWorkout />
         </div>
 
-        {/* Footer */}
-        <footer className="text-center mt-12 py-6 border-t border-border">
-          <p className="text-xs text-muted-foreground">
-            Disclaimer: Always consult with a healthcare professional before making any fitness changes.
-          </p>
+        {/* Enhanced Footer */}
+        <footer className="text-center mt-16 py-8 border-t border-border/50">
+          <div className="space-y-2">
+            <p className="text-foreground font-medium">Keep pushing your limits! 💪</p>
+            <p className="text-xs text-muted-foreground">
+              Always consult with a healthcare professional before making any fitness changes.
+            </p>
+          </div>
         </footer>
       </div>
     </div>
