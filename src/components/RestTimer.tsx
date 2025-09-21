@@ -54,6 +54,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
             size="sm" 
             variant="outline" 
             onClick={onClose}
+            aria-label="Close rest timer"
             className="h-8 w-8 p-0 bg-destructive/20 hover:bg-destructive border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-lg"
           >
             ×
@@ -61,16 +62,18 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
         </div>
 
         <div className="flex justify-center">
-          <CircularProgress 
-            percentage={progress} 
-            size={120} 
-            strokeWidth={6}
-            showText={false}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl font-bold text-foreground">
-              {formatTime(time)}
-            </span>
+          <div className="relative" style={{ width: 120, height: 120 }}>
+            <CircularProgress 
+              percentage={progress} 
+              size={120} 
+              strokeWidth={6}
+              showText={false}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-2xl font-bold text-foreground">
+                {formatTime(time)}
+              </span>
+            </div>
           </div>
         </div>
 
