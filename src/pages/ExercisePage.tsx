@@ -498,7 +498,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {/* Exercise Timer */}
             {currentExerciseStartTime && (
               <ExerciseTimer 
-                duration={45}
+                duration={20 * 60} // 20 minutes in seconds
                 onComplete={handleExerciseComplete}
                 onStart={handleExerciseStart}
                 onSetComplete={() => {}}
@@ -567,23 +567,52 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     </div>
                   </div>
                   
-                  {currentExercise.substitute.sets.map((set: any, setIndex: number) => (
-                    <SetLog
-                      key={set.id}
-                      set={set}
-                      onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
-                      onSetComplete={() => {
-                        const updatedLog = JSON.parse(JSON.stringify(workoutLog));
-                        updatedLog[currentExerciseIndex].substitute.sets[setIndex].confirmed = true;
-                        setWorkoutLog(updatedLog);
-                        updateSession({
-                          workout_data: { logs: updatedLog, timers: {} }
-                        });
-                      }}
-                      isCurrentSet={true}
-                      canInteract={true}
-                    />
-                  ))}
+                  {currentExercise.substitute.sets.map((set: any, setIndex: number) => {
+                    const allPreviousSetsCompleted = currentExercise.substitute.sets
+                      .slice(0, setIndex)
+                      .every((s: any) => s.confirmed);
+                    
+                    const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
+                    const canInteract = allPreviousSetsCompleted;
+                    
+                    return (
+                      <SetLog
+                        key={set.id}
+                        set={set}
+                        onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
+                        onSetComplete={() => {
+                          const updatedLog = JSON.parse(JSON.stringify(workoutLog));
+                          updatedLog[currentExerciseIndex].substitute.sets[setIndex].confirmed = true;
+                          setWorkoutLog(updatedLog);
+                          
+                          setCurrentSetInProgress({exerciseIndex: currentExerciseIndex, setIndex: setIndex});
+                          setIsExerciseTimerPaused(true);
+                          setShowRestTimer(true);
+                          
+                          updateSession({
+                            workout_data: { logs: updatedLog, timers: {} }
+                          });
+                          
+                          const allSetsCompleted = updatedLog[currentExerciseIndex].substitute.sets.every((s: any) => s.confirmed);
+                          
+                          if (allSetsCompleted) {
+                            console.log(`All substitute sets completed for exercise ${currentExerciseIndex + 1}!`);
+                            // Auto-navigate to next exercise after completing all sets
+                            setTimeout(() => {
+                              if (currentExerciseIndex < workoutLog.length - 1) {
+                                navigate(`/exercise/${currentExerciseIndex + 1}`);
+                              } else {
+                                // All exercises completed, navigate to post-workout
+                                navigate('/post-workout');
+                              }
+                            }, 2000);
+                          }
+                        }}
+                        isCurrentSet={isCurrentSet}
+                        canInteract={canInteract}
+                      />
+                    );
+                  })}
                 </TabsContent>
               )}
             </Tabs>
