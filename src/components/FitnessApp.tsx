@@ -333,14 +333,15 @@ const CardioTracking = ({ cardioData, setCardioData }: { cardioData: any, setCar
         <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
           <h4 className="font-semibold text-foreground mb-2">Stair Master - 10 minutes</h4>
           <p className="text-muted-foreground mb-3">Easy pace, focus on long steps to fully stretch the glutes.</p>
+          <div className="text-xs text-muted-foreground mb-2">Watch [00:00:00 - 00:00:02] for proper form</div>
           <Button
-            onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0", "_blank")}
+            onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0&t=0s", "_blank")}
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
           >
             <Play className="h-4 w-4" />
-            Watch Stairmaster Demo
+            Watch Stairmaster Demo [00:00-00:02]
           </Button>
         </div>
         
@@ -402,26 +403,32 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
     {
       category: "Dynamic Stretches",
       exercises: [
-        { name: "Leg Swings", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "0:30" }
+        { name: "Leg Swings", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=3s", timeSegment: "[00:00:03 - 00:00:04]" }
       ]
     },
     {
       category: "Mobility Drills", 
       exercises: [
-        { name: "Deep Lunge (pushing knee outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "1:15" },
-        { name: "90/90", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "2:45" },
-        { name: "Frog", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "3:20" },
-        { name: "Single Leg Groin Stretch", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "4:10" }
+        { name: "Deep Lunge (pushing knee outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=3s", timeSegment: "[00:00:03 - 00:00:05]" },
+        { name: "90/90", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=9s", timeSegment: "[00:00:09 - 00:00:11]" },
+        { name: "Frog", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=6s", timeSegment: "[00:00:06 - 00:00:08]" },
+        { name: "Single Leg Groin Stretch", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=9s", timeSegment: "[00:00:09 - 00:00:11]" }
       ]
     },
     {
       category: "Activation Exercises",
       exercises: [
-        { name: "Deep Squat (pushing knees outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "5:00" },
-        { name: "Deep Squat w/ Knee Taps", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "5:45" },
-        { name: "Cossack Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "3:30" },
-        { name: "Cossack Squat w/ Internal Rotation", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "6:15" },
-        { name: "ATG Split Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "4:15" }
+        { name: "Deep Squat (pushing knees outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=12s", timeSegment: "[00:00:12 - 00:00:14]" },
+        { name: "Deep Squat w/ Knee Taps", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=15s", timeSegment: "[00:00:15 - 00:00:17]" },
+        { name: "Cossack Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=4s", timeSegment: "[00:00:04 - 00:00:06]" },
+        { name: "Cossack Squat w/ Internal Rotation", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc&t=19s", timeSegment: "[00:00:19 - 00:00:22]" },
+        { name: "ATG Split Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=6s", timeSegment: "[00:00:06 - 00:00:08]" }
+      ]
+    },
+    {
+      category: "Specific Warm-up Sets",
+      exercises: [
+        { name: "Warmup sets before working sets", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0&t=13s", timeSegment: "[00:00:13 - 00:00:15]" }
       ]
     }
   ];
@@ -487,7 +494,7 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
                     <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/50">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{exercise.name}</p>
-                        <p className="text-xs text-muted-foreground">Start at {exercise.timestamp}</p>
+                        <p className="text-xs text-muted-foreground">Watch {exercise.timeSegment}</p>
                       </div>
                       <Button
                         onClick={() => window.open(exercise.videoUrl, "_blank")}
@@ -507,9 +514,10 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
             {/* Specific Warm-up Sets */}
             <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
               <h4 className="font-semibold text-foreground mb-2">Specific Warm-up Sets</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-2">
                 Perform lighter weight sets of your main exercises to progressively load your muscles
               </p>
+              <p className="text-xs text-muted-foreground">Shows concept of doing lighter sets before main working sets</p>
             </div>
 
             {/* Exercise Completion Button */}
