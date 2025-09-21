@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FitnessInput } from '@/components/ui/fitness-input';
 import { Button } from '@/components/ui/button';
@@ -106,6 +106,9 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   
+  // Ref for debouncing session updates
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const [workoutLog, setWorkoutLog] = useState(() => {
     // Always ensure we return an array, never undefined/null
     try {
@@ -187,9 +190,15 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     }
     setWorkoutLog(updatedLog);
     
-    updateSession({
-      workout_data: { logs: updatedLog, timers: {} }
-    });
+    // Debounced update to session - don't update immediately to prevent focus loss
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    updateTimeoutRef.current = setTimeout(() => {
+      updateSession({
+        workout_data: { logs: updatedLog, timers: {} }
+      });
+    }, 1000); // Increased delay to prevent frequent updates while typing
   };
 
   const handleIndividualSetComplete = (exIndex: number, setIndex: number) => {
@@ -201,6 +210,12 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     setIsExerciseTimerPaused(true);
     setShowRestTimer(true);
     
+    // Clear any pending session updates
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // Immediate update for set completion
     updateSession({
       workout_data: { logs: updatedLog, timers: {} }
     });
@@ -313,7 +328,10 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               type="number"
               placeholder="0"
               value={set.weight}
-              onChange={(e) => onLogChange('weight', e.target.value)}
+              onChange={(e) => {
+                // Direct state update without immediate session save
+                onLogChange('weight', e.target.value);
+              }}
               variant={set.weight ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
             />
@@ -323,7 +341,10 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               type="number"
               placeholder="0"
               value={set.reps}
-              onChange={(e) => onLogChange('reps', e.target.value)}
+              onChange={(e) => {
+                // Direct state update without immediate session save
+                onLogChange('reps', e.target.value);
+              }}
               variant={set.reps ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
             />
@@ -494,7 +515,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
                 <div key={`${activeTab}-${set.id}`} className={isLocked ? 'pointer-events-none opacity-50' : ''}>
                   <SetLog 
                     set={set} 
-                    onLogChange={isLocked || !canInteract ? () => {} : (field, value) => onLogChange(exIndex, setIndex, field, value, activeTab)}
+                    onLogChange={isLocked || !canInteract ? () => {} : (field, value) => handleLogChange(exIndex, setIndex, field, value, activeTab)}
                     onSetComplete={isLocked || !canInteract ? undefined : () => onSetComplete && onSetComplete(exIndex, setIndex)}
                     isCurrentSet={isCurrentSet}
                     canInteract={canInteract}
