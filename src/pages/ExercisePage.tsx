@@ -126,9 +126,16 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     return initialWorkoutData;
   });
 
+  
   useEffect(() => {
     initializeSession();
   }, [initializeSession]);
+
+  // Reset timer when exercise changes
+  useEffect(() => {
+    setCurrentExerciseStartTime(null);
+    setIsExerciseTimerPaused(false);
+  }, [currentExerciseIndex]);
 
   useEffect(() => {
     if (currentSession) {
