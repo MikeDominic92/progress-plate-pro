@@ -205,6 +205,10 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
       updateSession({
         workout_data: { logs: updatedLog, timers: {} }
       });
+      // Also persist immediately so users see data saved without waiting for autosave
+      manualSave({
+        workout_data: { logs: updatedLog, timers: {} }
+      });
     }, 1000); // Increased delay to prevent frequent updates while typing
   };
 
