@@ -465,33 +465,37 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => window.open(currentExercise.videoUrl, '_blank')}
+                  onClick={() => {
+                    window.open(currentExercise.videoUrl, '_blank');
+                    // Start timer when demo is watched
+                    if (!currentExerciseStartTime) {
+                      handleExerciseStart();
+                    }
+                  }}
+                  className="relative overflow-hidden"
                 >
+                  {!currentExerciseStartTime && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
+                  )}
                   <Play className="h-4 w-4 mr-2" />
                   Watch Demo
                 </Button>
-                {!currentExerciseStartTime && (
-                  <Button onClick={handleExerciseStart} size="sm">
-                    <Timer className="h-4 w-4 mr-2" />
-                    Start Exercise
-                  </Button>
-                )}
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Start Exercise Button */}
+            {/* Watch Demo First Message */}
             {!currentExerciseStartTime && (
-              <Card className="p-4 text-center bg-primary/5 border-primary/20">
-                <Button 
-                  onClick={handleExerciseStart}
-                  size="lg"
-                  className="w-full"
-                >
-                  <Timer className="h-4 w-4 mr-2" />
-                  Start Exercise Timer
-                </Button>
+              <Card className="p-4 text-center bg-primary/5 border-primary/20 border-dashed">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                  <span className="text-primary font-medium">Click "Watch Demo" to start your exercise timer</span>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Review proper form before beginning your exercise
+                </p>
               </Card>
             )}
 
