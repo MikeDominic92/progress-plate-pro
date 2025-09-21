@@ -664,7 +664,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                 {hasWatchedMainVideo && !currentExerciseStartTime && currentExercise.substitute && (
                   <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg text-center">
                     <p className="text-warning font-medium">
-                      ⏱️ Watch the substitute exercise demo to start your timer
+                      Click on the Substitute button
                     </p>
                   </div>
                 )}
