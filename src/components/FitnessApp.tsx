@@ -389,16 +389,48 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
     { value: 'fatigued', label: 'Fatigued 😰', color: 'text-destructive' }
   ];
 
+  const warmupExercises = [
+    {
+      category: "Dynamic Stretches",
+      exercises: [
+        { name: "Leg Swings", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "0:30" }
+      ]
+    },
+    {
+      category: "Mobility Drills", 
+      exercises: [
+        { name: "Deep Lunge (pushing knee outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "1:15" },
+        { name: "90/90", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "2:45" },
+        { name: "Frog", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "3:20" },
+        { name: "Single Leg Groin Stretch", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "4:10" }
+      ]
+    },
+    {
+      category: "Activation Exercises",
+      exercises: [
+        { name: "Deep Squat (pushing knees outwards)", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "5:00" },
+        { name: "Deep Squat w/ Knee Taps", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "5:45" },
+        { name: "Cossack Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "3:30" },
+        { name: "Cossack Squat w/ Internal Rotation", videoUrl: "http://www.youtube.com/watch?v=yWuqjSFz2vc", timestamp: "6:15" },
+        { name: "ATG Split Squat", videoUrl: "http://www.youtube.com/watch?v=4uegiLFV6l0", timestamp: "4:15" }
+      ]
+    }
+  ];
+
   const handleComplete = () => {
-    const { gluteBridges, bandedSideSteps, mood } = warmupData;
-    if (gluteBridges.sets && gluteBridges.reps && bandedSideSteps.sets && bandedSideSteps.reps && mood) {
+    if (warmupData.mood && warmupData.exercisesCompleted) {
       setWarmupData({ 
         ...warmupData, 
-        gluteBridges: { ...gluteBridges, completed: true },
-        bandedSideSteps: { ...bandedSideSteps, completed: true },
         completed: true 
       });
     }
+  };
+
+  const handleExerciseComplete = () => {
+    setWarmupData({ 
+      ...warmupData, 
+      exercisesCompleted: true 
+    });
   };
 
   return (
@@ -406,7 +438,7 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
       <CardHeader>
         <CardTitle className="text-accent flex items-center gap-2">
           <Timer className="h-5 w-5" />
-          Activation Exercises
+          Comprehensive Leg Day Warm-up
           {warmupData.completed && <CheckCircle2 className="h-5 w-5 text-success" />}
         </CardTitle>
       </CardHeader>
@@ -433,84 +465,87 @@ const WarmupTracking = ({ warmupData, setWarmupData }: { warmupData: any, setWar
           </div>
         </div>
 
-        {/* Glute Bridges */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-foreground">Glute Bridges</h4>
-          <div className="grid grid-cols-2 gap-3">
-            <FitnessInput
-              label="Sets"
-              icon={<Target className="h-4 w-4" />}
-              type="number"
-              placeholder="2"
-              value={warmupData.gluteBridges.sets}
-              onChange={(e) => setWarmupData({ 
-                ...warmupData, 
-                gluteBridges: { ...warmupData.gluteBridges, sets: e.target.value }
-              })}
-              variant={warmupData.gluteBridges.sets ? 'success' : 'default'}
-            />
-            <FitnessInput
-              label="Reps"
-              icon={<Repeat className="h-4 w-4" />}
-              type="number"
-              placeholder="15"
-              value={warmupData.gluteBridges.reps}
-              onChange={(e) => setWarmupData({ 
-                ...warmupData, 
-                gluteBridges: { ...warmupData.gluteBridges, reps: e.target.value }
-              })}
-              variant={warmupData.gluteBridges.reps ? 'success' : 'default'}
-            />
-          </div>
-        </div>
+        {/* Show warm-up routine only after mood is selected */}
+        {warmupData.mood && (
+          <>
+            {/* Initial Instructions */}
+            <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+              <h4 className="font-semibold text-foreground mb-3">Light Cardio (5-10 minutes)</h4>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Stairmaster - Perform any light cardio here to get warm</p>
+                <Button
+                  onClick={() => window.open("http://www.youtube.com/watch?v=4uegiLFV6l0", "_blank")}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Play className="h-4 w-4" />
+                  Watch Stairmaster Demo
+                </Button>
+              </div>
+            </div>
 
-        {/* Banded Side Steps */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-foreground">Banded Side Steps</h4>
-          <div className="grid grid-cols-2 gap-3">
-            <FitnessInput
-              label="Sets"
-              icon={<Target className="h-4 w-4" />}
-              type="number"
-              placeholder="2"
-              value={warmupData.bandedSideSteps.sets}
-              onChange={(e) => setWarmupData({ 
-                ...warmupData, 
-                bandedSideSteps: { ...warmupData.bandedSideSteps, sets: e.target.value }
-              })}
-              variant={warmupData.bandedSideSteps.sets ? 'success' : 'default'}
-            />
-            <FitnessInput
-              label="Reps Each Way"
-              icon={<Repeat className="h-4 w-4" />}
-              type="number"
-              placeholder="20"
-              value={warmupData.bandedSideSteps.reps}
-              onChange={(e) => setWarmupData({ 
-                ...warmupData, 
-                bandedSideSteps: { ...warmupData.bandedSideSteps, reps: e.target.value }
-              })}
-              variant={warmupData.bandedSideSteps.reps ? 'success' : 'default'}
-            />
-          </div>
-        </div>
-        
-        {!warmupData.completed && (
-          <Button 
-            onClick={handleComplete}
-            disabled={!warmupData.gluteBridges.sets || !warmupData.gluteBridges.reps || 
-                     !warmupData.bandedSideSteps.sets || !warmupData.bandedSideSteps.reps || !warmupData.mood}
-            className="w-full bg-gradient-primary hover:shadow-glow"
-          >
-            Complete Warm-up
-          </Button>
+            {/* Warm-up Exercise Categories */}
+            {warmupExercises.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="space-y-3">
+                <h4 className="font-semibold text-foreground">{category.category}</h4>
+                <p className="text-xs text-muted-foreground">2 sets of 10-20 reps per side/movement</p>
+                <div className="space-y-2">
+                  {category.exercises.map((exercise, exerciseIndex) => (
+                    <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/50">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{exercise.name}</p>
+                        <p className="text-xs text-muted-foreground">Start at {exercise.timestamp}</p>
+                      </div>
+                      <Button
+                        onClick={() => window.open(exercise.videoUrl, "_blank")}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1"
+                      >
+                        <Play className="h-3 w-3" />
+                        Watch
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Specific Warm-up Sets */}
+            <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
+              <h4 className="font-semibold text-foreground mb-2">Specific Warm-up Sets</h4>
+              <p className="text-sm text-muted-foreground">
+                Perform lighter weight sets of your main exercises to progressively load your muscles
+              </p>
+            </div>
+
+            {/* Exercise Completion Button */}
+            {!warmupData.exercisesCompleted && (
+              <Button 
+                onClick={handleExerciseComplete}
+                className="w-full bg-gradient-primary hover:shadow-glow"
+              >
+                Mark All Exercises Complete
+              </Button>
+            )}
+
+            {warmupData.exercisesCompleted && !warmupData.completed && (
+              <Button 
+                onClick={handleComplete}
+                className="w-full bg-gradient-primary hover:shadow-glow"
+              >
+                Complete Warm-up
+              </Button>
+            )}
+          </>
         )}
         
         {warmupData.completed && (
           <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
             <div className="flex items-center justify-center gap-2 text-success font-medium">
               <CheckCircle2 className="h-4 w-4" />
-              Warm-up Complete! Feeling {warmupData.mood.replace('-', ' ')}
+              Comprehensive Warm-up Complete! Feeling {warmupData.mood.replace('-', ' ')}
             </div>
           </div>
         )}
@@ -593,9 +628,8 @@ export default function FitnessApp() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [cardioData, setCardioData] = useState({ time: '', calories: '', completed: false });
   const [warmupData, setWarmupData] = useState({
-    gluteBridges: { sets: '', reps: '', completed: false },
-    bandedSideSteps: { sets: '', reps: '', completed: false },
     mood: '',
+    exercisesCompleted: false,
     completed: false
   });
   const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
@@ -814,7 +848,7 @@ export default function FitnessApp() {
               {/* Only show timer after mood is selected */}
               {warmupData.mood && (
                 <ExerciseTimer
-                  duration={15} // 15 minutes for warm-up
+                  duration={25} // 25 minutes for comprehensive warm-up
                   onComplete={handleExerciseComplete}
                   onStart={handleExerciseStart}
                   onSetComplete={handleExerciseSetComplete}
