@@ -160,15 +160,11 @@ export const useWorkoutStorage = (username: string) => {
   };
 
   // Update session data with useCallback to prevent infinite loops
-  const updateSession = useCallback(async (updates: Partial<WorkoutSession>) => {
-    if (!currentSession) return;
-
-    const updatedSession = { ...currentSession, ...updates };
-    setCurrentSession(updatedSession);
-    
+  const updateSession = useCallback((updates: Partial<WorkoutSession>) => {
+    setCurrentSession(prev => (prev ? { ...prev, ...updates } : prev));
     // Only trigger saving indicator for actual user input changes
     // Don't save automatically, let the component decide when to save
-  }, [currentSession]);
+  }, []);
 
   // Manual save function for user-triggered saves
   const manualSave = useCallback(async (updates?: Partial<WorkoutSession>) => {
