@@ -107,8 +107,15 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   
   const [workoutLog, setWorkoutLog] = useState(() => {
-    if (currentSession && currentSession.workout_data && currentSession.workout_data.logs) {
-      return currentSession.workout_data.logs;
+    // Always ensure we return an array, never undefined/null
+    try {
+      if (currentSession && currentSession.workout_data && currentSession.workout_data.logs) {
+        const logs = currentSession.workout_data.logs;
+        // Ensure logs is an array
+        return Array.isArray(logs) ? logs : initialWorkoutData;
+      }
+    } catch (error) {
+      console.error('Error loading workout logs:', error);
     }
     return initialWorkoutData;
   });
@@ -139,7 +146,14 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
       // Load workout data if available
       if (currentSession.workout_data && currentSession.workout_data.logs) {
-        setWorkoutLog(currentSession.workout_data.logs);
+        const logs = currentSession.workout_data.logs;
+        // Ensure logs is an array before setting state
+        if (Array.isArray(logs)) {
+          setWorkoutLog(logs);
+        } else {
+          console.warn('Workout logs is not an array, using initial data');
+          setWorkoutLog(initialWorkoutData);
+        }
       }
 
       return () => clearTimeout(checkRedirect);
@@ -212,11 +226,17 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     }
   };
 
-  // Calculate overall progress
-  const totalSets = workoutLog.reduce((acc: number, exercise: any) => acc + exercise.sets.length, 0);
-  const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
-    return acc + exercise.sets.filter((set: any) => set.confirmed).length;
-  }, 0);
+  // Calculate overall progress - with safety checks
+  const totalSets = Array.isArray(workoutLog) ? 
+    workoutLog.reduce((acc: number, exercise: any) => {
+      return acc + (exercise?.sets?.length || 0);
+    }, 0) : 0;
+    
+  const completedSets = Array.isArray(workoutLog) ? 
+    workoutLog.reduce((acc: number, exercise: any) => {
+      if (!exercise?.sets) return acc;
+      return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+    }, 0) : 0;
   const overallProgress = (completedSets / totalSets) * 100;
 
   // Check for workout completion
@@ -591,7 +611,12 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
         
         {/* Exercises */}
         <div className="space-y-8">
-          {workoutLog.map((exercise: any, index: number) => {
+          {Array.isArray(workoutLog) && workoutLog.map((exercise: any, index: number) => {
+            if (!exercise?.sets) {
+              console.warn(`Exercise at index ${index} missing sets data`);
+              return null;
+            }
+            
             const exerciseCompletedSets = exercise.sets.filter((set: any) => set.confirmed).length;
             const exerciseTotalSets = exercise.sets.length;
             const isCompleted = exerciseCompletedSets === exerciseTotalSets;
