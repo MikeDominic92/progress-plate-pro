@@ -360,8 +360,23 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
     isCurrentSet?: boolean,
     canInteract?: boolean
   }) => {
+    // Local input state to prevent focus loss while typing
+    const [weightInput, setWeightInput] = useState<string>(set.weight ?? '');
+    const [repsInput, setRepsInput] = useState<string>(set.reps ?? '');
+    const [isWeightFocused, setIsWeightFocused] = useState(false);
+    const [isRepsFocused, setIsRepsFocused] = useState(false);
+
+    // Keep local state in sync with external updates when not focused
+    useEffect(() => {
+      if (!isWeightFocused) setWeightInput(set.weight ?? '');
+    }, [set.weight, isWeightFocused]);
+
+    useEffect(() => {
+      if (!isRepsFocused) setRepsInput(set.reps ?? '');
+    }, [set.reps, isRepsFocused]);
+
     const isWarmUp = set.type === 'Warm Up Set';
-    const isComplete = set.weight && set.reps;
+    const isCompleteLocal = Boolean(weightInput && repsInput);
     const isConfirmed = set.confirmed;
     const isDisabled = !canInteract && !isCurrentSet;
     
@@ -370,7 +385,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
         isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'
       } ${
         isConfirmed ? 'ring-1 ring-success/50 bg-success/5' : 
-        isComplete && isCurrentSet ? 'ring-1 ring-warning/50 bg-warning/5' : 
+        isCompleteLocal && isCurrentSet ? 'ring-1 ring-warning/50 bg-warning/5' : 
         isDisabled ? 'opacity-50' : ''
       }`}>
         <CardContent className="p-4">
@@ -397,12 +412,17 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               icon={<Weight className="h-4 w-4" />}
               type="number"
               placeholder="0"
-              value={set.weight}
+              value={weightInput}
+              onFocus={() => setIsWeightFocused(true)}
+              onBlur={() => setIsWeightFocused(false)}
               onChange={(e) => {
-                // Direct state update without immediate session save
-                onLogChange('weight', e.target.value);
+                const v = e.target.value;
+                setWeightInput(v);
+                if (!isConfirmed && !isDisabled) {
+                  onLogChange('weight', v);
+                }
               }}
-              variant={set.weight ? 'success' : 'default'}
+              variant={weightInput ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
             />
             <FitnessInput
@@ -410,17 +430,22 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
               icon={<Repeat className="h-4 w-4" />}
               type="number"
               placeholder="0"
-              value={set.reps}
+              value={repsInput}
+              onFocus={() => setIsRepsFocused(true)}
+              onBlur={() => setIsRepsFocused(false)}
               onChange={(e) => {
-                // Direct state update without immediate session save
-                onLogChange('reps', e.target.value);
+                const v = e.target.value;
+                setRepsInput(v);
+                if (!isConfirmed && !isDisabled) {
+                  onLogChange('reps', v);
+                }
               }}
-              variant={set.reps ? 'success' : 'default'}
+              variant={repsInput ? 'success' : 'default'}
               disabled={isConfirmed || isDisabled}
             />
           </div>
 
-          {isComplete && !isConfirmed && isCurrentSet && onSetComplete && (
+          {isCompleteLocal && !isConfirmed && isCurrentSet && onSetComplete && (
             <Button 
               onClick={onSetComplete}
               className="w-full bg-gradient-primary hover:shadow-glow"
@@ -440,7 +465,6 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
       </Card>
     );
   };
-
   const ExerciseCard = ({ exercise, exIndex, onLogChange, isActive, isLocked, isCompleted, onStartTimer, isTimerActive, onSetComplete, currentSetInProgress, activeExerciseIndex }: { exercise: any, exIndex: number, onLogChange: any, isActive: boolean, isLocked: boolean, isCompleted: boolean, onStartTimer: () => void, isTimerActive: boolean, onSetComplete?: (exIndex: number, setIndex: number) => void, currentSetInProgress?: {exerciseIndex: number, setIndex: number} | null, activeExerciseIndex: number }) => {
     const [activeTab, setActiveTab] = useState('main');
     const [isMinimized, setIsMinimized] = useState(false);
