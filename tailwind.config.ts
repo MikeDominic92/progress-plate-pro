@@ -75,11 +75,15 @@ export default {
         'gradient-card': 'var(--gradient-card)',
         'gradient-hero': 'var(--gradient-hero)',
       },
+      backdropBlur: {
+        'glass': 'var(--backdrop-blur)',
+      },
       boxShadow: {
         'sm': 'var(--shadow-sm)',
         'md': 'var(--shadow-md)',
         'lg': 'var(--shadow-lg)',
         'glow': 'var(--shadow-glow)',
+        'glass': 'var(--shadow-glass)',
       },
       transitionTimingFunction: {
         'smooth': 'var(--transition-smooth)',

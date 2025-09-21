@@ -88,7 +88,7 @@ const SetLog = ({ set, onLogChange }: { set: any, onLogChange: (field: string, v
   const isComplete = set.weight && set.reps;
   
   return (
-    <Card className={`transition-all duration-300 ${isWarmUp ? 'bg-primary/5 border-primary/20' : 'bg-card/50'} ${isComplete ? 'ring-1 ring-success/30' : ''}`}>
+    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 ${isWarmUp ? 'bg-primary/10 border-primary/30 shadow-glass' : 'bg-card/60 shadow-md'} ${isComplete ? 'ring-1 ring-success/50 bg-success/5' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="space-y-1">
@@ -138,7 +138,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
   const completionPercentage = (completedSets / totalSets) * 100;
 
   return (
-    <Card className="bg-gradient-card border-border/50 shadow-lg hover:shadow-glow transition-all duration-300 overflow-hidden">
+    <Card className="bg-gradient-card/80 backdrop-blur-glass border-white/10 shadow-lg hover:shadow-glow transition-all duration-300 overflow-hidden">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -198,7 +198,7 @@ const ExerciseCard = ({ exercise, exIndex, onLogChange }: { exercise: any, exInd
 };
 
 const WorkoutIntro = () => (
-  <Card className="bg-gradient-card border-primary/20 shadow-lg">
+  <Card className="bg-gradient-card/80 backdrop-blur-glass border-primary/30 shadow-lg shadow-glass">
     <CardHeader>
       <CardTitle className="text-center text-primary">
         <Target className="h-6 w-6 mx-auto mb-2" />
@@ -227,7 +227,7 @@ const WorkoutIntro = () => (
 );
 
 const WorkoutWarmup = () => (
-  <Card className="bg-gradient-secondary border-accent/20 shadow-lg">
+  <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
     <CardHeader>
       <CardTitle className="text-accent flex items-center gap-2">
         <Timer className="h-5 w-5" />
@@ -253,7 +253,7 @@ const WorkoutWarmup = () => (
 );
 
 const PostWorkout = () => (
-  <Card className="bg-gradient-secondary border-accent/20 shadow-lg">
+  <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
     <CardHeader>
       <CardTitle className="text-accent flex items-center gap-2">
         <TrendingUp className="h-5 w-5" />

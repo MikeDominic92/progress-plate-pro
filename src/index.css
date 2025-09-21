@@ -6,62 +6,67 @@
 
 @layer base {
   :root {
-    /* Stealthy dark backgrounds */
-    --background: 216 28% 4%;
+    /* Liquid glass dark backgrounds */
+    --background: 216 28% 2%;
     --foreground: 0 0% 98%;
 
-    /* Card and surface colors */
-    --card: 217 27% 6%;
+    /* Glass card surfaces */
+    --card: 216 25% 4%;
     --card-foreground: 0 0% 98%;
-    --card-secondary: 216 26% 8%;
+    --card-secondary: 216 20% 6%;
 
     /* Orange accent colors */
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 98%;
     --primary-glow: 30 100% 65%;
 
-    /* Secondary stealth colors */
-    --secondary: 216 20% 12%;
+    /* Glass secondary surfaces */
+    --secondary: 216 18% 8%;
     --secondary-foreground: 0 0% 98%;
 
-    /* Muted colors for subtle elements */
-    --muted: 216 18% 10%;
-    --muted-foreground: 216 12% 65%;
+    /* Muted glass elements */
+    --muted: 216 15% 10%;
+    --muted-foreground: 0 0% 70%;
 
-    /* Orange accent highlights */
+    /* Orange highlights */
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 98%;
 
-    /* Status colors */
+    /* Status colors with high contrast */
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* UI elements */
-    --border: 216 20% 15%;
-    --input: 216 25% 8%;
+    /* Glass UI elements */
+    --border: 0 0% 100% / 0.1;
+    --input: 216 20% 8%;
     --ring: 24 95% 53%;
 
     /* Design tokens */
     --radius: 0.75rem;
     --radius-lg: 1rem;
 
-    /* Gradients */
+    /* Liquid glass gradients */
     --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(30 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(24 90% 48%), hsl(28 95% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(217 27% 6%), hsl(216 26% 8%));
-    --gradient-hero: linear-gradient(135deg, hsl(24 95% 53%), hsl(216 28% 4%));
+    --gradient-secondary: linear-gradient(135deg, hsl(24 90% 48% / 0.8), hsl(28 95% 58% / 0.8));
+    --gradient-card: linear-gradient(145deg, hsl(216 25% 4% / 0.8), hsl(216 20% 6% / 0.9));
+    --gradient-hero: linear-gradient(135deg, hsl(24 95% 53% / 0.9), hsl(216 28% 2%));
+    
+    /* Glass blur effect */
+    --backdrop-blur: blur(20px);
+    --glass-border: 1px solid hsl(0 0% 100% / 0.15);
 
-    /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(216 28% 4% / 0.5);
-    --shadow-md: 0 4px 16px -4px hsl(216 28% 4% / 0.6);
-    --shadow-lg: 0 8px 32px -8px hsl(216 28% 4% / 0.7);
-    --shadow-glow: 0 0 32px hsl(24 95% 53% / 0.4);
+    /* Liquid glass shadows */
+    --shadow-sm: 0 2px 16px -4px hsl(216 28% 1% / 0.6);
+    --shadow-md: 0 8px 32px -8px hsl(216 28% 1% / 0.7);
+    --shadow-lg: 0 16px 64px -16px hsl(216 28% 1% / 0.8);
+    --shadow-glow: 0 0 48px hsl(24 95% 53% / 0.5);
+    --shadow-glass: inset 0 1px 0 hsl(0 0% 100% / 0.1);
 
-    /* Animations */
+    /* Smooth animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
