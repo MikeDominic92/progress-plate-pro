@@ -276,6 +276,11 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       workout_data: { logs: updatedLog, timers: {} }
     });
     
+    // Force immediate save to ensure set completion is persisted
+    manualSave({
+      workout_data: { logs: updatedLog, timers: {} }
+    });
+    
     const currentExercise = updatedLog[currentExerciseIndex];
     const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
     
