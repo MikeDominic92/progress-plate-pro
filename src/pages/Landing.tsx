@@ -126,7 +126,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
       <div className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-tl from-primary/15 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
       <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-r from-primary/10 to-transparent rounded-full blur-lg animate-pulse" style={{ animationDelay: '2s' }} />
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-2 sm:p-4">
         <div className="w-full max-w-lg">
           {/* Main glass card */}
           <div className="relative group">
@@ -135,31 +135,31 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl" />
             
             {/* Inner content */}
-            <div className="relative bg-card/20 backdrop-blur-glass rounded-2xl border border-white/20 shadow-2xl p-8 transition-all duration-500 hover:bg-card/30 hover:border-primary/30 hover:shadow-glow">
+            <div className="relative bg-card/20 backdrop-blur-glass rounded-2xl border border-white/20 shadow-2xl p-4 sm:p-8 transition-all duration-500 hover:bg-card/30 hover:border-primary/30 hover:shadow-glow">
               {/* Header */}
-              <div className="text-center mb-8">
+              <div className="text-center mb-6 sm:mb-8">
                 <div className="relative">
-                  <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                  <h1 className="text-2xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
                     Big Booty Builder Program
                   </h1>
-                  <h2 className="text-2xl font-semibold mb-3 text-primary">
+                  <h2 className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-3 text-primary">
                     40 Day Challenge
                   </h2>
-                  <div className="absolute inset-0 text-4xl font-bold blur-sm bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 bg-clip-text text-transparent">
+                  <div className="absolute inset-0 text-2xl sm:text-4xl font-bold blur-sm bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 bg-clip-text text-transparent">
                     Big Booty Builder Program
                   </div>
                 </div>
-                <p className="text-muted-foreground/80 text-lg mb-2">
+                <p className="text-base sm:text-lg text-muted-foreground/80 mb-1 sm:mb-2">
                   Transform your physique with precision tracking
                 </p>
-                <p className="text-sm text-muted-foreground/60">
+                <p className="text-xs sm:text-sm text-muted-foreground/60">
                   This App was made by DaBaebae
                 </p>
               </div>
 
               {/* Username input - centered */}
-              <div className="space-y-3 mb-6 text-center">
-                <label htmlFor="username" className="text-sm font-medium text-foreground/90 block">
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-center">
+                <label htmlFor="username" className="text-xs sm:text-sm font-medium text-foreground/90 block">
                   Username
                 </label>
                 <div className="relative max-w-xs mx-auto">
@@ -168,17 +168,17 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
-                    className="bg-card/30 backdrop-blur-sm border-white/20 text-foreground placeholder:text-muted-foreground/60 rounded-xl h-12 transition-all duration-300 focus:border-primary/50 focus:bg-card/40 focus:shadow-glow text-center"
+                    className="bg-card/30 backdrop-blur-sm border-white/20 text-foreground placeholder:text-muted-foreground/60 rounded-xl h-10 sm:h-12 transition-all duration-300 focus:border-primary/50 focus:bg-card/40 focus:shadow-glow text-center text-sm sm:text-base"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100 pointer-events-none" />
                 </div>
               </div>
 
               {/* Begin button - centered */}
-              <div className="mb-8 flex justify-center">
+              <div className="mb-6 sm:mb-8 flex justify-center">
                 <Button 
                   onClick={handleBegin}
-                  className="w-full max-w-xs h-12 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary/90 hover:via-primary-glow/90 hover:to-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
+                  className="w-full max-w-xs h-10 sm:h-12 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary/90 hover:via-primary-glow/90 hover:to-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20 text-sm sm:text-base"
                   disabled={!username.trim() || loading}
                 >
                   <div className="flex items-center justify-center gap-2">

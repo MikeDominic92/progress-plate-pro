@@ -447,16 +447,18 @@ export default function ExercisePage({ username }: ExercisePageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto p-4 max-w-4xl space-y-6">
+      <div className="container mx-auto p-2 sm:p-4 max-w-4xl space-y-4 sm:space-y-6">
         {/* Header with Navigation */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Button 
             variant="outline" 
+            size="sm"
             onClick={() => currentExerciseIndex > 0 ? navigate(`/exercise/${currentExerciseIndex - 1}`) : navigate('/workout')}
             disabled={currentExerciseIndex === 0}
+            className="flex-shrink-0"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Previous
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Previous</span>
           </Button>
           
           <div className="text-center">
@@ -474,10 +476,10 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         </div>
 
         {/* Progress Bar */}
-        <Card className="p-4">
+        <Card className="p-3 sm:p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Overall Progress</span>
-            <span className="text-sm text-muted-foreground">{completedSets}/{totalSets} sets</span>
+            <span className="text-xs sm:text-sm font-medium">Overall Progress</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">{completedSets}/{totalSets} sets</span>
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
             <div 
@@ -495,20 +497,20 @@ export default function ExercisePage({ username }: ExercisePageProps) {
 
         {/* Exercise Content */}
         <Card className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <CardTitle className="text-2xl font-bold text-foreground">
+          <CardHeader className="pb-3 sm:pb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
+              <div className="space-y-2 w-full sm:w-auto">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
                   {currentExercise.name}
                 </CardTitle>
                 <Badge variant={getTierBadgeVariant(currentExercise.tier)} className="w-fit">
                   {currentExercise.tier}
                 </Badge>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 {/* Prominent Watch Demo Button - Only show if timer hasn't started */}
                 {!currentExerciseStartTime && (
-                  <div className="w-full text-center mb-6">
+                  <div className="w-full text-center">
                     <Button 
                       size="lg"
                       onClick={() => {
@@ -518,14 +520,14 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                         // Save that video was watched
                         manualSave();
                       }}
-                      className="bg-gradient-primary hover:shadow-glow text-lg px-8 py-4 rounded-xl animate-pulse"
+                      className="bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl animate-pulse w-full sm:w-auto"
                     >
-                      <Play className="h-6 w-6 mr-3 animate-bounce" />
-                      Watch Demo to Begin Exercise
+                      <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 animate-bounce" />
+                      <span className="whitespace-nowrap">Watch Demo to Begin Exercise</span>
                     </Button>
                     {/* Substitute notification below button */}
                     {currentExercise.substitute && (
-                      <p className="text-sm text-muted-foreground mt-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
                         Exercise {currentExerciseIndex + 1} has a substitute option
                       </p>
                     )}
@@ -541,7 +543,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       window.open(currentExercise.videoUrl, '_blank');
                       manualSave();
                     }}
-                    className="transition-all duration-300"
+                    className="transition-all duration-300 whitespace-nowrap"
                   >
                     <Play className="h-4 w-4 mr-2" />
                     Watch Demo
@@ -570,22 +572,22 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             {/* Main Exercise Sets - Only show if timer has started */}
             {currentExerciseStartTime && (
               <Tabs defaultValue="main" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="main" className="relative">
+                <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
+                  <TabsTrigger value="main" className="relative text-xs sm:text-sm">
                     Main Exercise
                   </TabsTrigger>
                   <TabsTrigger 
                     value="substitute" 
-                    className={`relative ${
+                    className={`relative text-xs sm:text-sm ${
                       currentExercise.substitute 
                         ? 'bg-yellow-400/20 text-yellow-600 border border-yellow-400/50 hover:bg-yellow-400/30 font-semibold shadow-lg' 
                         : ''
                     }`}
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-1 sm:gap-2">
                       Substitute
                       {currentExercise.substitute && (
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-500 rounded-full animate-pulse" />
                       )}
                     </span>
                   </TabsTrigger>
