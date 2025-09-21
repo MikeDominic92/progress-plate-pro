@@ -326,10 +326,44 @@ const WorkoutIntro = () => (
   </Card>
 );
 
-const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStartTime }: { cardioData: any, setCardioData: any, onStartSession: () => void, sessionStartTime: number | null }) => {
+const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStartTime, manualSave }: { cardioData: any, setCardioData: any, onStartSession: () => void, sessionStartTime: number | null, manualSave?: any }) => {
   const handleComplete = () => {
     if (cardioData.time && cardioData.calories) {
       setCardioData({ ...cardioData, completed: true });
+      // Save immediately when completing cardio
+      if (manualSave) {
+        manualSave({
+          cardio_completed: true,
+          cardio_time: cardioData.time,
+          cardio_calories: cardioData.calories
+        });
+      }
+    }
+  };
+
+  const handleTimeChange = (e: any) => {
+    const newCardioData = { ...cardioData, time: e.target.value };
+    setCardioData(newCardioData);
+    // Debounced save for input changes
+    if (manualSave) {
+      setTimeout(() => {
+        manualSave({
+          cardio_time: e.target.value
+        });
+      }, 500);
+    }
+  };
+
+  const handleCaloriesChange = (e: any) => {
+    const newCardioData = { ...cardioData, calories: e.target.value };
+    setCardioData(newCardioData);
+    // Debounced save for input changes
+    if (manualSave) {
+      setTimeout(() => {
+        manualSave({
+          cardio_calories: e.target.value
+        });
+      }, 500);
     }
   };
 
@@ -377,7 +411,7 @@ const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStar
             type="number"
             placeholder="10"
             value={cardioData.time}
-            onChange={(e) => setCardioData({ ...cardioData, time: e.target.value })}
+            onChange={handleTimeChange}
             variant={cardioData.time ? 'success' : 'default'}
           />
           <FitnessInput
@@ -386,7 +420,7 @@ const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStar
             type="number"
             placeholder="0"
             value={cardioData.calories}
-            onChange={(e) => setCardioData({ ...cardioData, calories: e.target.value })}
+            onChange={handleCaloriesChange}
             variant={cardioData.calories ? 'success' : 'default'}
           />
         </div>
@@ -414,7 +448,7 @@ const CardioTracking = ({ cardioData, setCardioData, onStartSession, sessionStar
   );
 };
 
-const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive }: { warmupData: any, setWarmupData: any, onStartTimer: () => void, isTimerActive: boolean }) => {
+const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive, manualSave }: { warmupData: any, setWarmupData: any, onStartTimer: () => void, isTimerActive: boolean, manualSave?: any }) => {
   const moodOptions = [
     // Left side - higher scores
     { value: 'perfect', label: 'Perfect 💯', score: '100', color: 'text-success' },
@@ -589,7 +623,15 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
                   key={option.value}
                   variant={warmupData.mood === option.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                  onClick={() => {
+                    setWarmupData({ ...warmupData, mood: option.value });
+                    // Save mood selection immediately
+                    if (manualSave) {
+                      manualSave({
+                        warmup_mood: option.value
+                      });
+                    }
+                  }}
                   className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                     warmupData.mood === option.value 
                       ? 'bg-primary text-primary-foreground' 
@@ -608,7 +650,15 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
                   key={option.value}
                   variant={warmupData.mood === option.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setWarmupData({ ...warmupData, mood: option.value })}
+                  onClick={() => {
+                    setWarmupData({ ...warmupData, mood: option.value });
+                    // Save mood selection immediately
+                    if (manualSave) {
+                      manualSave({
+                        warmup_mood: option.value
+                      });
+                    }
+                  }}
                   className={`w-full justify-between h-auto py-3 px-3 ${option.color} ${
                     warmupData.mood === option.value 
                       ? 'bg-primary text-primary-foreground' 
@@ -648,21 +698,24 @@ const WarmupTracking = ({ warmupData, setWarmupData, onStartTimer, isTimerActive
                              <p className={`text-sm font-medium ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}>
                                {exercise.name}
                              </p>
-                             {isLocked && (
-                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                 <div className="w-3 h-3 rounded-full border border-muted-foreground/40 flex items-center justify-center">
-                                   <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full" />
-                                 </div>
-                                 <span>Locked</span>
-                               </div>
-                             )}
-                           </div>
-                           <p className={`text-xs ${isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
-                             Watch {exercise.timeSegment}
-                           </p>
-                           {isWatched && (
-                             <p className="text-xs text-success font-medium">✓ Watched</p>
-                           )}
+                            {isWatched && (
+                                <div className="flex items-center gap-1 text-xs text-success">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Completed</span>
+                                </div>
+                              )}
+                              {isLocked && !isWatched && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <div className="w-3 h-3 rounded-full border border-muted-foreground/40 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full" />
+                                  </div>
+                                  <span>Locked</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className={`text-xs ${isLocked && !isWatched ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+                              Watch {exercise.timeSegment}
+                            </p>
                          </div>
                           <Button
                             onClick={() => {
@@ -875,7 +928,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
   const { toast } = useToast();
   
   // Integrate workout storage - SINGLE hook call
-  const { currentSession, updateSession, initializeSession, saving } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, saving, manualSave } = useWorkoutStorage(username);
 
   // Initialize session on mount and clear localStorage for new sessions
   useEffect(() => {
@@ -908,7 +961,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     localStorage.setItem('jackyWarmupData', JSON.stringify(warmupData));
   }, [workoutLog, cardioData, warmupData]);
 
-  // Separate auto-save effect to prevent infinite loops
+  // Update session state (without auto-saving)
   useEffect(() => {
     if (currentSession && updateSession) {
       updateSession({
@@ -925,7 +978,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
     }
   }, [currentPhase, cardioData.completed, cardioData.time, cardioData.calories, 
       warmupData.completed, warmupData.exercisesCompleted, warmupData.mood, 
-      warmupData.watchedVideos, workoutLog, currentSession]); // Removed updateSession from deps
+      warmupData.watchedVideos, workoutLog, currentSession, updateSession]);
 
   const handleLogChange = (exerciseIndex: number, setIndex: number, field: string, value: string, exerciseType = 'main') => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
@@ -935,6 +988,15 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
       updatedLog[exerciseIndex].sets[setIndex][field] = value;
     }
     setWorkoutLog(updatedLog);
+    
+    // Save when user finishes inputting (debounced save after input)
+    if (manualSave) {
+      setTimeout(() => {
+        manualSave({
+          workout_data: { logs: updatedLog, timers: {} }
+        });
+      }, 500);
+    }
   };
 
   // Calculate overall progress
@@ -1152,12 +1214,13 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
           
           {/* Cardio Phase */}
           {(currentPhase === 'cardio' || cardioData.completed) && (
-            <CardioTracking 
-              cardioData={cardioData} 
-              setCardioData={setCardioData} 
-              onStartSession={handleSessionStart}
-              sessionStartTime={sessionStartTime}
-            />
+              <CardioTracking 
+                cardioData={cardioData} 
+                setCardioData={setCardioData} 
+                onStartSession={handleSessionStart}
+                sessionStartTime={sessionStartTime}
+                manualSave={manualSave}
+              />
           )}
           
           {/* Warmup Phase */}
@@ -1180,6 +1243,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                 setWarmupData={setWarmupData} 
                 onStartTimer={handleExerciseStart}
                 isTimerActive={currentExerciseStartTime !== null}
+                manualSave={manualSave}
               />
             </>
           )}

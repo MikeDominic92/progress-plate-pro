@@ -165,7 +165,17 @@ export const useWorkoutStorage = (username: string) => {
 
     const updatedSession = { ...currentSession, ...updates };
     setCurrentSession(updatedSession);
-    await saveSession(updatedSession);
+    
+    // Only trigger saving indicator for actual user input changes
+    // Don't save automatically, let the component decide when to save
+  }, [currentSession]);
+
+  // Manual save function for user-triggered saves
+  const manualSave = useCallback(async (updates?: Partial<WorkoutSession>) => {
+    if (!currentSession) return;
+    
+    const sessionToSave = updates ? { ...currentSession, ...updates } : currentSession;
+    await saveSession(sessionToSave);
   }, [currentSession]);
 
   // Auto-save every 30 seconds
@@ -184,6 +194,7 @@ export const useWorkoutStorage = (username: string) => {
     saving,
     initializeSession,
     updateSession,
+    manualSave,
     saveSession: () => currentSession && saveSession(currentSession)
   };
 };
