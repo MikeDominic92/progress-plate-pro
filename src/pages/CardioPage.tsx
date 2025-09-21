@@ -105,7 +105,7 @@ export default function CardioPage({ username }: CardioPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(24_95%_53%/0.1),transparent_50%)]" />
@@ -134,7 +134,7 @@ export default function CardioPage({ username }: CardioPageProps) {
         </div>
 
         {/* Cardio Tracking Card */}
-        <Card className="bg-gradient-secondary/80 backdrop-blur-glass border-accent/30 shadow-lg shadow-glass">
+        <Card className="bg-black border-white/20 shadow-lg">
           <CardHeader>
             <CardTitle className="text-accent flex items-center gap-2">
               <Timer className="h-5 w-5" />

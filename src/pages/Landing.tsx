@@ -115,7 +115,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Animated liquid glass background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/30" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(24_95%_53%/0.15),transparent_50%)]" />
@@ -159,7 +159,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
 
               {/* Username input - centered */}
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-center">
-                <label htmlFor="username" className="text-xs sm:text-sm font-medium text-foreground/90 block">
+                <label htmlFor="username" className="text-xs sm:text-sm font-medium text-white block">
                   Username
                 </label>
                 <div className="relative max-w-xs mx-auto">
@@ -168,7 +168,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
-                    className="bg-card/30 backdrop-blur-sm border-white/20 text-foreground placeholder:text-muted-foreground/60 rounded-xl h-10 sm:h-12 transition-all duration-300 focus:border-primary/50 focus:bg-card/40 focus:shadow-glow text-center text-sm sm:text-base"
+                    className="bg-black border-orange-400/50 text-white placeholder:text-gray-400 rounded-xl h-10 sm:h-12 transition-all duration-300 focus:border-orange-500 focus:bg-black focus:shadow-glow text-center text-sm sm:text-base"
                   />
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100 pointer-events-none" />
                 </div>
@@ -190,8 +190,8 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
 
               {/* Saved sessions */}
               {savedSessions.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-foreground/90">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-white">
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-primary" />
                       <h3 className="text-lg font-semibold">Continue Previous Sessions</h3>
