@@ -1233,7 +1233,7 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
                   onComplete={handleExerciseComplete}
                   onStart={handleExerciseStart}
                   onSetComplete={handleExerciseSetComplete}
-                  isActive={currentPhase === 'warmup' && !warmupData.completed && !!warmupData.mood}
+                  isActive={currentPhase === 'warmup' && !warmupData.completed && !!warmupData.mood && currentExerciseStartTime !== null}
                   isPaused={false}
                   exerciseType="warmup"
                 />
