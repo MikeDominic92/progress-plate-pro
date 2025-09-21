@@ -668,7 +668,19 @@ interface FitnessAppProps {
 }
 
 export default function FitnessApp({ username, continueSession, onBackToLanding }: FitnessAppProps) {
+  // Initialize state based on whether this is a new session or continuing
   const [workoutLog, setWorkoutLog] = useState(() => {
+    // If continuing a session, load from that session's data
+    if (continueSession && continueSession.workout_data && continueSession.workout_data.logs) {
+      return continueSession.workout_data.logs;
+    }
+    
+    // For new sessions, always start fresh (don't load from localStorage)
+    if (!continueSession) {
+      return initialWorkoutData;
+    }
+
+    // Fallback - try localStorage, but default to initial data
     try {
       const savedLog = localStorage.getItem('jackyWorkoutLog');
       return savedLog ? JSON.parse(savedLog) : initialWorkoutData;
@@ -687,45 +699,56 @@ export default function FitnessApp({ username, continueSession, onBackToLanding 
 
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [cardioData, setCardioData] = useState({ time: '', calories: '', completed: false });
-  const [warmupData, setWarmupData] = useState({
-    mood: '',
-    exercisesCompleted: false,
-    completed: false,
-    watchedVideos: [] as string[]
+  
+  // Initialize cardio data based on continue session or fresh start
+  const [cardioData, setCardioData] = useState(() => {
+    if (continueSession) {
+      return {
+        time: continueSession.cardio_time || '',
+        calories: continueSession.cardio_calories || '',
+        completed: continueSession.cardio_completed || false
+      };
+    }
+    return { time: '', calories: '', completed: false };
   });
-  const [currentPhase, setCurrentPhase] = useState('cardio'); // cardio, warmup, main
+  
+  // Initialize warmup data based on continue session or fresh start
+  const [warmupData, setWarmupData] = useState(() => {
+    if (continueSession) {
+      return {
+        mood: continueSession.warmup_mood || '',
+        exercisesCompleted: continueSession.warmup_exercises_completed || false,
+        completed: continueSession.warmup_completed || false,
+        watchedVideos: continueSession.warmup_watched_videos || []
+      };
+    }
+    return {
+      mood: '',
+      exercisesCompleted: false,
+      completed: false,
+      watchedVideos: [] as string[]
+    };
+  });
+  
+  // Initialize current phase based on continue session or fresh start
+  const [currentPhase, setCurrentPhase] = useState(() => {
+    return continueSession ? continueSession.current_phase : 'cardio';
+  });
+  
   const { toast } = useToast();
   
   // Integrate workout storage - SINGLE hook call
   const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
 
-  // Initialize workout storage
+  // Initialize session on mount and clear localStorage for new sessions
   useEffect(() => {
-    if (currentSession) return; // Already initialized
-    
-    if (continueSession) {
-      // Initialize from continue session
-      setCurrentPhase(continueSession.current_phase);
-      setCardioData({
-        time: continueSession.cardio_time || '',
-        calories: continueSession.cardio_calories || '',
-        completed: continueSession.cardio_completed || false
-      });
-      setWarmupData({
-        mood: continueSession.warmup_mood || '',
-        exercisesCompleted: continueSession.warmup_exercises_completed || false,
-        completed: continueSession.warmup_completed || false,
-        watchedVideos: continueSession.warmup_watched_videos || []
-      });
-      if (continueSession.workout_data && continueSession.workout_data.logs) {
-        setWorkoutLog(continueSession.workout_data.logs);
-      }
+    // If starting a new session (no continueSession), clear old localStorage data
+    if (!continueSession) {
+      localStorage.removeItem('jackyWorkoutLog');
+      localStorage.removeItem('jackyCardioData');
+      localStorage.removeItem('jackyWarmupData');
     }
-  }, [continueSession, currentSession]);
-
-  // Initialize session on mount
-  useEffect(() => {
+    
     initializeSession(continueSession);
   }, [username, continueSession, initializeSession]);
 
