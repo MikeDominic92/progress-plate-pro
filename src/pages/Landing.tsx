@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Activity, TrendingUp, BookOpen } from 'lucide-react';
+import { Clock, Calendar, Activity, TrendingUp, BookOpen, Lock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { workoutPlan, WorkoutDay } from '@/data/workoutPlan';
 
 interface WorkoutSession {
   id: string;
@@ -31,6 +32,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   const [savedSessions, setSavedSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCompletedDays, setTotalCompletedDays] = useState(0);
+  const [completedDays, setCompletedDays] = useState<string[]>([]);
   const { toast } = useToast();
   const { clearSession } = useWorkoutStorage(username);
   const navigate = useNavigate();
@@ -58,9 +60,11 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
       // Get unique completed days
       const uniqueDays = [...new Set(data?.map(session => session.session_date) || [])];
       setTotalCompletedDays(uniqueDays.length);
+      setCompletedDays(uniqueDays);
     } catch (error) {
       console.error('Error fetching completed days:', error);
       setTotalCompletedDays(0);
+      setCompletedDays([]);
     }
   };
 
@@ -144,6 +148,40 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
     onStartWorkout(trimmedUsername);
   };
 
+  const handleDaySelect = (day: WorkoutDay) => {
+    const trimmedUsername = username.trim();
+    
+    // Check if user is admin
+    if (trimmedUsername.toLowerCase() === 'admin') {
+      navigate('/admin-dashboard');
+      return;
+    }
+
+    // Check if day is unlocked
+    if (!isDayUnlocked(day.day)) {
+      toast({
+        title: "Day Locked",
+        description: `Complete Day ${day.day - 1} first to unlock this day.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    onStartWorkout(trimmedUsername);
+  };
+
+  const isDayUnlocked = (dayNumber: number): boolean => {
+    // Day 1 is always unlocked
+    if (dayNumber === 1) return true;
+    
+    // Check if previous day is completed
+    return completedDays.length >= dayNumber - 1;
+  };
+
+  const isDayCompleted = (dayNumber: number): boolean => {
+    return completedDays.length >= dayNumber;
+  };
+
   const handleContinue = (session: WorkoutSession) => {
     onStartWorkout(username.trim(), session);
   };
@@ -208,20 +246,6 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                 </div>
               </div>
 
-              {/* Begin button - centered */}
-              <div className="mb-6 sm:mb-8 flex justify-center">
-                <Button 
-                  onClick={handleBegin}
-                  className="w-full max-w-xs h-10 sm:h-12 bg-gradient-to-r from-primary via-primary-glow to-primary hover:from-primary/90 hover:via-primary-glow/90 hover:to-primary/90 text-primary-foreground font-semibold rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20 text-sm sm:text-base"
-                  disabled={!username.trim() || loading}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Begin New Workout</span>
-                    <div className="w-2 h-2 bg-primary-foreground/30 rounded-full animate-pulse" />
-                  </div>
-                </Button>
-              </div>
-
               {/* Exercise Index Navigation */}
               <div className="mb-6 sm:mb-8 flex justify-center">
                 <Button 
@@ -234,6 +258,59 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                     <span>Exercise Index</span>
                   </div>
                 </Button>
+              </div>
+
+              {/* Challenge Overview */}
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-lg font-semibold text-white mb-4 text-center">40-Day Challenge Progress</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-primary/20">
+                  {workoutPlan.slice(0, 9).map((day) => {
+                    const isUnlocked = isDayUnlocked(day.day);
+                    const isCompleted = isDayCompleted(day.day);
+                    
+                    return (
+                      <Card 
+                        key={day.day} 
+                        className={`cursor-pointer transition-all duration-200 ${
+                          isUnlocked 
+                            ? 'hover:shadow-lg hover:scale-105 border-primary/20 bg-card/20 backdrop-blur-sm' 
+                            : 'opacity-50 cursor-not-allowed bg-card/10'
+                        } ${isCompleted ? 'bg-primary/5 border-primary/40' : ''}`}
+                        onClick={() => handleDaySelect(day)}
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm text-white">Day {day.day}</CardTitle>
+                            <div className="flex items-center space-x-1">
+                              {isCompleted && <CheckCircle className="h-4 w-4 text-primary" />}
+                              {!isUnlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                            </div>
+                          </div>
+                          <CardDescription className="text-xs">
+                            {day.date} • {day.type === 'high-intensity' ? 'High Intensity' : 'Technique & Cardio'}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">{day.exercises.length} exercises</p>
+                            <div className="flex flex-wrap gap-1">
+                              {day.exercises.slice(0, 2).map((exercise, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs px-1 py-0">
+                                  {exercise.tier}
+                                </Badge>
+                              ))}
+                              {day.exercises.length > 2 && (
+                                <Badge variant="secondary" className="text-xs px-1 py-0">
+                                  +{day.exercises.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Saved sessions */}
