@@ -10,9 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 
 const AuthPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,13 +25,13 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(username, password);
       
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast({
-            title: "Login Failed",
-            description: "Invalid email or password. Please check your credentials.",
+            title: "Login Failed", 
+            description: "Invalid username or password. Please check your credentials.",
             variant: "destructive",
           });
         } else {
@@ -95,13 +94,13 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password, username.trim());
+      const { error } = await signUp(username.trim(), password);
       
       if (error) {
         if (error.message.includes('User already registered')) {
           toast({
-            title: "Account Exists",
-            description: "An account with this email already exists. Please sign in instead.",
+            title: "Username Taken",
+            description: "This username is already taken. Please choose a different one.",
             variant: "destructive",
           });
         } else {
@@ -163,13 +162,13 @@ const AuthPage = () => {
                 <TabsContent value="signin">
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signin-email">Email</Label>
+                      <Label htmlFor="signin-username">Username</Label>
                       <Input
-                        id="signin-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="signin-username"
+                        type="text"
+                        placeholder="Enter your username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                         className="bg-black/50 border-white/20 focus:border-primary/50"
                       />
@@ -215,18 +214,6 @@ const AuthPage = () => {
                         placeholder="Choose a username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        required
-                        className="bg-black/50 border-white/20 focus:border-primary/50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
                         required
                         className="bg-black/50 border-white/20 focus:border-primary/50"
                       />

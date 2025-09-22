@@ -7,10 +7,11 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (username: string, password: string) => Promise<{ error: any }>;
+  signIn: (username: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  username: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,13 +43,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Check admin status when user changes
+        // Check admin status and username when user changes
         if (session?.user) {
           setTimeout(() => {
             checkAdminStatus(session.user.id);
+            fetchUsername(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setUsername(null);
         }
         
         setLoading(false);
@@ -62,6 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (session?.user) {
         setTimeout(() => {
           checkAdminStatus(session.user.id);
+          fetchUsername(session.user.id);
         }, 0);
       }
       
@@ -91,11 +96,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string) => {
+  const fetchUsername = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('username')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching username:', error);
+        return;
+      }
+
+      setUsername(data?.username || null);
+    } catch (error) {
+      console.error('Error fetching username:', error);
+      setUsername(null);
+    }
+  };
+
+  const signUp = async (username: string, password: string) => {
+    // Create a temporary email using username
+    const tempEmail = `${username.toLowerCase()}@temp.local`;
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: tempEmail,
       password,
       options: {
         emailRedirectTo: redirectUrl,
@@ -127,9 +154,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return { error: null };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
+    // Convert username to temp email for sign in
+    const tempEmail = `${username.toLowerCase()}@temp.local`;
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: tempEmail,
       password,
     });
 
@@ -163,6 +193,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signIn,
     signOut,
     isAdmin,
+    username,
   };
 
   return (
