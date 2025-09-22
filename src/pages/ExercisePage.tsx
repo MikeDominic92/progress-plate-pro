@@ -305,26 +305,6 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     const allSetsCompleted = exercise.sets.every((set: any) => set.confirmed);
     
     if (allSetsCompleted) {
-    
-    // Clear any pending session updates
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
-    // Immediate update for set completion
-    updateSession({
-      workout_data: { logs: updatedLog, timers: {} }
-    });
-    
-    // Force immediate save to ensure set completion is persisted
-    manualSave({
-      workout_data: { logs: updatedLog, timers: {} }
-    });
-    
-    const currentExercise = updatedLog[currentExerciseIndex];
-    const allSetsCompleted = currentExercise.sets.every((set: any) => set.confirmed);
-    
-    if (allSetsCompleted) {
       console.log(`All sets completed for exercise ${currentExerciseIndex + 1}!`);
       
       // Check if all exercises are now completed
