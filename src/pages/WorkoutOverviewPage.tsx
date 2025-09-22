@@ -172,9 +172,21 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
 
-  // Find next incomplete exercise
+  // Auto-navigate to post-workout when everything is completed
+  useEffect(() => {
+    if (completedSets >= totalSets && totalSets > 0) {
+      console.log('🎉 Workout completed! Auto-navigating to post-workout...');
+      updateSession({ current_phase: 'completed' });
+      const t = setTimeout(() => {
+        navigate('/post-workout', { replace: true });
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [completedSets, totalSets, navigate, updateSession]);
+
+  // Find next incomplete exercise (treat substitutes as valid)
   const nextIncompleteExercise = workoutLog.findIndex((exercise: any) => {
-    return !exercise.sets.every((set: any) => set.confirmed);
+    return getExerciseProgress(exercise) < 100;
   });
 
   return (
@@ -207,11 +219,17 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
         {/* Quick Actions */}
         <div className="flex gap-4">
           <Button 
-            onClick={() => navigate(`/exercise/${nextIncompleteExercise !== -1 ? nextIncompleteExercise : 0}`)}
+            onClick={() => {
+              if (completedSets >= totalSets && totalSets > 0) {
+                navigate('/post-workout');
+              } else {
+                navigate(`/exercise/${nextIncompleteExercise !== -1 ? nextIncompleteExercise : 0}`);
+              }
+            }}
             className="flex-1"
             size="lg"
           >
-            {nextIncompleteExercise !== -1 ? 'Continue Workout' : 'Start First Exercise'}
+            {completedSets >= totalSets && totalSets > 0 ? 'Continue to Post-Workout' : (nextIncompleteExercise !== -1 ? 'Continue Workout' : 'Start First Exercise')}
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
@@ -252,7 +270,10 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">
-                            {exercise.sets.filter((set: any) => set.confirmed).length}/{exercise.sets.length} sets completed
+                            {Math.max(
+                              exercise.sets.filter((set: any) => set.confirmed).length,
+                              exercise.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0
+                            )}/{exercise.sets.length} sets completed
                           </span>
                           <span className="font-medium">{Math.round(progress)}%</span>
                         </div>
