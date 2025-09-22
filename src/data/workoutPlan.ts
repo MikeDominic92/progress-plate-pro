@@ -36,11 +36,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 1: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
-      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' },
-      { name: 'Step-Ups', tier: 'A-Tier' }
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
+      { name: 'Barbell Back Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=324s', instructions: 'All glutes' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=700s', instructions: 'Mid + Lower glutes' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
     ]
   },
   {
@@ -50,11 +50,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 2: Wednesday (Technique & Cardio)',
     cardio: '10-minute warm-up + 20-25 minutes moderate cardio after workout',
     exercises: [
-      { name: 'Bulgarian Split Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: '45-Degree Back Extension', tier: 'S-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Barbell Back Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Cable Kickback', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps' }
+      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=623s', instructions: 'Upper glutes' },
+      { name: 'Bulgarian Split Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=376s', instructions: 'Upper + All glutes' },
+      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=261s', instructions: 'Lower glutes' },
+      { name: 'Step-Ups', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=475s', instructions: 'Upper + All glutes' },
+      { name: '45-Degree Back Extension', tier: 'S-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=728s', instructions: 'Mid glutes' }
     ]
   },
   {
@@ -64,11 +64,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 3: Friday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
-      { name: 'Smith Machine Squat', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
+      { name: 'Smith Machine Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=368s', instructions: 'Mid glutes' },
+      { name: 'Cable Kickback', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=443s', instructions: 'Upper + Medius glutes' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
     ]
   },
   // Week 2
@@ -79,11 +79,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 4: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
-      { name: 'Barbell Back Squat', tier: 'A-Tier' },
-      { name: '45-Degree Back Extension', tier: 'S-Tier' },
-      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
+      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=623s', instructions: 'Upper glutes' },
+      { name: 'Barbell Back Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=324s', instructions: 'All glutes' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=700s', instructions: 'Mid + Lower glutes' },
+      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=261s', instructions: 'Lower glutes' },
+      { name: '45-Degree Back Extension', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=728s', instructions: 'Mid glutes' }
     ]
   },
   {
@@ -93,11 +93,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 5: Wednesday (Technique & Cardio)',
     cardio: '10-minute warm-up + 25-30 minutes moderate cardio after workout',
     exercises: [
-      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://youtu.be/8tm3JW1UpAs' },
-      { name: 'Step-Ups', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Cable Kickback', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://youtu.be/mwfxTbBzMnI' }
+      { name: 'Walking Lunge', tier: 'S+ Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
+      { name: 'Bulgarian Split Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=376s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
+      { name: 'Glute Bridge', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=284s', instructions: 'Lower glutes' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
     ]
   },
   {
@@ -107,11 +107,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 6: Friday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Bulgarian Split Squat', tier: 'A-Tier' },
-      { name: 'Smith Machine Squat', tier: 'A-Tier' },
-      { name: '45-Degree Back Extension', tier: 'S-Tier' },
-      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
+      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=623s', instructions: 'Upper glutes' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=700s', instructions: 'Mid + Lower glutes' },
+      { name: 'Smith Machine Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=368s', instructions: 'Mid glutes' },
+      { name: 'Cable Kickback', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=443s', instructions: 'Upper + Medius glutes' },
+      { name: '45-Degree Back Extension', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=728s', instructions: 'Mid glutes' }
     ]
   },
   // Week 3
@@ -122,11 +122,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 7: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
-      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' },
-      { name: 'Step-Ups', tier: 'A-Tier' }
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
+      { name: 'Barbell Back Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=324s', instructions: 'All glutes' },
+      { name: 'Bulgarian Split Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=376s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
     ]
   },
   {
@@ -136,11 +136,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 8: Wednesday (Technique & Cardio)',
     cardio: '10-minute warm-up + 30 minutes moderate cardio after workout',
     exercises: [
-      { name: 'Bulgarian Split Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: '45-Degree Back Extension', tier: 'S-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Barbell Back Squat', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Cable Kickback', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps' }
+      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=623s', instructions: 'Upper glutes' },
+      { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=261s', instructions: 'Lower glutes' },
+      { name: 'Step-Ups', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=475s', instructions: 'Upper + All glutes' },
+      { name: 'Glute Bridge', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=284s', instructions: 'Lower glutes' },
+      { name: '45-Degree Back Extension', tier: 'S-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=728s', instructions: 'Mid glutes' }
     ]
   },
   {
@@ -150,11 +150,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 9: Friday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
-      { name: 'Smith Machine Squat', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
+      { name: 'Smith Machine Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=368s', instructions: 'Mid glutes' },
+      { name: 'Cable Kickback', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=443s', instructions: 'Upper + Medius glutes' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
     ]
   }
 ];
