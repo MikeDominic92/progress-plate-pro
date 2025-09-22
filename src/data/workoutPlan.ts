@@ -9,6 +9,7 @@ export interface WorkoutDay {
     tier: string;
     sets?: string;
     instructions?: string;
+    video_url?: string;
   }[];
 }
 
@@ -35,10 +36,10 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 1: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Machine Hip Thrust', tier: 'A-Tier' },
-      { name: 'Walking Lunge', tier: 'S+ Tier' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' },
       { name: 'Step-Ups', tier: 'A-Tier' }
     ]
   },
@@ -64,10 +65,10 @@ export const workoutPlan: WorkoutDay[] = [
     cardio: '10-minute warm-up',
     exercises: [
       { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
       { name: 'Smith Machine Squat', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
     ]
   },
   // Week 2
@@ -78,11 +79,11 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 4: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Walking Lunge', tier: 'S+ Tier' },
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
       { name: 'Barbell Back Squat', tier: 'A-Tier' },
       { name: '45-Degree Back Extension', tier: 'S-Tier' },
       { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
     ]
   },
   {
@@ -93,10 +94,10 @@ export const workoutPlan: WorkoutDay[] = [
     cardio: '10-minute warm-up + 25-30 minutes moderate cardio after workout',
     exercises: [
       { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://youtu.be/8tm3JW1UpAs' },
       { name: 'Step-Ups', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
       { name: 'Cable Kickback', tier: 'A-Tier', sets: '3 sets of 12-15 reps' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', sets: '3 sets of 12-15 reps' }
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', sets: '3 sets of 12-15 reps', video_url: 'https://youtu.be/mwfxTbBzMnI' }
     ]
   },
   {
@@ -110,7 +111,7 @@ export const workoutPlan: WorkoutDay[] = [
       { name: 'Smith Machine Squat', tier: 'A-Tier' },
       { name: '45-Degree Back Extension', tier: 'S-Tier' },
       { name: 'Single-Leg Dumbbell Hip Thrust', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
     ]
   },
   // Week 3
@@ -121,10 +122,10 @@ export const workoutPlan: WorkoutDay[] = [
     title: 'Day 7: Monday (High Intensity)',
     cardio: '10-minute warm-up',
     exercises: [
-      { name: 'Machine Hip Thrust', tier: 'A-Tier' },
-      { name: 'Walking Lunge', tier: 'S+ Tier' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
+      { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://youtu.be/QUfzBKg7Ob8' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' },
       { name: 'Step-Ups', tier: 'A-Tier' }
     ]
   },
@@ -150,10 +151,10 @@ export const workoutPlan: WorkoutDay[] = [
     cardio: '10-minute warm-up',
     exercises: [
       { name: 'Smith Machine Lunge (Front Foot Elevated)', tier: 'S-Tier' },
-      { name: 'Machine Hip Thrust', tier: 'A-Tier' },
-      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier' },
+      { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://youtu.be/8tm3JW1UpAs' },
+      { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://youtu.be/mwfxTbBzMnI' },
       { name: 'Smith Machine Squat', tier: 'A-Tier' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://youtu.be/PPmvh7gBTi0' }
     ]
   }
 ];
