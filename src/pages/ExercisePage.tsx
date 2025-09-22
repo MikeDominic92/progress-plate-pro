@@ -8,10 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { CircularProgress } from '@/components/CircularProgress';
 import { ExerciseTimer } from '@/components/ExerciseTimer';
-import { RestTimerSelector } from '@/components/RestTimerSelector';
 import { SessionTimer } from '@/components/SessionTimer';
 import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { VideoPlayer } from '@/components/VideoPlayer';
+import { RestTimerModal } from '@/components/RestTimerModal';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -110,7 +110,13 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const [hasWatchedSubstituteVideo, setHasWatchedSubstituteVideo] = useState(false);
   const [hasWatchedMainVideo, setHasWatchedMainVideo] = useState(false);
   const [hasClickedSubstitute, setHasClickedSubstitute] = useState(false);
-  const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
+  const [currentSetInProgress, setCurrentSetInProgress] = useState<{
+    exerciseIndex: number, 
+    setIndex: number,
+    isSubstitute?: boolean,
+    exerciseName?: string,
+    setType?: string
+  } | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
   
@@ -259,14 +265,46 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     }, 1000); // Increased delay to prevent frequent updates while typing
   };
 
-  const handleIndividualSetComplete = (setIndex: number) => {
+  const handleIndividualSetComplete = (setIndex: number, isSubstitute: boolean = false) => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
-    updatedLog[currentExerciseIndex].sets[setIndex].confirmed = true;
+    const exercise = updatedLog[currentExerciseIndex];
+    
+    if (isSubstitute) {
+      exercise.substitute.sets[setIndex].confirmed = true;
+    } else {
+      exercise.sets[setIndex].confirmed = true;
+    }
+    
     setWorkoutLog(updatedLog);
     
-    setCurrentSetInProgress({exerciseIndex: currentExerciseIndex, setIndex: setIndex});
+    setCurrentSetInProgress({
+      exerciseIndex: currentExerciseIndex, 
+      setIndex: setIndex,
+      isSubstitute: isSubstitute,
+      exerciseName: isSubstitute ? exercise.substitute.name : exercise.name,
+      setType: isSubstitute ? exercise.substitute.sets[setIndex].type : exercise.sets[setIndex].type
+    });
     setIsExerciseTimerPaused(true);
     setShowRestTimer(true);
+    
+    // Clear any pending session updates
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    // Immediate update for set completion
+    updateSession({
+      workout_data: { logs: updatedLog, timers: {} }
+    });
+    
+    // Force immediate save to ensure set completion is persisted
+    manualSave({
+      workout_data: { logs: updatedLog, timers: {} }
+    });
+    
+    const allSetsCompleted = exercise.sets.every((set: any) => set.confirmed);
+    
+    if (allSetsCompleted) {
     
     // Clear any pending session updates
     if (updateTimeoutRef.current) {
@@ -750,7 +788,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       key={set.id}
                       set={set}
                       onLogChange={(field, value) => handleLogChange(setIndex, field, value)}
-                      onSetComplete={() => handleIndividualSetComplete(setIndex)}
+                    onSetComplete={() => handleIndividualSetComplete(setIndex)}
                       isCurrentSet={isCurrentSet}
                       canInteract={canInteract}
                     />
@@ -826,45 +864,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                             key={set.id}
                             set={set}
                             onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
-                            onSetComplete={() => {
-                              const updatedLog = JSON.parse(JSON.stringify(workoutLog));
-                              updatedLog[currentExerciseIndex].substitute.sets[setIndex].confirmed = true;
-                              setWorkoutLog(updatedLog);
-                              
-                              setCurrentSetInProgress({exerciseIndex: currentExerciseIndex, setIndex: setIndex});
-                              setIsExerciseTimerPaused(true);
-                              setShowRestTimer(true);
-                              
-                              // Clear any pending session updates
-                              if (updateTimeoutRef.current) {
-                                clearTimeout(updateTimeoutRef.current);
-                              }
-                              
-                              // Immediate update for substitute set completion
-                              updateSession({
-                                workout_data: { logs: updatedLog, timers: {} }
-                              });
-                              
-                              // Force immediate save to ensure substitute progress is persisted
-                              manualSave({
-                                workout_data: { logs: updatedLog, timers: {} }
-                              });
-                              
-                              const allSetsCompleted = updatedLog[currentExerciseIndex].substitute.sets.every((s: any) => s.confirmed);
-                              
-                              if (allSetsCompleted) {
-                                console.log(`All substitute sets completed for exercise ${currentExerciseIndex + 1}!`);
-                                // Auto-navigate to next exercise after completing all sets
-                                setTimeout(() => {
-                                  if (currentExerciseIndex < workoutLog.length - 1) {
-                                    navigate(`/exercise/${currentExerciseIndex + 1}`);
-                                  } else {
-                                    // All exercises completed, navigate to post-workout
-                                    navigate('/post-workout');
-                                  }
-                                }, 2000);
-                              }
-                            }}
+                            onSetComplete={() => handleIndividualSetComplete(setIndex, true)}
                             isCurrentSet={isCurrentSet}
                             canInteract={canInteract}
                           />
@@ -905,6 +905,20 @@ export default function ExercisePage({ username }: ExercisePageProps) {
             
             // Close the video player
             setSelectedVideo(null);
+          }}
+        />
+      )}
+
+      {/* Rest Timer Modal */}
+      {showRestTimer && currentSetInProgress && (
+        <RestTimerModal
+          isOpen={showRestTimer}
+          onComplete={handleRestComplete}
+          onClose={() => setShowRestTimer(false)}
+          setDetails={{
+            exerciseName: currentSetInProgress.exerciseName || currentExercise.name,
+            setType: currentSetInProgress.setType || 'Set',
+            setNumber: currentSetInProgress.setIndex + 1
           }}
         />
       )}
