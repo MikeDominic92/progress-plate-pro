@@ -10,6 +10,7 @@ import WorkoutPage from "./pages/WorkoutPage";
 import WorkoutOverviewPage from "./pages/WorkoutOverviewPage";
 import ExercisePage from "./pages/ExercisePage";
 import PostWorkoutPage from "./pages/PostWorkoutPage";
+import { ExerciseIndexPage } from "./pages/ExerciseIndexPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => {
             <Route path="/warmup" element={<WarmupPage username={storedUsername} />} />
             <Route path="/workout" element={<WorkoutOverviewPage username={storedUsername} />} />
             <Route path="/exercise/:exerciseIndex" element={<ExercisePage username={storedUsername} />} />
+            <Route path="/exercise-index" element={<ExerciseIndexPage />} />
             <Route path="/post-workout" element={<PostWorkoutPage username={storedUsername} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

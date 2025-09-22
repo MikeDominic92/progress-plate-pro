@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Activity, TrendingUp } from 'lucide-react';
+import { Clock, Calendar, Activity, TrendingUp, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -31,6 +32,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { clearSession } = useWorkoutStorage(username);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (username.trim()) {
@@ -184,6 +186,20 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                   <div className="flex items-center justify-center gap-2">
                     <span>Begin New Workout</span>
                     <div className="w-2 h-2 bg-primary-foreground/30 rounded-full animate-pulse" />
+                  </div>
+                </Button>
+              </div>
+
+              {/* Exercise Index Navigation */}
+              <div className="mb-6 sm:mb-8 flex justify-center">
+                <Button 
+                  onClick={() => navigate('/exercise-index')}
+                  variant="outline"
+                  className="w-full max-w-xs h-10 sm:h-12 bg-black/50 border-orange-400/50 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500 font-medium rounded-xl transition-all duration-300 hover:shadow-glow hover:scale-[1.02] text-sm sm:text-base"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Exercise Index</span>
                   </div>
                 </Button>
               </div>
