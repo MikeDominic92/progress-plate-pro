@@ -128,14 +128,6 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
           return;
         }
 
-        // Auto-navigate when workout is 100% complete
-        if (completedSets >= totalSets && totalSets > 0) {
-          console.log('🎉 Workout completed! Auto-navigating to post-workout...');
-          updateSession({ current_phase: 'completed' });
-          setTimeout(() => {
-            navigate('/post-workout', { replace: true });
-          }, 2000);
-        }
       }, 100);
 
       // Load workout data if available
@@ -174,7 +166,11 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
 
   // Auto-navigate to post-workout when everything is completed
   useEffect(() => {
-    if (completedSets >= totalSets && totalSets > 0) {
+    if (
+      completedSets >= totalSets &&
+      totalSets > 0 &&
+      currentSession?.current_phase !== 'completed'
+    ) {
       console.log('🎉 Workout completed! Auto-navigating to post-workout...');
       updateSession({ current_phase: 'completed' });
       const t = setTimeout(() => {
@@ -182,7 +178,7 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
       }, 2000);
       return () => clearTimeout(t);
     }
-  }, [completedSets, totalSets, navigate, updateSession]);
+  }, [completedSets, totalSets, currentSession?.current_phase, navigate, updateSession]);
 
   // Find next incomplete exercise (treat substitutes as valid)
   const nextIncompleteExercise = workoutLog.findIndex((exercise: any) => {
