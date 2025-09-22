@@ -50,6 +50,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
       case 'warmup': return <Zap className="h-4 w-4" />;
       case 'workout': return <Target className="h-4 w-4" />;
       case 'substitute': return <BookOpen className="h-4 w-4" />;
+      case 'core': return <Target className="h-4 w-4" />;
       default: return <BookOpen className="h-4 w-4" />;
     }
   };
@@ -114,6 +115,9 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
             </TabsTrigger>
             <TabsTrigger value="workout" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
               Workout
+            </TabsTrigger>
+            <TabsTrigger value="core" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+              Core
             </TabsTrigger>
             <TabsTrigger value="substitute" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
               Substitute

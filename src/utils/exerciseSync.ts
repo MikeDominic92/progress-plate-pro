@@ -5,7 +5,7 @@ export interface ExerciseToSync {
   name: string;
   tier: string;
   video_url: string; // Make this required since we only sync exercises with videos
-  category: 'workout';
+  category: 'workout' | 'core';
   subcategory?: string;
   instructions?: string;
   is_custom: boolean;
@@ -22,8 +22,8 @@ export const extractUniqueExercises = (username: string): ExerciseToSync[] => {
           name: exercise.name,
           tier: exercise.tier,
           video_url: exercise.video_url,
-          category: 'workout',
-          subcategory: day.type === 'high-intensity' ? 'High Intensity' : 'Technique & Cardio',
+          category: exercise.name === 'P90x Ab Ripper' ? 'core' : 'workout',
+          subcategory: exercise.name === 'P90x Ab Ripper' ? 'Abs & Core' : (day.type === 'high-intensity' ? 'High Intensity' : 'Technique & Cardio'),
           instructions: exercise.instructions || exercise.sets,
           is_custom: false,
           created_by: username

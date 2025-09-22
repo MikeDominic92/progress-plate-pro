@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface ExerciseIndexItem {
   id: string;
   name: string;
-  category: 'warmup' | 'workout' | 'substitute';
+  category: 'warmup' | 'workout' | 'substitute' | 'core';
   subcategory?: string;
   tier?: string;
   video_url: string;
