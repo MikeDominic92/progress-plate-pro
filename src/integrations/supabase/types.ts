@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercise_index: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          exercise_data: Json | null
+          id: string
+          instructions: string | null
+          is_custom: boolean | null
+          name: string
+          subcategory: string | null
+          tags: string[] | null
+          tier: string | null
+          time_segment: string | null
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          exercise_data?: Json | null
+          id?: string
+          instructions?: string | null
+          is_custom?: boolean | null
+          name: string
+          subcategory?: string | null
+          tags?: string[] | null
+          tier?: string | null
+          time_segment?: string | null
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          exercise_data?: Json | null
+          id?: string
+          instructions?: string | null
+          is_custom?: boolean | null
+          name?: string
+          subcategory?: string | null
+          tags?: string[] | null
+          tier?: string | null
+          time_segment?: string | null
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       workout_sessions: {
         Row: {
           cardio_calories: string | null
