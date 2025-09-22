@@ -288,12 +288,15 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       console.log(`All sets completed for exercise ${currentExerciseIndex + 1}!`);
       
       // Check if all exercises are now completed
-      const totalCompletedSets = workoutLog.reduce((acc: number, exercise: any) => {
+      const totalCompletedSets = updatedLog.reduce((acc: number, exercise: any) => {
         if (!exercise?.sets) return acc;
-        return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+        const mainCompleted = exercise.sets.filter((set: any) => set.confirmed).length;
+        const subCompleted = exercise.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0;
+        return acc + Math.max(mainCompleted, subCompleted);
       }, 0);
       
-      const totalSets = workoutLog.reduce((acc: number, exercise: any) => {
+      const totalSets = updatedLog.reduce((acc: number, exercise: any) => {
+        // assume same number of sets for main and substitute
         return acc + (exercise?.sets?.length || 0);
       }, 0);
       
@@ -307,8 +310,8 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       } else {
         // Auto-navigate to next exercise after completing all sets
         setTimeout(() => {
-          if (currentExerciseIndex < workoutLog.length - 1) {
-            navigate(`/exercise/${currentExerciseIndex + 2}`, { replace: true });
+          if (currentExerciseIndex < updatedLog.length - 1) {
+            navigate(`/exercise/${currentExerciseIndex + 1}`, { replace: true });
           }
         }, 2000);
       }

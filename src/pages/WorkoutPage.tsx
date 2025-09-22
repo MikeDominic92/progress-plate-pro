@@ -334,7 +334,9 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
   const completedSets = Array.isArray(workoutLog) ? 
     workoutLog.reduce((acc: number, exercise: any) => {
       if (!exercise?.sets) return acc;
-      return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+      const mainCompleted = exercise.sets.filter((set: any) => set.confirmed).length;
+      const subCompleted = exercise.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0;
+      return acc + Math.max(mainCompleted, subCompleted);
     }, 0) : 0;
   const overallProgress = (completedSets / 20) * 100; // 20 total sets, 5% per set
   const progressPercentage = Math.round(overallProgress / 5) * 5; // Round to nearest 5%

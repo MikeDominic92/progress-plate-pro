@@ -152,9 +152,11 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
 
   // Calculate progress for each exercise
   const getExerciseProgress = (exercise: any) => {
-    const totalSets = exercise.sets.length;
-    const completedSets = exercise.sets.filter((set: any) => set.confirmed).length;
-    return (completedSets / totalSets) * 100;
+    const totalSets = exercise?.sets?.length || 0;
+    const mainCompleted = exercise?.sets?.filter((set: any) => set.confirmed).length || 0;
+    const subCompleted = exercise?.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0;
+    const completed = Math.max(mainCompleted, subCompleted);
+    return totalSets > 0 ? (completed / totalSets) * 100 : 0;
   };
 
   // Calculate overall progress
@@ -164,7 +166,9 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
     
   const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
     if (!exercise?.sets) return acc;
-    return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+    const mainCompleted = exercise.sets.filter((set: any) => set.confirmed).length;
+    const subCompleted = exercise.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0;
+    return acc + Math.max(mainCompleted, subCompleted);
   }, 0);
   const overallProgress = (completedSets / totalSets) * 100;
 
