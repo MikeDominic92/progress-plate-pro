@@ -11,6 +11,7 @@ import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { RestTimerSelector } from '@/components/RestTimerSelector';
 import { SessionTimer } from '@/components/SessionTimer';
 import { ResetSessionButton } from '@/components/ResetSessionButton';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -111,6 +112,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const [hasClickedSubstitute, setHasClickedSubstitute] = useState(false);
   const [currentSetInProgress, setCurrentSetInProgress] = useState<{exerciseIndex: number, setIndex: number} | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
   
   // Ref for debouncing session updates
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -602,12 +604,10 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                       <Button 
                         size="lg"
                         onClick={() => {
-                          window.open(currentExercise.videoUrl, '_blank');
-                          setHasWatchedMainVideo(true);
-                          // Check if we should start timer after watching main video
-                          setTimeout(() => checkAndStartTimer(), 100);
-                          // Save that video was watched
-                          manualSave();
+                          setSelectedVideo({
+                            url: currentExercise.videoUrl,
+                            title: currentExercise.name
+                          });
                         }}
                         className="bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto animate-pulse"
                       >
@@ -649,10 +649,10 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      window.open(currentExercise.videoUrl, '_blank');
-                      setHasWatchedMainVideo(true);
-                      setTimeout(() => checkAndStartTimer(), 100);
-                      manualSave();
+                      setSelectedVideo({
+                        url: currentExercise.videoUrl,
+                        title: currentExercise.name
+                      });
                     }}
                     className="transition-all duration-300 whitespace-nowrap"
                   >
@@ -779,11 +779,10 @@ export default function ExercisePage({ username }: ExercisePageProps) {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            window.open(currentExercise.substitute.videoUrl, '_blank');
-                            setHasWatchedSubstituteVideo(true); // Mark substitute video as watched
-                            // Check if we should start timer after watching substitute video
-                            setTimeout(() => checkAndStartTimer(), 100);
-                            manualSave();
+                            setSelectedVideo({
+                              url: currentExercise.substitute.videoUrl,
+                              title: currentExercise.substitute.name
+                            });
                           }}
                           className="relative overflow-hidden transition-all duration-300 border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20"
                         >
@@ -883,6 +882,32 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         {/* Reset Session Button */}
         <ResetSessionButton onClearSession={clearSession} />
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+          onPlay={() => {
+            // Handle video play - mark appropriate video as watched and start timer
+            if (selectedVideo.title === currentExercise.name) {
+              setHasWatchedMainVideo(true);
+            } else if (currentExercise.substitute && selectedVideo.title === currentExercise.substitute.name) {
+              setHasWatchedSubstituteVideo(true);
+            }
+            
+            // Check if we should start timer after watching video
+            setTimeout(() => checkAndStartTimer(), 100);
+            // Save that video was watched
+            manualSave();
+            
+            // Close the video player
+            setSelectedVideo(null);
+          }}
+        />
+      )}
     </div>
   );
 }

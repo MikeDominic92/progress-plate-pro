@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Play, Target, Timer, CheckCircle2, ArrowRight } from 'lucide-react';
 import { SessionTimer } from '@/components/SessionTimer';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 
 interface WorkoutOverviewPageProps {
@@ -93,6 +94,7 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
   const [workoutLog, setWorkoutLog] = useState(() => {
     try {
       if (currentSession && currentSession.workout_data && currentSession.workout_data.logs) {
@@ -291,7 +293,10 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(exercise.videoUrl, '_blank');
+                          setSelectedVideo({
+                            url: exercise.videoUrl,
+                            title: exercise.name
+                          });
                         }}
                       >
                         <Play className="h-4 w-4" />
@@ -315,6 +320,21 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
           })}
         </div>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+          onPlay={() => {
+            console.log('Video started playing:', selectedVideo.title);
+            // Close the video player after starting
+            setSelectedVideo(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Play, Search, Plus, BookOpen, Target, Zap } from 'lucide-react';
 import { useExerciseIndex, ExerciseIndexItem } from '@/hooks/useExerciseIndex';
 import { AddExerciseForm } from './AddExerciseForm';
+import { VideoPlayer } from './VideoPlayer';
 
 interface ExerciseIndexBrowserProps {
   onSelectExercise?: (exercise: ExerciseIndexItem) => void;
@@ -22,6 +23,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<ExerciseIndexItem | null>(null);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -39,12 +41,8 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
     });
   };
 
-  const openVideoSafely = (url: string) => {
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      console.error('Failed to open video:', error);
-    }
+  const openVideoSafely = (exercise: ExerciseIndexItem) => {
+    setSelectedVideo(exercise);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -176,7 +174,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => openVideoSafely(exercise.video_url)}
+                              onClick={() => openVideoSafely(exercise)}
                               className="flex-1 border-orange-400/50 text-orange-400 hover:bg-orange-500/10"
                             >
                               <Play className="h-3 w-3 mr-1" />
@@ -218,6 +216,21 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.video_url}
+          title={selectedVideo.name}
+          timeSegment={selectedVideo.time_segment}
+          onPlay={() => {
+            console.log('Video started playing:', selectedVideo.name);
+            // Here you can trigger any timer logic if needed
+          }}
+        />
       )}
     </div>
   );

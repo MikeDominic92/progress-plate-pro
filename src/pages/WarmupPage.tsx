@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Timer, Play, CheckCircle2, Target } from 'lucide-react';
 import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { SessionTimer } from '@/components/SessionTimer';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,6 +26,7 @@ export default function WarmupPage({ username }: WarmupPageProps) {
     completed: false,
     watchedVideos: [] as string[]
   });
+  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string, timeSegment?: string} | null>(null);
 
   const moodOptions = [
     { value: 'perfect', label: 'Perfect 💯', score: '100', color: 'text-success' },
@@ -357,10 +359,11 @@ export default function WarmupPage({ username }: WarmupPageProps) {
                             <Button
                               onClick={() => {
                                 if (isUnlocked) {
-                                  handleVideoWatched(categoryIndex, exerciseIndex);
-                                  openVideoSafely(exercise.videoUrl);
-                                  // Save immediately after watching video
-                                  manualSave();
+                                  setSelectedVideo({
+                                    url: exercise.videoUrl,
+                                    title: exercise.name,
+                                    timeSegment: exercise.timeSegment
+                                  });
                                 }
                               }}
                               variant={isWatched ? "default" : "outline"}
@@ -417,6 +420,35 @@ export default function WarmupPage({ username }: WarmupPageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+          timeSegment={selectedVideo.timeSegment}
+          onPlay={() => {
+            // Handle video play - find the video index and mark as watched
+            const categoryIndex = warmupExercises.findIndex(category => 
+              category.exercises.some(ex => ex.name === selectedVideo.title)
+            );
+            const exerciseIndex = warmupExercises[categoryIndex]?.exercises.findIndex(
+              ex => ex.name === selectedVideo.title
+            );
+            
+            if (categoryIndex !== -1 && exerciseIndex !== -1) {
+              handleVideoWatched(categoryIndex, exerciseIndex);
+              // Save immediately after watching video
+              manualSave();
+            }
+            
+            // Close the video player
+            setSelectedVideo(null);
+          }}
+        />
+      )}
     </div>
   );
 }

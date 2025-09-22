@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FitnessInput } from '@/components/ui/fitness-input';
 import { Timer, Play, CheckCircle2, Target } from 'lucide-react';
 import { SessionTimer } from '@/components/SessionTimer';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +19,7 @@ export default function CardioPage({ username }: CardioPageProps) {
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
   const [cardioData, setCardioData] = useState({
     time: '',
     calories: '',
@@ -150,7 +152,10 @@ export default function CardioPage({ username }: CardioPageProps) {
                 if (!sessionStartTime) {
                   handleStartSession();
                 }
-                openVideoSafely("https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s");
+                setSelectedVideo({
+                  url: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s",
+                  title: "Stairmaster Demo"
+                });
               }}
               className="w-full bg-gradient-primary hover:shadow-glow mb-4"
             >
@@ -229,6 +234,21 @@ export default function CardioPage({ username }: CardioPageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+          onPlay={() => {
+            console.log('Video started playing:', selectedVideo.title);
+            // Close the video player after starting
+            setSelectedVideo(null);
+          }}
+        />
+      )}
     </div>
   );
 }
