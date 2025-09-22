@@ -127,6 +127,15 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
           navigate('/post-workout');
           return;
         }
+
+        // Auto-navigate when workout is 100% complete
+        if (completedSets >= totalSets && totalSets > 0) {
+          console.log('🎉 Workout completed! Auto-navigating to post-workout...');
+          updateSession({ current_phase: 'completed' });
+          setTimeout(() => {
+            navigate('/post-workout', { replace: true });
+          }, 2000);
+        }
       }, 100);
 
       // Load workout data if available
