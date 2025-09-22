@@ -33,14 +33,15 @@ export const workoutPlan: WorkoutDay[] = [
     day: 1,
     date: getWorkoutDate(1),
     type: 'high-intensity',
-    title: 'Day 1: Monday (High Intensity)',
-    cardio: '10-minute warm-up',
+    title: 'Day 1: Monday (High Intensity + Abs)',
+    cardio: '10-minute warm-up + P90x Ab Ripper after workout',
     exercises: [
       { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
       { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
       { name: 'Barbell Back Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=324s', instructions: 'All glutes' },
       { name: 'Romanian Deadlift (RDL)', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=700s', instructions: 'Mid + Lower glutes' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' },
+      { name: 'P90x Ab Ripper', tier: 'Core', video_url: 'https://vimeo.com/892893307', instructions: 'Complete core workout - follow along' }
     ]
   },
   {
@@ -61,14 +62,15 @@ export const workoutPlan: WorkoutDay[] = [
     day: 3,
     date: getWorkoutDate(3),
     type: 'high-intensity',
-    title: 'Day 3: Friday (High Intensity)',
-    cardio: '10-minute warm-up',
+    title: 'Day 3: Friday (High Intensity + Abs)',
+    cardio: '10-minute warm-up + P90x Ab Ripper after workout',
     exercises: [
       { name: 'Walking Lunge', tier: 'S+ Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=565s', instructions: 'Upper + All glutes' },
       { name: 'Machine Hip Thrust', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=230s', instructions: 'Lower glutes' },
       { name: 'Smith Machine Squat', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=368s', instructions: 'Mid glutes' },
       { name: 'Cable Kickback', tier: 'A-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=443s', instructions: 'Upper + Medius glutes' },
-      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' }
+      { name: 'Machine Hip Abduction', tier: 'S-Tier', video_url: 'https://www.youtube.com/watch?v=3ryh7PNhz3E&t=500s', instructions: 'Medius (side/stability)' },
+      { name: 'P90x Ab Ripper', tier: 'Core', video_url: 'https://vimeo.com/892893307', instructions: 'Complete core workout - follow along' }
     ]
   },
   // Week 2
