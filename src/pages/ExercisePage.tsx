@@ -286,15 +286,32 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     
     if (allSetsCompleted) {
       console.log(`All sets completed for exercise ${currentExerciseIndex + 1}!`);
-      // Auto-navigate to next exercise after completing all sets
-      setTimeout(() => {
-        if (currentExerciseIndex < workoutLog.length - 1) {
-          navigate(`/exercise/${currentExerciseIndex + 1}`);
-        } else {
-          // All exercises completed, navigate to post-workout
-          navigate('/post-workout');
-        }
-      }, 2000);
+      
+      // Check if all exercises are now completed
+      const totalCompletedSets = workoutLog.reduce((acc: number, exercise: any) => {
+        if (!exercise?.sets) return acc;
+        return acc + exercise.sets.filter((set: any) => set.confirmed).length;
+      }, 0);
+      
+      const totalSets = workoutLog.reduce((acc: number, exercise: any) => {
+        return acc + (exercise?.sets?.length || 0);
+      }, 0);
+      
+      if (totalCompletedSets >= totalSets) {
+        // All exercises completed, update session and navigate to post-workout
+        console.log('🎉 All workout exercises completed! Navigating to post-workout...');
+        updateSession({ current_phase: 'completed' });
+        setTimeout(() => {
+          navigate('/post-workout', { replace: true });
+        }, 2000);
+      } else {
+        // Auto-navigate to next exercise after completing all sets
+        setTimeout(() => {
+          if (currentExerciseIndex < workoutLog.length - 1) {
+            navigate(`/exercise/${currentExerciseIndex + 2}`, { replace: true });
+          }
+        }, 2000);
+      }
     }
   };
 

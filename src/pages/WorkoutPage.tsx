@@ -341,9 +341,9 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
   // Check for workout completion
   useEffect(() => {
-    console.log('🎯 Checking completion:', { overallProgress, completedSets, showCelebration });
+    console.log('🎯 Checking completion:', { overallProgress, completedSets, totalSets, showCelebration });
     
-    if (completedSets >= 20 && !showCelebration) {
+    if (completedSets >= totalSets && totalSets > 0 && !showCelebration) {
       console.log('🎉 Workout completed! Starting celebration...');
       const completeWorkout = async () => {
         setShowCelebration(true);
@@ -371,7 +371,7 @@ export default function WorkoutPage({ username }: WorkoutPageProps) {
 
       completeWorkout();
     }
-  }, [completedSets, showCelebration, navigate, updateSession, manualSave]);
+  }, [completedSets, totalSets, showCelebration, navigate, updateSession, manualSave]);
 
   const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
     set: any, 
