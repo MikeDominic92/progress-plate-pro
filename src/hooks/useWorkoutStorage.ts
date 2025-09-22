@@ -87,30 +87,26 @@ export const useWorkoutStorage = (username: string) => {
 
       if (error) throw error;
 
-      // If there's an existing session for today that's not completed, use it
+      // If there's an existing session for today, use it (even if completed)
       if (data && data.length > 0) {
         const existingSession = data[0];
-        
-        // Only use existing session if it's not completed
-        if (existingSession.current_phase !== 'completed') {
-          // Cast the database response to our WorkoutSession type
-          const session: WorkoutSession = {
-            id: existingSession.id,
-            username: existingSession.username,
-            session_date: existingSession.session_date,
-            current_phase: existingSession.current_phase,
-            cardio_completed: existingSession.cardio_completed,
-            cardio_time: existingSession.cardio_time,
-            cardio_calories: existingSession.cardio_calories,
-            warmup_completed: existingSession.warmup_completed,
-            warmup_exercises_completed: existingSession.warmup_exercises_completed,
-            warmup_mood: existingSession.warmup_mood,
-            warmup_watched_videos: existingSession.warmup_watched_videos || [],
-            workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
-          };
-          setCurrentSession(session);
-          return;
-        }
+        // Cast the database response to our WorkoutSession type
+        const session: WorkoutSession = {
+          id: existingSession.id,
+          username: existingSession.username,
+          session_date: existingSession.session_date,
+          current_phase: existingSession.current_phase,
+          cardio_completed: existingSession.cardio_completed,
+          cardio_time: existingSession.cardio_time,
+          cardio_calories: existingSession.cardio_calories,
+          warmup_completed: existingSession.warmup_completed,
+          warmup_exercises_completed: existingSession.warmup_exercises_completed,
+          warmup_mood: existingSession.warmup_mood,
+          warmup_watched_videos: existingSession.warmup_watched_videos || [],
+          workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
+        };
+        setCurrentSession(session);
+        return;
       }
     } catch (error) {
       console.error('Error checking for existing session:', error);
