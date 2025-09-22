@@ -7,16 +7,14 @@ import { Timer, Play, CheckCircle2, Target } from 'lucide-react';
 import { SessionTimer } from '@/components/SessionTimer';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useToast } from '@/hooks/use-toast';
 
-interface CardioPageProps {
-  username: string;
-}
-
-export default function CardioPage({ username }: CardioPageProps) {
+export default function CardioPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
+  const { username } = useAuthenticatedUser();
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
@@ -27,9 +25,12 @@ export default function CardioPage({ username }: CardioPageProps) {
   });
 
   useEffect(() => {
-    initializeSession();
-  }, [initializeSession]);
+    if (username) {
+      initializeSession();
+    }
+  }, [username, initializeSession]);
 
+  // Load existing session data
   useEffect(() => {
     if (currentSession) {
       // Only update state if values are different to prevent loops

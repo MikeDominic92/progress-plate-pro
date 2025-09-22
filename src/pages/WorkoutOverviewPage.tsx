@@ -8,10 +8,7 @@ import { Play, Target, Timer, CheckCircle2, ArrowRight } from 'lucide-react';
 import { SessionTimer } from '@/components/SessionTimer';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
-
-interface WorkoutOverviewPageProps {
-  username: string;
-}
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 
 const initialWorkoutData = [
   { 
@@ -89,9 +86,10 @@ const getTierBadgeVariant = (tier: string) => {
   return 'destructive';
 };
 
-export default function WorkoutOverviewPage({ username }: WorkoutOverviewPageProps) {
+export default function WorkoutOverviewPage() {
   const navigate = useNavigate();
-  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
+  const { username } = useAuthenticatedUser();
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);

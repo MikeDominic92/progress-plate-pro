@@ -7,16 +7,14 @@ import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { SessionTimer } from '@/components/SessionTimer';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useToast } from '@/hooks/use-toast';
 
-interface WarmupPageProps {
-  username: string;
-}
-
-export default function WarmupPage({ username }: WarmupPageProps) {
+export default function WarmupPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
+  const { username } = useAuthenticatedUser();
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
@@ -27,6 +25,12 @@ export default function WarmupPage({ username }: WarmupPageProps) {
     watchedVideos: [] as string[]
   });
   const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string, timeSegment?: string} | null>(null);
+
+  useEffect(() => {
+    if (username) {
+      initializeSession();
+    }
+  }, [username, initializeSession]);
 
   const moodOptions = [
     { value: 'perfect', label: 'Perfect 💯', score: '100', color: 'text-success' },

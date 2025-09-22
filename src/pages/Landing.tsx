@@ -24,11 +24,11 @@ interface WorkoutSession {
 }
 
 interface LandingProps {
-  onStartWorkout: (username: string, continueSession?: WorkoutSession) => void;
+  username: string;
+  onStartWorkout: (existingSession?: WorkoutSession) => void;
 }
 
-const Landing = ({ onStartWorkout }: LandingProps) => {
-  const [username, setUsername] = useState('JackyBaebae');
+const Landing = ({ username, onStartWorkout }: LandingProps) => {
   const [savedSessions, setSavedSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCompletedDays, setTotalCompletedDays] = useState(0);
@@ -137,26 +137,10 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   };
 
   const handleBegin = () => {
-    const trimmedUsername = username.trim();
-    
-    // Check if user is admin
-    if (trimmedUsername.toLowerCase() === 'admin') {
-      navigate('/admin-dashboard');
-      return;
-    }
-    
-    onStartWorkout(trimmedUsername);
+    onStartWorkout();
   };
 
   const handleDaySelect = (day: WorkoutDay) => {
-    const trimmedUsername = username.trim();
-    
-    // Check if user is admin
-    if (trimmedUsername.toLowerCase() === 'admin') {
-      navigate('/admin-dashboard');
-      return;
-    }
-
     // Check if day is unlocked
     if (!isDayUnlocked(day.day)) {
       toast({
@@ -167,7 +151,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
       return;
     }
 
-    onStartWorkout(trimmedUsername);
+    onStartWorkout();
   };
 
   const isDayUnlocked = (dayNumber: number): boolean => {
@@ -183,7 +167,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   };
 
   const handleContinue = (session: WorkoutSession) => {
-    onStartWorkout(username.trim(), session);
+    onStartWorkout(session);
   };
 
   return (
@@ -229,21 +213,14 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                 </p>
               </div>
 
-              {/* Username input - centered */}
-              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-center">
-                <label htmlFor="username" className="text-xs sm:text-sm font-medium text-white block">
-                  Username
-                </label>
-                <div className="relative max-w-xs mx-auto">
-                  <Input
-                    id="username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter your username"
-                    className="bg-black border-orange-400/50 text-white placeholder:text-gray-400 rounded-xl h-10 sm:h-12 transition-all duration-300 focus:border-orange-500 focus:bg-black focus:shadow-glow text-center text-sm sm:text-base"
-                  />
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100 pointer-events-none" />
-                </div>
+              {/* Welcome message */}
+              <div className="text-center mb-6 sm:mb-8">
+                <p className="text-lg text-muted-foreground/80 mb-2">
+                  Welcome back, <span className="text-primary font-medium">{username}</span>!
+                </p>
+                <p className="text-sm text-muted-foreground/60">
+                  Ready to continue your fitness journey?
+                </p>
               </div>
 
               {/* Exercise Index Navigation */}

@@ -13,12 +13,9 @@ import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { RestTimerModal } from '@/components/RestTimerModal';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useToast } from '@/hooks/use-toast';
-
-interface ExercisePageProps {
-  username: string;
-}
 
 const initialWorkoutData = [
   { 
@@ -96,7 +93,13 @@ const getTierBadgeVariant = (tier: string) => {
   return 'destructive';
 };
 
-export default function ExercisePage({ username }: ExercisePageProps) {
+export default function ExercisePage() {
+  const navigate = useNavigate();
+  const { exerciseIndex } = useParams<{ exerciseIndex: string }>();
+  const { username } = useAuthenticatedUser();
+  const { trackSetCompleted, trackRestTimer, trackExerciseCompletion } = useAnalytics();
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { exerciseIndex } = useParams();
   const { toast } = useToast();

@@ -4,19 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Trophy, Target, CheckCircle2, Home } from 'lucide-react';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { supabase } from '@/integrations/supabase/client';
 
-interface PostWorkoutPageProps {
-  username: string;
-}
-
-export default function PostWorkoutPage({ username }: PostWorkoutPageProps) {
+export default function PostWorkoutPage() {
   const navigate = useNavigate();
-  const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username);
+  const { username } = useAuthenticatedUser();
+  const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username || '');
 
   useEffect(() => {
-    initializeSession();
-  }, [initializeSession]);
+    if (username) {
+      initializeSession();
+    }
+  }, [username, initializeSession]);
 
   useEffect(() => {
     if (currentSession) {
