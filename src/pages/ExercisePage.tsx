@@ -13,6 +13,7 @@ import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { RestTimerModal } from '@/components/RestTimerModal';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useToast } from '@/hooks/use-toast';
 
 interface ExercisePageProps {
@@ -100,6 +101,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   const { exerciseIndex } = useParams();
   const { toast } = useToast();
   const { currentSession, updateSession, initializeSession, manualSave, clearSession } = useWorkoutStorage(username);
+  const { trackSetCompleted, trackRestTimer, trackExerciseCompletion } = useAnalytics();
   
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
   
@@ -265,14 +267,34 @@ export default function ExercisePage({ username }: ExercisePageProps) {
     }, 1000); // Increased delay to prevent frequent updates while typing
   };
 
-  const handleIndividualSetComplete = (setIndex: number, isSubstitute: boolean = false) => {
+  const handleIndividualSetComplete = async (setIndex: number, isSubstitute: boolean = false) => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
     const exercise = updatedLog[currentExerciseIndex];
     
+    let setData, exerciseName;
     if (isSubstitute) {
       exercise.substitute.sets[setIndex].confirmed = true;
+      setData = exercise.substitute.sets[setIndex];
+      exerciseName = exercise.substitute.name;
     } else {
       exercise.sets[setIndex].confirmed = true;
+      setData = exercise.sets[setIndex];
+      exerciseName = exercise.name;
+    }
+    
+    // Track set completion analytics
+    if (currentSession?.id && exerciseName) {
+      const weight = parseFloat(setData.weight) || 0;
+      const reps = parseInt(setData.reps) || 0;
+      
+      await trackSetCompleted(
+        currentSession.id,
+        username,
+        exerciseName,
+        setIndex + 1,
+        weight,
+        reps
+      );
     }
     
     setWorkoutLog(updatedLog);
@@ -281,7 +303,7 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       exerciseIndex: currentExerciseIndex, 
       setIndex: setIndex,
       isSubstitute: isSubstitute,
-      exerciseName: isSubstitute ? exercise.substitute.name : exercise.name,
+      exerciseName: exerciseName,
       setType: isSubstitute ? exercise.substitute.sets[setIndex].type : exercise.sets[setIndex].type
     });
     setIsExerciseTimerPaused(true);
@@ -302,10 +324,29 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       workout_data: { logs: updatedLog, timers: {} }
     });
     
-    const allSetsCompleted = exercise.sets.every((set: any) => set.confirmed);
+    const allSetsCompleted = isSubstitute ? 
+      exercise.substitute.sets.every((set: any) => set.confirmed) :
+      exercise.sets.every((set: any) => set.confirmed);
     
     if (allSetsCompleted) {
       console.log(`All sets completed for exercise ${currentExerciseIndex + 1}!`);
+      
+      // Track exercise completion analytics
+      if (currentSession?.id && exerciseName) {
+        const setsToAnalyze = isSubstitute ? exercise.substitute.sets : exercise.sets;
+        const totalReps = setsToAnalyze.reduce((sum: number, s: any) => sum + (parseInt(s.reps) || 0), 0);
+        const avgWeight = setsToAnalyze.reduce((sum: number, s: any) => sum + (parseFloat(s.weight) || 0), 0) / setsToAnalyze.length;
+        
+        await trackExerciseCompletion(
+          currentSession.id,
+          username,
+          exerciseName,
+          setsToAnalyze.length,
+          avgWeight,
+          totalReps,
+          0 // Duration will be calculated from session data
+        );
+      }
       
       // Check if all exercises are now completed
       const totalCompletedSets = updatedLog.reduce((acc: number, exercise: any) => {
@@ -344,6 +385,37 @@ export default function ExercisePage({ username }: ExercisePageProps) {
   };
 
   const handleRestComplete = () => {
+    setShowRestTimer(false);
+    setIsExerciseTimerPaused(false);
+    setCurrentSetInProgress(null);
+  };
+
+  // Handle rest timer analytics
+  const handleRestStarted = async (duration: number) => {
+    if (!currentSession?.id || !currentSetInProgress?.exerciseName) return;
+    
+    await trackRestTimer(
+      currentSession.id,
+      username,
+      currentSetInProgress.exerciseName,
+      currentSetInProgress.setIndex + 1,
+      'rest_started',
+      duration
+    );
+  };
+
+  const handleRestCompleted = async (actualDuration: number) => {
+    if (!currentSession?.id || !currentSetInProgress?.exerciseName) return;
+    
+    await trackRestTimer(
+      currentSession.id,
+      username,
+      currentSetInProgress.exerciseName,
+      currentSetInProgress.setIndex + 1,
+      'rest_completed',
+      actualDuration
+    );
+    
     setShowRestTimer(false);
     setIsExerciseTimerPaused(false);
     setCurrentSetInProgress(null);
@@ -893,13 +965,15 @@ export default function ExercisePage({ username }: ExercisePageProps) {
       {showRestTimer && currentSetInProgress && (
         <RestTimerModal
           isOpen={showRestTimer}
-          onComplete={handleRestComplete}
+          onComplete={() => handleRestCompleted(0)}
           onClose={() => setShowRestTimer(false)}
           setDetails={{
             exerciseName: currentSetInProgress.exerciseName || currentExercise.name,
             setType: currentSetInProgress.setType || 'Set',
             setNumber: currentSetInProgress.setIndex + 1
           }}
+          onRestStarted={handleRestStarted}
+          onRestCompleted={handleRestCompleted}
         />
       )}
     </div>

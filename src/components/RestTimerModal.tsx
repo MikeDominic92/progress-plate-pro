@@ -13,19 +13,24 @@ interface RestTimerModalProps {
     setType: string;
     setNumber: number;
   };
+  onRestStarted?: (duration: number) => void;
+  onRestCompleted?: (actualDuration: number) => void;
 }
 
 export const RestTimerModal: React.FC<RestTimerModalProps> = ({ 
   isOpen,
   onComplete, 
   onClose,
-  setDetails
+  setDetails,
+  onRestStarted,
+  onRestCompleted
 }) => {
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [hasShown30SecWarning, setHasShown30SecWarning] = useState(false);
+  const [restStartTime, setRestStartTime] = useState<number | null>(null);
 
   const restOptions = [
     { value: 1, label: '1 min', color: 'bg-green-500/20 border-green-500 text-green-400 hover:bg-green-500/30', icon: '🏃‍♂️' },
@@ -71,9 +76,16 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
     setIsRunning(true); // Auto-start timer immediately
     setIsCompleted(false);
     setHasShown30SecWarning(false);
+    
+    // Track rest started
+    const startTime = Date.now();
+    setRestStartTime(startTime);
+    onRestStarted?.(minutes * 60);
   };
 
   const handleFeelGood = () => {
+    // Track immediate completion (0 rest time)
+    onRestCompleted?.(0);
     onComplete();
     resetAndClose();
   };
@@ -94,6 +106,11 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   };
 
   const handleComplete = () => {
+    // Track actual rest duration
+    if (restStartTime) {
+      const actualDuration = Math.round((Date.now() - restStartTime) / 1000);
+      onRestCompleted?.(actualDuration);
+    }
     onComplete();
     resetAndClose();
   };
@@ -104,6 +121,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
     setIsRunning(false);
     setIsCompleted(false);
     setHasShown30SecWarning(false);
+    setRestStartTime(null);
     onClose();
   };
 
