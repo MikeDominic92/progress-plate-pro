@@ -5,9 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Users, Activity, Timer, TrendingUp, Calendar, Dumbbell } from 'lucide-react';
+import { Users, Activity, Timer, TrendingUp, Calendar, Dumbbell, Trash2, RefreshCw, Database } from 'lucide-react';
+import { extractUniqueExercises, getExerciseSyncStats } from '@/utils/exerciseSync';
+import { useExerciseIndex } from '@/hooks/useExerciseIndex';
+import { deleteAllData } from '@/utils/adminActions';
+import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   username: string;
@@ -52,6 +57,10 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('7');
+  
+  // Exercise index hooks
+  const { addExercise, exercises, fetchExercises } = useExerciseIndex();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
@@ -89,10 +98,59 @@ const AdminDashboard: React.FC = () => {
       if (analyticsError) throw analyticsError;
       setAnalytics(analyticsData || []);
 
+      // Fetch exercises
+      await fetchExercises();
+
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    try {
+      await deleteAllData();
+      toast({
+        title: "Success",
+        description: "All data has been reset successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSyncExercises = async () => {
+    try {
+      const exercisesToSync = extractUniqueExercises('Admin');
+      let syncedCount = 0;
+      
+      for (const exerciseData of exercisesToSync) {
+        // Check if exercise already exists by name
+        const existingExercise = exercises.find(ex => ex.name === exerciseData.name);
+        
+        if (!existingExercise) {
+          await addExercise(exerciseData);
+          syncedCount++;
+        }
+      }
+      
+      await fetchExercises();
+      
+      toast({
+        title: "Success",
+        description: `Synced ${syncedCount} new exercises from workout plan.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sync exercises. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -261,11 +319,12 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="admin">Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -468,6 +527,57 @@ const AdminDashboard: React.FC = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="admin" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <RefreshCw className="h-5 w-5 text-primary" />
+                    Sync Exercise Index
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Sync exercises from workout plan to exercise index with video URLs.
+                  </p>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    <div>Exercises with videos: {getExerciseSyncStats('Admin').exercisesWithVideos}</div>
+                    <div>Current index size: {exercises.length}</div>
+                  </div>
+                  <Button 
+                    onClick={handleSyncExercises}
+                    className="w-full"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Sync Exercises
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                    Reset Data
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    This will permanently delete all workout sessions, profiles, and analytics data.
+                  </p>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleResetData}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Reset All Data
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
