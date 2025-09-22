@@ -98,13 +98,8 @@ export default function ExercisePage() {
   const { exerciseIndex } = useParams<{ exerciseIndex: string }>();
   const { username } = useAuthenticatedUser();
   const { trackSetCompleted, trackRestTimer, trackExerciseCompletion } = useAnalytics();
-  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
+  const { currentSession, updateSession, initializeSession, manualSave, clearSession } = useWorkoutStorage(username || '');
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { exerciseIndex } = useParams();
-  const { toast } = useToast();
-  const { currentSession, updateSession, initializeSession, manualSave, clearSession } = useWorkoutStorage(username);
-  const { trackSetCompleted, trackRestTimer, trackExerciseCompletion } = useAnalytics();
   
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
   
