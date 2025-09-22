@@ -65,6 +65,98 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          favorite_exercises: Json | null
+          id: string
+          last_session_date: string | null
+          personal_records: Json | null
+          preferences: Json | null
+          total_sessions: number | null
+          total_workout_time: number | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          favorite_exercises?: Json | null
+          id?: string
+          last_session_date?: string | null
+          personal_records?: Json | null
+          preferences?: Json | null
+          total_sessions?: number | null
+          total_workout_time?: number | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          favorite_exercises?: Json | null
+          id?: string
+          last_session_date?: string | null
+          personal_records?: Json | null
+          preferences?: Json | null
+          total_sessions?: number | null
+          total_workout_time?: number | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      session_analytics: {
+        Row: {
+          duration_seconds: number | null
+          event_data: Json
+          event_type: string
+          exercise_name: string | null
+          id: string
+          reps: number | null
+          session_id: string | null
+          set_number: number | null
+          timestamp: string
+          username: string
+          weight: number | null
+        }
+        Insert: {
+          duration_seconds?: number | null
+          event_data?: Json
+          event_type: string
+          exercise_name?: string | null
+          id?: string
+          reps?: number | null
+          session_id?: string | null
+          set_number?: number | null
+          timestamp?: string
+          username: string
+          weight?: number | null
+        }
+        Update: {
+          duration_seconds?: number | null
+          event_data?: Json
+          event_type?: string
+          exercise_name?: string | null
+          id?: string
+          reps?: number | null
+          session_id?: string | null
+          set_number?: number | null
+          timestamp?: string
+          username?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_analytics_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           cardio_calories: string | null
