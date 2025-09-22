@@ -59,7 +59,7 @@ const AdminDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState<string>('7');
   
   // Exercise index hooks
-  const { addExercise, exercises, fetchExercises } = useExerciseIndex();
+  const { addExercise, updateExercise, exercises, fetchExercises } = useExerciseIndex();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -126,26 +126,44 @@ const AdminDashboard: React.FC = () => {
 
   const handleSyncExercises = async () => {
     try {
-      const exercisesToSync = extractUniqueExercises('Admin');
+      const exercisesToSync = extractUniqueExercises('JackyLove');
       let syncedCount = 0;
+      let updatedCount = 0;
+      
+      console.log('🔄 Syncing exercises with Jeff Nippard videos and glute descriptions:', exercisesToSync);
       
       for (const exerciseData of exercisesToSync) {
         // Check if exercise already exists by name
         const existingExercise = exercises.find(ex => ex.name === exerciseData.name);
         
-        if (!existingExercise) {
+        if (existingExercise) {
+          // Update existing exercise with new video URL and instructions
+          await updateExercise(existingExercise.id, {
+            tier: exerciseData.tier,
+            video_url: exerciseData.video_url,
+            instructions: exerciseData.instructions,
+            subcategory: exerciseData.subcategory
+          });
+          updatedCount++;
+          console.log(`✅ Updated: ${exerciseData.name} with ${exerciseData.video_url}`);
+        } else {
+          // Add new exercise
           await addExercise(exerciseData);
           syncedCount++;
+          console.log(`➕ Added: ${exerciseData.name} with ${exerciseData.video_url}`);
         }
       }
       
       await fetchExercises();
       
       toast({
-        title: "Success",
-        description: `Synced ${syncedCount} new exercises from workout plan.`,
+        title: "Exercise Sync Complete! 🎯",
+        description: `Updated ${updatedCount} exercises + added ${syncedCount} new ones with Jeff Nippard timestamped videos and glute region descriptions.`,
       });
+      
+      console.log(`🎉 Sync Complete: ${updatedCount} updated, ${syncedCount} new exercises`);
     } catch (error) {
+      console.error('❌ Sync error:', error);
       toast({
         title: "Error",
         description: "Failed to sync exercises. Please try again.",
@@ -540,20 +558,20 @@ const AdminDashboard: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Sync exercises from workout plan to exercise index with video URLs.
-                  </p>
+                   <p className="text-sm text-muted-foreground mb-4">
+                     Sync all exercises from your 40-day workout plan with Jeff Nippard timestamped videos and glute region descriptions.
+                   </p>
                   <div className="text-sm text-muted-foreground mb-4">
                     <div>Exercises with videos: {getExerciseSyncStats('Admin').exercisesWithVideos}</div>
                     <div>Current index size: {exercises.length}</div>
                   </div>
-                  <Button 
-                    onClick={handleSyncExercises}
-                    className="w-full"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Sync Exercises
-                  </Button>
+                   <Button 
+                     onClick={handleSyncExercises}
+                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                   >
+                     <RefreshCw className="h-4 w-4 mr-2" />
+                     🎯 Sync All Exercises (Jeff Nippard Videos)
+                   </Button>
                 </CardContent>
               </Card>
 
