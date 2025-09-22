@@ -90,7 +90,7 @@ const getTierBadgeVariant = (tier: string) => {
 
 export default function WorkoutOverviewPage({ username }: WorkoutOverviewPageProps) {
   const navigate = useNavigate();
-  const { currentSession, updateSession, initializeSession } = useWorkoutStorage(username);
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username);
   
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [workoutLog, setWorkoutLog] = useState(() => {
@@ -166,6 +166,7 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
 
   // Auto-navigate to post-workout when everything is completed
   useEffect(() => {
+    let t: any;
     if (
       completedSets >= totalSets &&
       totalSets > 0 &&
@@ -173,12 +174,19 @@ export default function WorkoutOverviewPage({ username }: WorkoutOverviewPagePro
     ) {
       console.log('🎉 Workout completed! Auto-navigating to post-workout...');
       updateSession({ current_phase: 'completed' });
-      const t = setTimeout(() => {
-        navigate('/post-workout', { replace: true });
-      }, 2000);
-      return () => clearTimeout(t);
+      (async () => {
+        try {
+          await manualSave({ current_phase: 'completed' });
+        } catch (e) {
+          console.error('Failed to persist completion before navigate', e);
+        }
+        t = setTimeout(() => {
+          navigate('/post-workout', { replace: true });
+        }, 500);
+      })();
     }
-  }, [completedSets, totalSets, currentSession?.current_phase, navigate, updateSession]);
+    return () => { if (t) clearTimeout(t); };
+  }, [completedSets, totalSets, currentSession?.current_phase, navigate, updateSession, manualSave]);
 
   // Find next incomplete exercise (treat substitutes as valid)
   const nextIncompleteExercise = workoutLog.findIndex((exercise: any) => {

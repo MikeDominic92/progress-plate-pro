@@ -304,9 +304,14 @@ export default function ExercisePage({ username }: ExercisePageProps) {
         // All exercises completed, update session and navigate to post-workout
         console.log('🎉 All workout exercises completed! Navigating to post-workout...');
         updateSession({ current_phase: 'completed' });
-        setTimeout(() => {
+        (async () => {
+          try {
+            await manualSave({ current_phase: 'completed' });
+          } catch (e) {
+            console.error('Failed to persist completion before navigate', e);
+          }
           navigate('/post-workout', { replace: true });
-        }, 2000);
+        })();
       } else {
         // Auto-navigate to next exercise after completing all sets
         setTimeout(() => {
