@@ -30,6 +30,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   const [username, setUsername] = useState('JackyBaebae');
   const [savedSessions, setSavedSessions] = useState<WorkoutSession[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totalCompletedDays, setTotalCompletedDays] = useState(0);
   const { toast } = useToast();
   const { clearSession } = useWorkoutStorage(username);
   const navigate = useNavigate();
@@ -37,8 +38,31 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   useEffect(() => {
     if (username.trim()) {
       fetchSavedSessions();
+      fetchCompletedDays();
     }
   }, [username]);
+
+  const fetchCompletedDays = async () => {
+    if (!username.trim()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('workout_sessions')
+        .select('session_date')
+        .eq('username', username.trim())
+        .eq('current_phase', 'completed')
+        .order('session_date', { ascending: true });
+
+      if (error) throw error;
+      
+      // Get unique completed days
+      const uniqueDays = [...new Set(data?.map(session => session.session_date) || [])];
+      setTotalCompletedDays(uniqueDays.length);
+    } catch (error) {
+      console.error('Error fetching completed days:', error);
+      setTotalCompletedDays(0);
+    }
+  };
 
   const fetchSavedSessions = async () => {
     if (!username.trim()) return;
@@ -109,7 +133,15 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
   };
 
   const handleBegin = () => {
-    onStartWorkout(username.trim());
+    const trimmedUsername = username.trim();
+    
+    // Check if user is admin
+    if (trimmedUsername.toLowerCase() === 'admin') {
+      navigate('/admin-dashboard');
+      return;
+    }
+    
+    onStartWorkout(trimmedUsername);
   };
 
   const handleContinue = (session: WorkoutSession) => {
@@ -145,7 +177,7 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
                     Big Booty Builder Program
                   </h1>
                   <h2 className="text-lg sm:text-2xl font-semibold mb-2 sm:mb-3 text-primary">
-                    40 Day Challenge
+                    {totalCompletedDays > 0 ? `Day ${totalCompletedDays + 1} of 40 Challenge` : '40 Day Challenge'}
                   </h2>
                   <div className="absolute inset-0 text-2xl sm:text-4xl font-bold blur-sm bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 bg-clip-text text-transparent">
                     Big Booty Builder Program
@@ -285,8 +317,10 @@ const Landing = ({ onStartWorkout }: LandingProps) => {
           </div>
         </div>
         
-        {/* Reset Session Button */}
-        <ResetSessionButton onClearSession={clearSession} />
+        {/* Reset Session Button - Only show for Admin */}
+        {username.toLowerCase() === 'admin' && (
+          <ResetSessionButton onClearSession={clearSession} />
+        )}
       </div>
     </div>
   );
