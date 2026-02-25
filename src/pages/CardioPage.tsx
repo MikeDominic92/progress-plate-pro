@@ -3,178 +3,105 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FitnessInput } from '@/components/ui/fitness-input';
-import { Timer, Play, CheckCircle2, Target } from 'lucide-react';
-import { SessionTimer } from '@/components/SessionTimer';
-import { VideoPlayer } from '@/components/VideoPlayer';
+import { Timer, CheckCircle2, Target, SkipForward } from 'lucide-react';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
-import { useToast } from '@/hooks/use-toast';
 
 export default function CardioPage() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { username } = useAuthenticatedUser();
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
-  
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
+
   const [cardioData, setCardioData] = useState({
     time: '',
     calories: '',
-    completed: false
+    completed: false,
   });
 
   useEffect(() => {
-    if (username) {
-      initializeSession();
-    }
+    if (username) initializeSession();
   }, [username, initializeSession]);
 
-  // Load existing session data
   useEffect(() => {
     if (currentSession) {
-      // Only update state if values are different to prevent loops
-      const sessionCardioData = {
+      const sessionData = {
         time: currentSession.cardio_time || '',
         calories: currentSession.cardio_calories || '',
-        completed: currentSession.cardio_completed || false
+        completed: currentSession.cardio_completed || false,
       };
-      
-      // Check if current state is different from session state
-      if (sessionCardioData.time !== cardioData.time || 
-          sessionCardioData.calories !== cardioData.calories || 
-          sessionCardioData.completed !== cardioData.completed) {
-        setCardioData(sessionCardioData);
+      if (sessionData.time !== cardioData.time ||
+          sessionData.calories !== cardioData.calories ||
+          sessionData.completed !== cardioData.completed) {
+        setCardioData(sessionData);
       }
-      
-      // If cardio is already completed, redirect to warmup
       if (currentSession.cardio_completed && !cardioData.completed) {
         navigate('/warmup');
       }
     }
-  }, [currentSession]); // Removed navigate and cardioData from dependencies to prevent loops
-
-  const handleMotivationalMessage = (message: string) => {
-    toast({
-      title: "Training Update",
-      description: message,
-      duration: 5000,
-    });
-  };
-
-  const handleStartSession = () => {
-    setSessionStartTime(Date.now());
-  };
+  }, [currentSession]);
 
   const handleComplete = async () => {
     if (cardioData.time && cardioData.calories) {
-      const updatedData = { ...cardioData, completed: true };
-      setCardioData(updatedData);
-      
+      setCardioData({ ...cardioData, completed: true });
       const updates = {
         current_phase: 'warmup' as const,
         cardio_completed: true,
         cardio_time: cardioData.time,
-        cardio_calories: cardioData.calories
+        cardio_calories: cardioData.calories,
       };
-
-      // Update local session state immediately
       updateSession(updates);
-
-      // Persist to Supabase before navigating to avoid redirect bounce
-      try {
-        await manualSave(updates);
-      } catch (e) {
-        console.error('Failed to save cardio completion, navigating anyway', e);
-      }
-
+      try { await manualSave(updates); } catch {}
       navigate('/warmup', { replace: true });
     }
   };
 
-  const openVideoSafely = (videoUrl: string) => {
-    try {
-      const link = document.createElement('a');
-      link.href = videoUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error opening video:', error);
-      window.open(videoUrl, '_blank', 'noopener,noreferrer');
-    }
+  const handleSkip = async () => {
+    const updates = {
+      current_phase: 'warmup' as const,
+      cardio_completed: true,
+      cardio_time: '0',
+      cardio_calories: '0',
+    };
+    updateSession(updates);
+    try { await manualSave(updates); } catch {}
+    navigate('/warmup', { replace: true });
   };
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(24_95%_53%/0.1),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,hsl(24_95%_53%/0.05),transparent_50%)]" />
-      
-      <SessionTimer 
-        startTime={sessionStartTime} 
-        onMotivationalMessage={handleMotivationalMessage}
-      />
-      
-      <div className="container mx-auto px-4 py-8 max-w-2xl relative z-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
+
+      <div className="container mx-auto px-4 py-8 max-w-lg relative z-10">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-primary/20 backdrop-blur-glass rounded-full text-primary-foreground font-medium text-sm mb-6 border border-primary/30">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            <Target className="h-4 w-4" />
-            Phase 1: Pre-Workout Cardio
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black bg-gradient-hero bg-clip-text text-transparent mb-4 tracking-tight">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2">
             Cardio Warm-Up
           </h1>
-          <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            10 minutes of cardio to prepare your body for the workout
+          <p className="text-muted-foreground text-sm">
+            10 minutes of stair master to get the blood flowing
           </p>
         </div>
 
-        {/* Cardio Tracking Card */}
-        <Card className="bg-black border-white/20 shadow-lg">
+        {/* Cardio Card */}
+        <Card className="bg-black border-primary/10 shadow-lg mb-4">
           <CardHeader>
-            <CardTitle className="text-accent flex items-center gap-2">
+            <CardTitle className="text-accent flex items-center gap-2 text-base">
               <Timer className="h-5 w-5" />
-              Stair Master Cardio
+              Stair Master
               {cardioData.completed && <CheckCircle2 className="h-5 w-5 text-success" />}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-xs text-muted-foreground mb-2">Watch [00:00:00 - 00:00:02] for proper form</div>
-            
-            <Button 
-              onClick={() => {
-                if (!sessionStartTime) {
-                  handleStartSession();
-                }
-                setSelectedVideo({
-                  url: "https://www.youtube.com/watch?v=4uegiLFV6l0&t=0s",
-                  title: "Stairmaster Demo"
-                });
-              }}
-              className="w-full bg-gradient-primary hover:shadow-glow mb-4"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Watch Stairmaster Demo [00:00-00:02]
-            </Button>
-            
-            <div className="bg-accent/10 rounded-lg p-4 border border-accent/20">
-              <h4 className="font-semibold text-foreground mb-2">Instructions</h4>
-              <p className="text-sm text-muted-foreground mb-2">
+          <CardContent className="space-y-4">
+            <div className="bg-accent/10 rounded-lg p-3 border border-accent/20">
+              <p className="text-sm text-muted-foreground">
                 10 minutes at an easy pace. Focus on long steps to fully stretch the glutes.
               </p>
-              <p className="text-xs text-muted-foreground">Make sure to maintain good posture and take full range steps</p>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <FitnessInput
-                label="Time (minutes)"
+                label="Time (min)"
                 icon={<Timer className="h-4 w-4" />}
                 type="number"
                 placeholder="10"
@@ -182,18 +109,13 @@ export default function CardioPage() {
                 onChange={(e) => {
                   const newData = { ...cardioData, time: e.target.value };
                   setCardioData(newData);
-                  // Debounced update to session
-                  setTimeout(() => {
-                    updateSession({
-                      cardio_time: e.target.value
-                    });
-                  }, 500);
+                  setTimeout(() => updateSession({ cardio_time: e.target.value }), 500);
                 }}
                 variant={cardioData.time ? 'success' : 'default'}
                 disabled={cardioData.completed}
               />
               <FitnessInput
-                label="Calories Burned"
+                label="Calories"
                 icon={<Target className="h-4 w-4" />}
                 type="number"
                 placeholder="0"
@@ -201,55 +123,46 @@ export default function CardioPage() {
                 onChange={(e) => {
                   const newData = { ...cardioData, calories: e.target.value };
                   setCardioData(newData);
-                  // Debounced update to session
-                  setTimeout(() => {
-                    updateSession({
-                      cardio_calories: e.target.value
-                    });
-                  }, 500);
+                  setTimeout(() => updateSession({ cardio_calories: e.target.value }), 500);
                 }}
                 variant={cardioData.calories ? 'success' : 'default'}
                 disabled={cardioData.completed}
               />
             </div>
-            
+
             {cardioData.time && cardioData.calories && !cardioData.completed && (
-              <Button 
+              <Button
                 onClick={handleComplete}
                 className="w-full bg-gradient-primary hover:shadow-glow"
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Complete Cardio & Continue to Warm-up
+                Complete Cardio
               </Button>
             )}
-            
+
             {cardioData.completed && (
               <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
                 <div className="flex items-center justify-center gap-2 text-success font-medium">
                   <CheckCircle2 className="h-4 w-4" />
-                  Cardio Complete! {cardioData.time} mins, {cardioData.calories} calories
+                  Done! {cardioData.time} min, {cardioData.calories} cal
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">Redirecting to warm-up phase...</p>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Video Player Modal */}
-      {selectedVideo && (
-        <VideoPlayer
-          isOpen={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-          videoUrl={selectedVideo.url}
-          title={selectedVideo.title}
-          onPlay={() => {
-            console.log('Video started playing:', selectedVideo.title);
-            // Close the video player after starting
-            setSelectedVideo(null);
-          }}
-        />
-      )}
+        {/* Skip */}
+        {!cardioData.completed && (
+          <Button
+            onClick={handleSkip}
+            variant="ghost"
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            <SkipForward className="h-4 w-4 mr-2" />
+            Skip Cardio
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

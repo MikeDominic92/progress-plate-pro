@@ -131,7 +131,7 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
         <Input
           id="name"
           {...register('name', { required: 'Exercise name is required' })}
-          className="bg-black/50 border-orange-400/50 text-white placeholder:text-white/50"
+          className="bg-black/50 border-primary/50 text-white placeholder:text-white/50"
           placeholder="e.g., Machine Hip Thrust"
         />
         {errors.name && (
@@ -146,13 +146,13 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
           value={category} 
           onValueChange={(value: 'warmup' | 'workout' | 'substitute') => setValue('category', value)}
         >
-          <SelectTrigger className="bg-black/50 border-orange-400/50 text-white">
+          <SelectTrigger className="bg-black/50 border-primary/50 text-white">
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
-          <SelectContent className="bg-black border-orange-400/50">
-            <SelectItem value="warmup" className="text-white hover:bg-orange-500/10">Warmup</SelectItem>
-            <SelectItem value="workout" className="text-white hover:bg-orange-500/10">Workout</SelectItem>
-            <SelectItem value="substitute" className="text-white hover:bg-orange-500/10">Substitute</SelectItem>
+          <SelectContent className="bg-black border-primary/50">
+            <SelectItem value="warmup" className="text-white hover:bg-primary/10">Warmup</SelectItem>
+            <SelectItem value="workout" className="text-white hover:bg-primary/10">Workout</SelectItem>
+            <SelectItem value="substitute" className="text-white hover:bg-primary/10">Substitute</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -162,12 +162,12 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
         <div className="space-y-2">
           <Label className="text-white">Subcategory</Label>
           <Select onValueChange={(value) => setValue('subcategory', value)}>
-            <SelectTrigger className="bg-black/50 border-orange-400/50 text-white">
+            <SelectTrigger className="bg-black/50 border-primary/50 text-white">
               <SelectValue placeholder="Select subcategory (optional)" />
             </SelectTrigger>
-            <SelectContent className="bg-black border-orange-400/50">
+            <SelectContent className="bg-black border-primary/50">
               {subcategoryOptions[category].map((option) => (
-                <SelectItem key={option} value={option} className="text-white hover:bg-orange-500/10">
+                <SelectItem key={option} value={option} className="text-white hover:bg-primary/10">
                   {option}
                 </SelectItem>
               ))}
@@ -181,12 +181,12 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
         <div className="space-y-2">
           <Label className="text-white">Tier</Label>
           <Select onValueChange={(value) => setValue('tier', value)}>
-            <SelectTrigger className="bg-black/50 border-orange-400/50 text-white">
+            <SelectTrigger className="bg-black/50 border-primary/50 text-white">
               <SelectValue placeholder="Select tier (optional)" />
             </SelectTrigger>
-            <SelectContent className="bg-black border-orange-400/50">
+            <SelectContent className="bg-black border-primary/50">
               {tierOptions.map((tier) => (
-                <SelectItem key={tier} value={tier} className="text-white hover:bg-orange-500/10">
+                <SelectItem key={tier} value={tier} className="text-white hover:bg-primary/10">
                   {tier}
                 </SelectItem>
               ))}
@@ -207,7 +207,7 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
               message: 'Please enter a valid URL'
             }
           })}
-          className="bg-black/50 border-orange-400/50 text-white placeholder:text-white/50"
+          className="bg-black/50 border-primary/50 text-white placeholder:text-white/50"
           placeholder="https://www.youtube.com/watch?v=..."
         />
         {errors.video_url && (
@@ -222,7 +222,7 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
           <Input
             id="time_segment"
             {...register('time_segment')}
-            className="bg-black/50 border-orange-400/50 text-white placeholder:text-white/50"
+            className="bg-black/50 border-primary/50 text-white placeholder:text-white/50"
             placeholder="e.g., [00:00:03 - 00:00:05]"
           />
         </div>
@@ -234,7 +234,7 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
         <Textarea
           id="instructions"
           {...register('instructions')}
-          className="bg-black/50 border-orange-400/50 text-white placeholder:text-white/50 min-h-20"
+          className="bg-black/50 border-primary/50 text-white placeholder:text-white/50 min-h-20"
           placeholder="Exercise instructions, form cues, etc."
         />
       </div>
@@ -245,7 +245,7 @@ export const AddExerciseForm: React.FC<AddExerciseFormProps> = ({
         <Input
           id="tags"
           {...register('tags')}
-          className="bg-black/50 border-orange-400/50 text-white placeholder:text-white/50"
+          className="bg-black/50 border-primary/50 text-white placeholder:text-white/50"
           placeholder="e.g., compound, glutes, beginner (comma separated)"
         />
       </div>

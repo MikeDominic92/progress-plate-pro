@@ -22,11 +22,11 @@ export const FitnessInput = React.forwardRef<HTMLInputElement, FitnessInputProps
           )}
           <input
             className={cn(
-              "w-full rounded-lg border border-orange-400/50 bg-black text-white placeholder:text-gray-400",
+              "w-full rounded-lg border border-primary/50 bg-black text-white placeholder:text-gray-400",
               "px-3 py-2.5 text-sm",
               "transition-all duration-200 ease-smooth",
-              "focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none",
-              "hover:border-orange-500/70",
+              "focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none",
+              "hover:border-primary/70",
               icon && "pl-10",
               className
             )}

@@ -135,13 +135,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-black border-orange-500/20 p-0">
+      <DialogContent className="max-w-4xl bg-black border-primary/20 p-0">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-white text-lg">{title}</DialogTitle>
               {timeSegment && (
-                <p className="text-orange-400 text-sm mt-1">{timeSegment}</p>
+                <p className="text-primary text-sm mt-1">{timeSegment}</p>
               )}
             </div>
             <Button
@@ -172,7 +172,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-between bg-black/50 rounded-lg p-4 border border-orange-400/30">
+          <div className="flex items-center justify-between bg-black/50 rounded-lg p-4 border border-primary/30">
             <div className="flex items-center space-x-3">
               <Button
                 size="sm"
@@ -190,7 +190,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 size="sm"
                 variant="outline"
                 onClick={toggleMute}
-                className="border-orange-400/50 text-orange-400 hover:bg-orange-500/10"
+                className="border-primary/50 text-primary hover:bg-primary/10"
               >
                 {isMuted ? (
                   <VolumeX className="h-4 w-4" />
@@ -205,7 +205,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 size="sm"
                 variant="outline"
                 onClick={openFullscreen}
-                className="border-orange-400/50 text-orange-400 hover:bg-orange-500/10"
+                className="border-primary/50 text-primary hover:bg-primary/10"
               >
                 <Maximize2 className="h-4 w-4 mr-1" />
                 Open in YouTube
@@ -214,8 +214,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
 
           {/* Instructions */}
-          <div className="mt-4 p-3 bg-orange-500/10 border border-orange-400/30 rounded-lg">
-            <p className="text-orange-400 text-sm">
+          <div className="mt-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+            <p className="text-primary text-sm">
               <strong>Note:</strong> Click the play button above to start the video and any associated timers. 
               The video will not auto-play.
             </p>

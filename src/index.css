@@ -6,64 +6,64 @@
 
 @layer base {
   :root {
-    /* Liquid glass dark backgrounds */
-    --background: 216 28% 2%;
+    /* Deep navy-black backgrounds */
+    --background: 230 33% 4%;
     --foreground: 0 0% 98%;
 
     /* Glass card surfaces */
-    --card: 216 25% 4%;
+    --card: 230 25% 6%;
     --card-foreground: 0 0% 98%;
-    --card-secondary: 216 20% 6%;
+    --card-secondary: 230 20% 8%;
 
-    /* Orange accent colors */
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 30 100% 65%;
+    /* Warm coral pink primary */
+    --primary: 340 82% 66%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 350 100% 76%;
 
     /* Glass secondary surfaces */
-    --secondary: 216 18% 8%;
+    --secondary: 230 18% 8%;
     --secondary-foreground: 0 0% 98%;
 
     /* Muted glass elements */
-    --muted: 216 15% 10%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 230 15% 12%;
+    --muted-foreground: 230 10% 55%;
 
-    /* Orange highlights */
-    --accent: 24 95% 53%;
-    --accent-foreground: 0 0% 98%;
+    /* Soft rose/salmon accent */
+    --accent: 0 100% 75%;
+    --accent-foreground: 0 0% 100%;
 
     /* Status colors with high contrast */
-    --success: 142 71% 45%;
+    --success: 156 100% 68%;
     --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
+    --warning: 36 100% 65%;
     --warning-foreground: 0 0% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     /* Glass UI elements */
     --border: 0 0% 100% / 0.1;
-    --input: 216 20% 8%;
-    --ring: 24 95% 53%;
+    --input: 230 20% 8%;
+    --ring: 340 82% 66%;
 
     /* Design tokens */
     --radius: 0.75rem;
     --radius-lg: 1rem;
 
-    /* Liquid glass gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(30 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(24 90% 48% / 0.8), hsl(28 95% 58% / 0.8));
-    --gradient-card: linear-gradient(145deg, hsl(216 25% 4% / 0.8), hsl(216 20% 6% / 0.9));
-    --gradient-hero: linear-gradient(135deg, hsl(24 95% 53% / 0.9), hsl(216 28% 2%));
-    
+    /* Coral/rose gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(340 82% 66%), hsl(0 100% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(340 82% 60% / 0.8), hsl(350 100% 76% / 0.8));
+    --gradient-card: linear-gradient(145deg, hsl(230 25% 6% / 0.8), hsl(230 20% 8% / 0.9));
+    --gradient-hero: linear-gradient(135deg, hsl(340 82% 66% / 0.9), hsl(230 33% 4%));
+
     /* Glass blur effect */
     --backdrop-blur: blur(20px);
     --glass-border: 1px solid hsl(0 0% 100% / 0.15);
 
-    /* Liquid glass shadows */
-    --shadow-sm: 0 2px 16px -4px hsl(216 28% 1% / 0.6);
-    --shadow-md: 0 8px 32px -8px hsl(216 28% 1% / 0.7);
-    --shadow-lg: 0 16px 64px -16px hsl(216 28% 1% / 0.8);
-    --shadow-glow: 0 0 48px hsl(24 95% 53% / 0.5);
+    /* Glass shadows with coral pink halo */
+    --shadow-sm: 0 2px 16px -4px hsl(230 28% 1% / 0.6);
+    --shadow-md: 0 8px 32px -8px hsl(230 28% 1% / 0.7);
+    --shadow-lg: 0 16px 64px -16px hsl(230 28% 1% / 0.8);
+    --shadow-glow: 0 0 48px hsl(340 82% 66% / 0.5);
     --shadow-glass: inset 0 1px 0 hsl(0 0% 100% / 0.1);
 
     /* Smooth animations */
@@ -163,7 +163,26 @@
 
   /* Enhanced glass blur effect */
   .backdrop-blur-glass {
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
+  }
+}
+
+@layer utilities {
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    animation: shimmer 3s linear infinite;
+    background-size: 200% 100%;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
 }

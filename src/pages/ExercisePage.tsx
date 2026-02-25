@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FitnessInput } from '@/components/ui/fitness-input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Weight, Repeat, Play, Target, Timer, TrendingUp, Clock, Trophy, Zap, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
-import { CircularProgress } from '@/components/CircularProgress';
+import { Card } from '@/components/ui/card';
+import { Play, ArrowLeft, ArrowRight } from 'lucide-react';
 import { ExerciseTimer } from '@/components/ExerciseTimer';
-import { SessionTimer } from '@/components/SessionTimer';
-import { ResetSessionButton } from '@/components/ResetSessionButton';
-import { VideoPlayer } from '@/components/VideoPlayer';
 import { RestTimerModal } from '@/components/RestTimerModal';
+import { PRCelebration } from '@/components/PRCelebration';
+import { SetLog } from '@/components/SetLog';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useProgression } from '@/hooks/useProgression';
 import { useToast } from '@/hooks/use-toast';
+import type { PersonalRecord } from '@/utils/progressionEngine';
 
 const initialWorkoutData = [
-  { 
-    name: 'Machine/Barbell Hip Thrust', 
-    tier: 'Great - A Tier', 
+  {
+    name: 'Machine/Barbell Hip Thrust',
+    tier: 'Great - A Tier',
     videoUrl: 'https://www.youtube.com/shorts/-1cAnwFNBLg',
     sets: [
       { id: 0, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
@@ -40,8 +37,8 @@ const initialWorkoutData = [
       ]
     }
   },
-  { 
-    name: 'Walking Lunge', 
+  {
+    name: 'Walking Lunge',
     tier: 'Best of the Best - S+ Tier',
     videoUrl: 'https://www.youtube.com/shorts/BhUpWmlKcJ8?feature=share',
     sets: [
@@ -52,7 +49,7 @@ const initialWorkoutData = [
     ]
   },
   {
-    name: 'Romanian Deadlift (RDL)', 
+    name: 'Romanian Deadlift (RDL)',
     tier: 'Great - A Tier',
     videoUrl: 'https://www.youtube.com/watch?v=5rIqP63yWFg',
     sets: [
@@ -63,7 +60,7 @@ const initialWorkoutData = [
     ]
   },
   {
-    name: 'Machine Hip Abduction', 
+    name: 'Machine Hip Abduction',
     tier: 'Great - S Tier',
     videoUrl: 'https://www.youtube.com/shorts/S_FGYHNHJ_c',
     sets: [
@@ -74,7 +71,7 @@ const initialWorkoutData = [
     ]
   },
   {
-    name: 'Step-Ups', 
+    name: 'Step-Ups',
     tier: 'Great - A Tier',
     videoUrl: 'https://www.youtube.com/shorts/sejk5iTrcRE',
     sets: [
@@ -86,50 +83,39 @@ const initialWorkoutData = [
   },
 ];
 
-const getTierBadgeVariant = (tier: string) => {
-  if (tier.includes('S+')) return 'default';
-  if (tier.includes('S ')) return 'secondary';
-  if (tier.includes('A')) return 'outline';
-  return 'destructive';
-};
-
 export default function ExercisePage() {
   const navigate = useNavigate();
   const { exerciseIndex } = useParams<{ exerciseIndex: string }>();
   const { username } = useAuthenticatedUser();
-  const { trackSetCompleted, trackRestTimer, trackExerciseCompletion } = useAnalytics();
-  const { currentSession, updateSession, initializeSession, manualSave, clearSession } = useWorkoutStorage(username || '');
+  const { trackSetCompleted, trackRestTimer, trackExerciseCompletion, trackPR } = useAnalytics();
+  const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   const { toast } = useToast();
-  
+  const { getSuggestion, checkForPR, savePersonalRecords, refreshHistory } = useProgression(username || '');
+
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
-  
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [currentExerciseStartTime, setCurrentExerciseStartTime] = useState<number | null>(null);
+
+  // State -- trimmed from 31 hooks to ~15
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [isExerciseTimerPaused, setIsExerciseTimerPaused] = useState(false);
-  const [hasWatchedSubstituteVideo, setHasWatchedSubstituteVideo] = useState(false);
-  const [hasWatchedMainVideo, setHasWatchedMainVideo] = useState(false);
-  const [hasClickedSubstitute, setHasClickedSubstitute] = useState(false);
+  const [exerciseStartTime, setExerciseStartTime] = useState<number | null>(null);
+  const [useSubstitute, setUseSubstitute] = useState(false);
   const [currentSetInProgress, setCurrentSetInProgress] = useState<{
-    exerciseIndex: number, 
-    setIndex: number,
-    isSubstitute?: boolean,
-    exerciseName?: string,
-    setType?: string
+    exerciseIndex: number;
+    setIndex: number;
+    isSubstitute?: boolean;
+    exerciseName?: string;
+    setType?: string;
   } | null>(null);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<{url: string, title: string} | null>(null);
-  
-  // Ref for debouncing session updates
+  const [prCelebration, setPrCelebration] = useState<PersonalRecord[]>([]);
+  const [showPRModal, setShowPRModal] = useState(false);
+
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // Prevent overwriting local typing with session re-hydration
   const hasHydratedFromSession = useRef(false);
+
   const [workoutLog, setWorkoutLog] = useState(() => {
-    // Always ensure we return an array, never undefined/null
     try {
-      if (currentSession && currentSession.workout_data && currentSession.workout_data.logs) {
+      if (currentSession?.workout_data?.logs) {
         const logs = currentSession.workout_data.logs;
-        // Ensure logs is an array
         return Array.isArray(logs) ? logs : initialWorkoutData;
       }
     } catch (error) {
@@ -138,137 +124,75 @@ export default function ExercisePage() {
     return initialWorkoutData;
   });
 
-  
   useEffect(() => {
     initializeSession();
   }, [initializeSession]);
 
   // Listen for manual save events
   useEffect(() => {
-    const handleSaveWorkout = () => {
-      manualSave();
-    };
-
+    const handleSaveWorkout = () => { manualSave(); };
     window.addEventListener('saveWorkout', handleSaveWorkout);
     return () => window.removeEventListener('saveWorkout', handleSaveWorkout);
   }, [manualSave]);
 
-  // Reset timer when exercise changes
+  // Auto-start exercise timer on mount / exercise change
   useEffect(() => {
-    setCurrentExerciseStartTime(null);
+    setExerciseStartTime(Date.now());
     setIsExerciseTimerPaused(false);
-    setHasWatchedSubstituteVideo(false); // Reset substitute video state
-    setHasWatchedMainVideo(false); // Reset main video state
-    setHasClickedSubstitute(false); // Reset substitute clicked state
+    setUseSubstitute(false);
   }, [currentExerciseIndex]);
 
-  // Check if timer should start based on watched videos
-  const checkAndStartTimer = () => {
-    const hasSubstitute = currentExercise.substitute;
-    const mainWatched = hasWatchedMainVideo;
-    const subWatched = hasWatchedSubstituteVideo;
-    
-    // If no substitute, just need main video watched
-    // If substitute exists, need both videos watched
-    const shouldStartTimer = hasSubstitute ? (mainWatched && subWatched) : mainWatched;
-    
-    if (shouldStartTimer && !currentExerciseStartTime) {
-      handleExerciseStart();
-    }
-  };
-
+  // Session hydration and redirect guards
   useEffect(() => {
     if (currentSession) {
-      // Initialize session start time if not set
-      if (!sessionStartTime) {
-        setSessionStartTime(Date.now());
-      }
-
-      // Check if user should be on this page - but don't redirect immediately
       const checkRedirect = setTimeout(() => {
-        if (!currentSession.cardio_completed) {
-          navigate('/cardio');
-          return;
-        }
-        
-        if (!currentSession.warmup_completed) {
-          navigate('/warmup');
-          return;
-        }
+        if (!currentSession.cardio_completed) { navigate('/cardio'); return; }
+        if (!currentSession.warmup_completed) { navigate('/warmup'); return; }
+        if (currentSession.current_phase === 'completed') { navigate('/post-workout'); return; }
+      }, 100);
 
-        if (currentSession.current_phase === 'completed') {
-          navigate('/post-workout');
-          return;
-        }
-      }, 100); // Small delay to prevent race conditions
-
-      // Load workout data if available (hydrate once to avoid focus loss while typing)
-      if (currentSession.workout_data && currentSession.workout_data.logs) {
+      if (currentSession.workout_data?.logs) {
         const logs = currentSession.workout_data.logs;
-        // Ensure logs is an array before setting state
-        if (Array.isArray(logs)) {
-          if (!hasHydratedFromSession.current) {
-            setWorkoutLog(logs);
-            hasHydratedFromSession.current = true;
-          }
-        } else {
-          console.warn('Workout logs is not an array, using initial data');
-          if (!hasHydratedFromSession.current) {
-            setWorkoutLog(initialWorkoutData);
-            hasHydratedFromSession.current = true;
-          }
+        if (Array.isArray(logs) && !hasHydratedFromSession.current) {
+          setWorkoutLog(logs);
+          hasHydratedFromSession.current = true;
         }
       }
 
       return () => clearTimeout(checkRedirect);
     }
-  }, [currentSession, navigate, sessionStartTime]);
+  }, [currentSession, navigate]);
 
-  const handleMotivationalMessage = (message: string) => {
-    toast({
-      title: "Training Update",
-      description: message,
-      duration: 5000,
-    });
-  };
-
-  const handleExerciseStart = () => {
-    console.log("🔥 handleExerciseStart called - setting currentExerciseStartTime");
-    setCurrentExerciseStartTime(Date.now());
-    setIsExerciseTimerPaused(false);
-  };
-
-  const handleExerciseComplete = () => {
-    setCurrentExerciseStartTime(null);
-  };
-
-  const handleLogChange = (setIndex: number, field: string, value: string, exerciseType = 'main') => {
-    const updatedLog = JSON.parse(JSON.stringify(workoutLog));
-    if (exerciseType === 'substitute') {
-      updatedLog[currentExerciseIndex].substitute.sets[setIndex][field] = value;
-    } else {
-      updatedLog[currentExerciseIndex].sets[setIndex][field] = value;
+  // Detect if substitute was already in use (data present)
+  useEffect(() => {
+    const exercise = workoutLog[currentExerciseIndex];
+    if (exercise?.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed)) {
+      setUseSubstitute(true);
     }
-    setWorkoutLog(updatedLog);
-    
-    // Debounced update to session - don't update immediately to prevent focus loss
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    updateTimeoutRef.current = setTimeout(() => {
-      updateSession({
-        workout_data: { logs: updatedLog, timers: {} }
-      });
-      manualSave({
-        workout_data: { logs: updatedLog, timers: {} }
-      });
-    }, 1000); // Increased delay to prevent frequent updates while typing
-  };
+  }, [currentExerciseIndex, workoutLog]);
 
-  const handleIndividualSetComplete = async (setIndex: number, isSubstitute: boolean = false) => {
+  const handleLogChange = (setIndex: number, field: string, value: string) => {
     const updatedLog = JSON.parse(JSON.stringify(workoutLog));
     const exercise = updatedLog[currentExerciseIndex];
-    
+    if (useSubstitute && exercise.substitute) {
+      exercise.substitute.sets[setIndex][field] = value;
+    } else {
+      exercise.sets[setIndex][field] = value;
+    }
+    setWorkoutLog(updatedLog);
+
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      updateSession({ workout_data: { logs: updatedLog, timers: {} } });
+      manualSave({ workout_data: { logs: updatedLog, timers: {} } });
+    }, 1000);
+  };
+
+  const handleSetComplete = async (setIndex: number) => {
+    const updatedLog = JSON.parse(JSON.stringify(workoutLog));
+    const exercise = updatedLog[currentExerciseIndex];
+    const isSubstitute = useSubstitute && !!exercise.substitute;
+
     let setData, exerciseName;
     if (isSubstitute) {
       exercise.substitute.sets[setIndex].confirmed = true;
@@ -279,100 +203,77 @@ export default function ExercisePage() {
       setData = exercise.sets[setIndex];
       exerciseName = exercise.name;
     }
-    
-    // Track set completion analytics
+
+    // Analytics
     if (currentSession?.id && exerciseName) {
       const weight = parseFloat(setData.weight) || 0;
       const reps = parseInt(setData.reps) || 0;
-      
+
       await trackSetCompleted(
-        currentSession.id,
-        username,
-        exerciseName,
-        setIndex + 1,
-        weight,
-        reps
+        currentSession.id, username, exerciseName,
+        setIndex + 1, weight, reps, undefined, setData.type
       );
+
+      if (weight > 0 && reps > 0) {
+        const prs = checkForPR(exerciseName, setData.type, weight, reps);
+        if (prs.length > 0) {
+          setPrCelebration(prs);
+          setShowPRModal(true);
+          await savePersonalRecords(prs);
+          for (const pr of prs) {
+            await trackPR(currentSession.id, username, exerciseName, pr.prType, pr.value, pr.previousValue);
+          }
+          toast({ title: "NEW PR!", description: `${exerciseName}: ${weight} lb x ${reps} reps`, duration: 5000 });
+        }
+      }
+      refreshHistory();
     }
-    
+
     setWorkoutLog(updatedLog);
-    
+
+    // Show rest timer
     setCurrentSetInProgress({
-      exerciseIndex: currentExerciseIndex, 
-      setIndex: setIndex,
-      isSubstitute: isSubstitute,
-      exerciseName: exerciseName,
-      setType: isSubstitute ? exercise.substitute.sets[setIndex].type : exercise.sets[setIndex].type
+      exerciseIndex: currentExerciseIndex,
+      setIndex,
+      isSubstitute,
+      exerciseName,
+      setType: setData.type,
     });
     setIsExerciseTimerPaused(true);
     setShowRestTimer(true);
-    
-    // Clear any pending session updates
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    
-    // Immediate update for set completion
-    updateSession({
-      workout_data: { logs: updatedLog, timers: {} }
-    });
-    
-    // Force immediate save to ensure set completion is persisted
-    manualSave({
-      workout_data: { logs: updatedLog, timers: {} }
-    });
-    
-    const allSetsCompleted = isSubstitute ? 
-      exercise.substitute.sets.every((set: any) => set.confirmed) :
-      exercise.sets.every((set: any) => set.confirmed);
-    
+
+    // Save immediately
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateSession({ workout_data: { logs: updatedLog, timers: {} } });
+    manualSave({ workout_data: { logs: updatedLog, timers: {} } });
+
+    // Check if all sets for this exercise are done
+    const setsToCheck = isSubstitute ? exercise.substitute.sets : exercise.sets;
+    const allSetsCompleted = setsToCheck.every((s: any) => s.confirmed);
+
     if (allSetsCompleted) {
-      console.log(`All sets completed for exercise ${currentExerciseIndex + 1}!`);
-      
-      // Track exercise completion analytics
+      // Track exercise completion
       if (currentSession?.id && exerciseName) {
-        const setsToAnalyze = isSubstitute ? exercise.substitute.sets : exercise.sets;
-        const totalReps = setsToAnalyze.reduce((sum: number, s: any) => sum + (parseInt(s.reps) || 0), 0);
-        const avgWeight = setsToAnalyze.reduce((sum: number, s: any) => sum + (parseFloat(s.weight) || 0), 0) / setsToAnalyze.length;
-        
-        await trackExerciseCompletion(
-          currentSession.id,
-          username,
-          exerciseName,
-          setsToAnalyze.length,
-          avgWeight,
-          totalReps,
-          0 // Duration will be calculated from session data
-        );
+        const totalReps = setsToCheck.reduce((sum: number, s: any) => sum + (parseInt(s.reps) || 0), 0);
+        const avgWeight = setsToCheck.reduce((sum: number, s: any) => sum + (parseFloat(s.weight) || 0), 0) / setsToCheck.length;
+        await trackExerciseCompletion(currentSession.id, username, exerciseName, setsToCheck.length, avgWeight, totalReps, 0);
       }
-      
-      // Check if all exercises are now completed
-      const totalCompletedSets = updatedLog.reduce((acc: number, exercise: any) => {
-        if (!exercise?.sets) return acc;
-        const mainCompleted = exercise.sets.filter((set: any) => set.confirmed).length;
-        const subCompleted = exercise.substitute?.sets ? exercise.substitute.sets.filter((set: any) => set.confirmed).length : 0;
+
+      // Check overall completion
+      const totalCompletedSets = updatedLog.reduce((acc: number, ex: any) => {
+        if (!ex?.sets) return acc;
+        const mainCompleted = ex.sets.filter((s: any) => s.confirmed).length;
+        const subCompleted = ex.substitute?.sets?.filter((s: any) => s.confirmed).length || 0;
         return acc + Math.max(mainCompleted, subCompleted);
       }, 0);
-      
-      const totalSets = updatedLog.reduce((acc: number, exercise: any) => {
-        // assume same number of sets for main and substitute
-        return acc + (exercise?.sets?.length || 0);
-      }, 0);
-      
+      const totalSets = updatedLog.reduce((acc: number, ex: any) => acc + (ex?.sets?.length || 0), 0);
+
       if (totalCompletedSets >= totalSets) {
-        // All exercises completed, update session and navigate to post-workout
-        console.log('🎉 All workout exercises completed! Navigating to post-workout...');
         updateSession({ current_phase: 'completed' });
-        (async () => {
-          try {
-            await manualSave({ current_phase: 'completed' });
-          } catch (e) {
-            console.error('Failed to persist completion before navigate', e);
-          }
-          navigate('/post-workout', { replace: true });
-        })();
+        try { await manualSave({ current_phase: 'completed' }); } catch {}
+        navigate('/post-workout', { replace: true });
       } else {
-        // Auto-navigate to next exercise after completing all sets
+        // Auto-advance to next exercise after a short delay
         setTimeout(() => {
           if (currentExerciseIndex < updatedLog.length - 1) {
             navigate(`/exercise/${currentExerciseIndex + 1}`, { replace: true });
@@ -388,574 +289,183 @@ export default function ExercisePage() {
     setCurrentSetInProgress(null);
   };
 
-  // Handle rest timer analytics
   const handleRestStarted = async (duration: number) => {
     if (!currentSession?.id || !currentSetInProgress?.exerciseName) return;
-    
-    await trackRestTimer(
-      currentSession.id,
-      username,
-      currentSetInProgress.exerciseName,
-      currentSetInProgress.setIndex + 1,
-      'rest_started',
-      duration
-    );
+    await trackRestTimer(currentSession.id, username, currentSetInProgress.exerciseName, currentSetInProgress.setIndex + 1, 'rest_started', duration);
   };
 
   const handleRestCompleted = async (actualDuration: number) => {
     if (!currentSession?.id || !currentSetInProgress?.exerciseName) return;
-    
-    await trackRestTimer(
-      currentSession.id,
-      username,
-      currentSetInProgress.exerciseName,
-      currentSetInProgress.setIndex + 1,
-      'rest_completed',
-      actualDuration
-    );
-    
+    await trackRestTimer(currentSession.id, username, currentSetInProgress.exerciseName, currentSetInProgress.setIndex + 1, 'rest_completed', actualDuration);
     setShowRestTimer(false);
     setIsExerciseTimerPaused(false);
     setCurrentSetInProgress(null);
   };
 
   const currentExercise = workoutLog[currentExerciseIndex];
-  
-  // Auto-start timer once required demos are watched
-  useEffect(() => {
-    const hasSubstitute = Boolean(currentExercise?.substitute);
-    const shouldStartTimer = hasSubstitute
-      ? hasWatchedMainVideo && hasWatchedSubstituteVideo
-      : hasWatchedMainVideo;
 
-    if (shouldStartTimer && !currentExerciseStartTime) {
-      handleExerciseStart();
-    }
-  }, [hasWatchedMainVideo, hasWatchedSubstituteVideo, currentExerciseStartTime, currentExercise]);
-  
   if (!currentExercise) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Exercise Not Found</h1>
-          <Button onClick={() => navigate('/workout')}>
-            Back to Workout
-          </Button>
+          <Button onClick={() => navigate('/')}>Back Home</Button>
         </Card>
       </div>
     );
   }
 
-  // Calculate overall progress - with safety checks
-  const completedSets = workoutLog.reduce((acc: number, exercise: any) => {
-    if (!exercise?.sets) return acc;
-    
-    // Count main exercise completed sets
-    const mainCompletedSets = exercise.sets.filter((set: any) => set.confirmed).length;
-    
-    // Count substitute completed sets if substitute exists
-    let substituteCompletedSets = 0;
-    if (exercise.substitute?.sets) {
-      substituteCompletedSets = exercise.substitute.sets.filter((set: any) => set.confirmed).length;
-    }
-    
-    // Use the higher count (either main or substitute, whichever is being used)
-    const exerciseCompletedSets = Math.max(mainCompletedSets, substituteCompletedSets);
-    return acc + exerciseCompletedSets;
+  // Which sets to render
+  const activeSets = useSubstitute && currentExercise.substitute
+    ? currentExercise.substitute.sets
+    : currentExercise.sets;
+  const activeExerciseName = useSubstitute && currentExercise.substitute
+    ? currentExercise.substitute.name
+    : currentExercise.name;
+
+  // Progress
+  const completedSets = workoutLog.reduce((acc: number, ex: any) => {
+    if (!ex?.sets) return acc;
+    const mainDone = ex.sets.filter((s: any) => s.confirmed).length;
+    const subDone = ex.substitute?.sets?.filter((s: any) => s.confirmed).length || 0;
+    return acc + Math.max(mainDone, subDone);
   }, 0);
-  const overallProgress = (completedSets / 20) * 100; // 20 total sets, 5% per set
-  const progressPercentage = Math.round(overallProgress / 5) * 5; // Round to nearest 5%
-  
-  // Helper functions to check if exercise types are used/locked
-  const isMainExerciseUsed = (exercise: any) => {
-    return exercise.sets.some((set: any) => set.weight || set.reps || set.confirmed);
-  };
-  
-  const isSubstituteExerciseUsed = (exercise: any) => {
-    return exercise.substitute?.sets.some((set: any) => set.weight || set.reps || set.confirmed);
-  };
-  
-  const isMainLocked = isSubstituteExerciseUsed(currentExercise);
-  const isSubstituteLocked = isMainExerciseUsed(currentExercise);
+  const totalSets = workoutLog.reduce((acc: number, ex: any) => acc + (ex?.sets?.length || 0), 0);
+  const progressPct = Math.round((completedSets / totalSets) * 100);
 
-  const SetLog = ({ set, onLogChange, onSetComplete, isCurrentSet, canInteract }: { 
-    set: any, 
-    onLogChange: (field: string, value: string) => void, 
-    onSetComplete?: () => void, 
-    isCurrentSet?: boolean,
-    canInteract?: boolean
-  }) => {
-    // Local input state to prevent focus loss while typing
-    const [weightInput, setWeightInput] = useState<string>(set.weight ?? '');
-    const [repsInput, setRepsInput] = useState<string>(set.reps ?? '');
-    const [isWeightFocused, setIsWeightFocused] = useState(false);
-    const [isRepsFocused, setIsRepsFocused] = useState(false);
+  // Can switch to substitute only if no main sets have data, and vice versa
+  const hasMainData = currentExercise.sets.some((s: any) => s.weight || s.reps || s.confirmed);
+  const hasSubData = currentExercise.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed);
+  const canSwitch = currentExercise.substitute && !hasMainData && !hasSubData;
 
-    // Keep local state in sync with external updates when not focused
-    useEffect(() => {
-      if (!isWeightFocused) setWeightInput(set.weight ?? '');
-    }, [set.weight, isWeightFocused]);
-
-    useEffect(() => {
-      if (!isRepsFocused) setRepsInput(set.reps ?? '');
-    }, [set.reps, isRepsFocused]);
-
-    const handleWeightBlur = () => {
-      setIsWeightFocused(false);
-      // Save immediately when user finishes inputting weight
-      if (weightInput !== set.weight) {
-        onLogChange('weight', weightInput);
-        // Trigger immediate save
-        setTimeout(() => {
-          const event = new CustomEvent('saveWorkout');
-          window.dispatchEvent(event);
-        }, 100);
-      }
-    };
-
-    const handleRepsBlur = () => {
-      setIsRepsFocused(false);
-      // Save immediately when user finishes inputting reps
-      if (repsInput !== set.reps) {
-        onLogChange('reps', repsInput);
-        // Trigger immediate save
-        setTimeout(() => {
-          const event = new CustomEvent('saveWorkout');
-          window.dispatchEvent(event);
-        }, 100);
-      }
-    };
-
-    const isWarmUp = set.type === 'Warm Up Set';
-    const isCompleteLocal = Boolean(weightInput && repsInput);
-    const isConfirmed = set.confirmed;
-    const isDisabled = !canInteract && !isCurrentSet;
-    
-    return (
-      <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 bg-black ${
-        isWarmUp ? 'border-primary/30 shadow-glass' : 'shadow-md'
-      } ${
-        isConfirmed ? 'ring-1 ring-warning/50' : 
-        isCompleteLocal && isCurrentSet ? 'ring-1 ring-warning/50' : 
-        isDisabled ? 'opacity-50' : ''
-      }`}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="space-y-1">
-              <h4 className="font-semibold text-white">{set.type}</h4>
-              <p className="text-sm text-gray-300">{set.instructions}</p>
-              {isCurrentSet && !isConfirmed && (
-                <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
-                  Current Set
-                </Badge>
-              )}
-            </div>
-            {isConfirmed && (
-              <Badge variant="outline" className="text-success border-success/50 bg-success/10">
-                ✓ Set Complete
-              </Badge>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <FitnessInput
-              label="Weight"
-              icon={<Weight className="h-4 w-4" />}
-              type="text"
-              inputMode="decimal"
-              placeholder="0"
-              value={weightInput}
-              onFocus={() => setIsWeightFocused(true)}
-              onBlur={() => {
-                setIsWeightFocused(false);
-                if (!isConfirmed && !isDisabled) {
-                  onLogChange('weight', weightInput);
-                }
-              }}
-              onChange={(e) => {
-                // Allow digits and one decimal point
-                let v = e.target.value.replace(/[^0-9.]/g, '');
-                const firstDot = v.indexOf('.');
-                if (firstDot !== -1) {
-                  v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
-                }
-                setWeightInput(v);
-              }}
-              variant={weightInput ? 'success' : 'default'}
-              disabled={isConfirmed || isDisabled}
-            />
-            <FitnessInput
-              label="Reps"
-              icon={<Repeat className="h-4 w-4" />}
-              type="text"
-              inputMode="numeric"
-              placeholder="0"
-              value={repsInput}
-              onFocus={() => setIsRepsFocused(true)}
-              onBlur={() => {
-                setIsRepsFocused(false);
-                if (!isConfirmed && !isDisabled) {
-                  onLogChange('reps', repsInput);
-                }
-              }}
-              onChange={(e) => {
-                // Digits only
-                const v = e.target.value.replace(/[^0-9]/g, '');
-                setRepsInput(v);
-              }}
-              variant={repsInput ? 'success' : 'default'}
-              disabled={isConfirmed || isDisabled}
-            />
-          </div>
-          
-          {!isConfirmed && isCompleteLocal && isCurrentSet && onSetComplete && (
-            <Button 
-              onClick={onSetComplete}
-              className="w-full"
-              variant="default"
-            >
-              Complete Set
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
+  const openVideo = (url: string) => {
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto p-2 sm:p-4 max-w-4xl space-y-4 sm:space-y-6">
-        {/* Header with Navigation */}
-        <div className="flex items-center justify-between gap-2">
-          <Button 
-            variant="outline" 
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-2 sm:p-4 max-w-lg space-y-3">
+        {/* Header: name + nav + progress */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
             size="sm"
-            onClick={() => currentExerciseIndex > 0 ? navigate(`/exercise/${currentExerciseIndex - 1}`) : navigate('/workout')}
-            disabled={currentExerciseIndex === 0}
-            className="flex-shrink-0"
+            onClick={() => currentExerciseIndex > 0 ? navigate(`/exercise/${currentExerciseIndex - 1}`) : navigate('/')}
+            className="flex-shrink-0 h-11 w-11 p-0"
           >
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Previous</span>
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Exercise {currentExerciseIndex + 1} of 5</h1>
-            <p className="text-muted-foreground">{currentExercise.name}</p>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-extrabold truncate">{activeExerciseName}</h1>
+              <span className="text-sm text-muted-foreground flex-shrink-0 ml-2">
+                {currentExerciseIndex + 1} of {workoutLog.length}
+              </span>
+            </div>
+            {/* Inline progress bar */}
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex-1 bg-black border border-primary rounded-full h-1.5">
+                <div
+                  className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">{completedSets}/{totalSets}</span>
+            </div>
           </div>
-          
-          <Button 
-            variant="outline"
-            onClick={() => currentExerciseIndex < workoutLog.length - 1 ? navigate(`/exercise/${currentExerciseIndex + 1}`) : navigate('/post-workout')}
-          >
-            {currentExerciseIndex < workoutLog.length - 1 ? 'Next' : 'Finish'}
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
+
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Optional video demo icon */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-11 w-11 p-0"
+              onClick={() => openVideo(
+                useSubstitute && currentExercise.substitute
+                  ? currentExercise.substitute.videoUrl
+                  : currentExercise.videoUrl
+              )}
+            >
+              <Play className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => currentExerciseIndex < workoutLog.length - 1
+                ? navigate(`/exercise/${currentExerciseIndex + 1}`)
+                : navigate('/post-workout')}
+              className="flex-shrink-0 h-11 w-11 p-0"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <Card className="p-3 sm:p-4 bg-black border-white/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs sm:text-sm font-medium text-white">Overall Progress</span>
-            <span className="text-xs sm:text-sm text-white">{completedSets}/20 {Math.round(progressPercentage)}%</span>
+        {/* Substitute toggle */}
+        {currentExercise.substitute && (
+          <div className="text-center">
+            {canSwitch ? (
+              <button
+                onClick={() => setUseSubstitute(!useSubstitute)}
+                className="text-sm text-primary/80 hover:text-primary underline underline-offset-2"
+              >
+                {useSubstitute ? `Switch to ${currentExercise.name}` : `Switch to ${currentExercise.substitute.name}`}
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Using {useSubstitute ? currentExercise.substitute.name : currentExercise.name}
+              </p>
+            )}
           </div>
-          <div className="w-full bg-black border border-orange-500 rounded-full h-2">
-            <div 
-              className="bg-orange-500 h-2 rounded-full transition-all duration-300" 
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </Card>
+        )}
 
-        {/* Session Timer */}
-        <SessionTimer 
-          startTime={sessionStartTime}
-          onMotivationalMessage={handleMotivationalMessage}
+        {/* Exercise Timer */}
+        <ExerciseTimer
+          key={currentExerciseIndex}
+          duration={20}
+          onComplete={() => setExerciseStartTime(null)}
+          onStart={() => setExerciseStartTime(Date.now())}
+          onSetComplete={() => {}}
+          isActive={!!exerciseStartTime}
+          isPaused={isExerciseTimerPaused}
+          exerciseType="main"
         />
 
-        {/* Exercise Content */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 sm:pb-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4">
-              <div className="space-y-2 w-full sm:w-auto">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                  {currentExercise.name}
-                </CardTitle>
-                <Badge variant={getTierBadgeVariant(currentExercise.tier)} className="w-fit">
-                  {currentExercise.tier}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {/* Prominent Watch Demo Button - Only show if timer hasn't started */}
-                {!currentExerciseStartTime && (
-                  <div className="w-full text-center">
-                    {!hasWatchedMainVideo ? (
-                      <Button 
-                        size="lg"
-                        onClick={() => {
-                          setSelectedVideo({
-                            url: currentExercise.videoUrl,
-                            title: currentExercise.name
-                          });
-                        }}
-                        className="bg-gradient-primary hover:shadow-glow text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto animate-pulse"
-                      >
-                        <Play className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 animate-bounce" />
-                        <span className="whitespace-nowrap">
-                          Watch Demo to Begin Exercise
-                        </span>
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="lg"
-                        className="border-green-400 bg-black text-white hover:bg-black text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto"
-                        variant="outline"
-                        disabled
-                      >
-                        <span className="whitespace-nowrap">
-                          Demo Watched
-                        </span>
-                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 ml-2 sm:ml-3 text-green-400" />
-                      </Button>
-                    )}
-                    {/* Substitute notification below button */}
-                    {currentExercise.substitute && (
-                      <div className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
-                        <p>Exercise {currentExerciseIndex + 1} has a substitute option</p>
-                        {!currentExerciseStartTime && (
-                          <p className="text-warning font-medium mt-1">
-                            ⚠️ Watch both videos to start timer
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {/* Small demo button when timer is active */}
-                {currentExerciseStartTime && !hasWatchedMainVideo && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedVideo({
-                        url: currentExercise.videoUrl,
-                        title: currentExercise.name
-                      });
-                    }}
-                    className="transition-all duration-300 whitespace-nowrap"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Watch Demo
-                  </Button>
-                )}
-                {currentExerciseStartTime && hasWatchedMainVideo && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-green-400 bg-black text-white transition-all duration-300 whitespace-nowrap"
-                    disabled
-                  >
-                    Demo Watched
-                    <CheckCircle2 className="h-4 w-4 ml-2 text-green-400" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-
-            {/* Exercise Timer */}
-            {currentExerciseStartTime && (
-              <ExerciseTimer 
-                duration={20} // 20 minutes
-                onComplete={handleExerciseComplete}
-                onStart={handleExerciseStart}
-                onSetComplete={() => {}}
-                isActive={!!currentExerciseStartTime}
-                isPaused={isExerciseTimerPaused}
-                exerciseType="main"
+        {/* Sets */}
+        <div className="space-y-3">
+          {activeSets.map((set: any, idx: number) => {
+            const suggestion = getSuggestion(activeExerciseName, set.type, idx);
+            return (
+              <SetLog
+                key={set.id}
+                set={set}
+                onLogChange={(field, value) => handleLogChange(idx, field, value)}
+                onSetComplete={() => handleSetComplete(idx)}
+                suggestion={suggestion}
+                disabled={set.confirmed}
               />
-            )}
-
-
-            {/* Main Exercise Sets - Show if main video watched OR timer started */}
-            {(hasWatchedMainVideo || currentExerciseStartTime) && (
-              <Tabs defaultValue="main" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
-                  <TabsTrigger 
-                    value="main" 
-                    className={`relative text-xs sm:text-sm border bg-black text-white ${
-                      isMainLocked ? 'border-gray-600 opacity-50 cursor-not-allowed' : 'border-orange-400/50'
-                    }`}
-                    disabled={isMainLocked}
-                  >
-                    Main Exercise {isMainLocked && '(Locked)'}
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="substitute" 
-                    className={`relative text-xs sm:text-sm bg-black ${
-                      isSubstituteLocked 
-                        ? 'border-gray-600 opacity-50 cursor-not-allowed text-gray-400' 
-                        : hasClickedSubstitute 
-                        ? 'border border-orange-400/50 text-white font-semibold' 
-                        : currentExercise.substitute 
-                        ? 'text-white border border-yellow-400/50 font-semibold'
-                        : 'text-white'
-                    }`}
-                    disabled={isSubstituteLocked}
-                    onClick={() => {
-                      if (currentExercise.substitute && !hasClickedSubstitute) {
-                        setHasClickedSubstitute(true);
-                      }
-                    }}
-                  >
-                    <span className="flex items-center gap-1 sm:gap-2">
-                      Substitute {isSubstituteLocked && '(Locked)'}
-                      {currentExercise.substitute && !hasClickedSubstitute && !isSubstituteLocked && (
-                        <span className="text-xs text-muted-foreground ml-1">click here</span>
-                      )}
-                      {currentExercise.substitute && !hasClickedSubstitute && !isSubstituteLocked && (
-                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-500 rounded-full animate-pulse" />
-                      )}
-                    </span>
-                  </TabsTrigger>
-                </TabsList>
-              
-              <TabsContent value="main" className="space-y-4 mt-6">
-                
-                {currentExercise.sets.map((set: any, setIndex: number) => {
-                  const allPreviousSetsCompleted = currentExercise.sets
-                    .slice(0, setIndex)
-                    .every((s: any) => s.confirmed);
-                  
-                  const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
-                  // Only allow interaction if timer has started
-                  const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime) && !isMainLocked;
-                  
-                  return (
-                    <SetLog
-                      key={set.id}
-                      set={set}
-                      onLogChange={(field, value) => handleLogChange(setIndex, field, value)}
-                    onSetComplete={() => handleIndividualSetComplete(setIndex)}
-                      isCurrentSet={isCurrentSet}
-                      canInteract={canInteract}
-                    />
-                  );
-                })}
-              </TabsContent>
-              
-              {currentExercise.substitute && (
-                <TabsContent value="substitute" className="space-y-4 mt-6">
-                  {/* Show message if substitute not watched yet */}
-                  {!hasWatchedSubstituteVideo && (
-                    <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg text-center mb-4">
-                      <p className="text-primary font-medium">
-                        👀 Watch the substitute exercise demo below to unlock this section
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <h3 className="font-semibold text-foreground">{currentExercise.substitute.name}</h3>
-                      </div>
-                      {!hasWatchedSubstituteVideo ? (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            setSelectedVideo({
-                              url: currentExercise.substitute.videoUrl,
-                              title: currentExercise.substitute.name
-                            });
-                          }}
-                          className="relative overflow-hidden transition-all duration-300 border-primary/50 bg-primary/5 hover:bg-primary/10 animate-pulse ring-2 ring-primary/20"
-                        >
-                          {/* Multiple flashing indicators */}
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-ping" />
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full animate-pulse" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/20 animate-pulse" />
-                          <Play className="h-4 w-4 mr-2 text-primary animate-bounce" />
-                          <span className="text-primary font-semibold">
-                            Watch Demo
-                          </span>
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-green-400 bg-black text-white"
-                          disabled
-                        >
-                          Demo Watched
-                          <CheckCircle2 className="h-4 w-4 ml-2 text-green-400" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Show substitute sets only if substitute video watched AND timer started */}
-                  {hasWatchedSubstituteVideo && currentExerciseStartTime && (
-                    <>
-                      {currentExercise.substitute.sets.map((set: any, setIndex: number) => {
-                        const allPreviousSetsCompleted = currentExercise.substitute.sets
-                          .slice(0, setIndex)
-                          .every((s: any) => s.confirmed);
-                        
-                        const isCurrentSet = allPreviousSetsCompleted && !set.confirmed;
-                        // Only allow interaction if timer has started
-                        const canInteract = allPreviousSetsCompleted && Boolean(currentExerciseStartTime) && !isSubstituteLocked;
-                    
-                        return (
-                          <SetLog
-                            key={set.id}
-                            set={set}
-                            onLogChange={(field, value) => handleLogChange(setIndex, field, value, 'substitute')}
-                            onSetComplete={() => handleIndividualSetComplete(setIndex, true)}
-                            isCurrentSet={isCurrentSet}
-                            canInteract={canInteract}
-                          />
-                        );
-                      })}
-                    </>
-                  )}
-                </TabsContent>
-              )}
-            </Tabs>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Reset Session Button */}
-        <ResetSessionButton onClearSession={clearSession} />
+            );
+          })}
+        </div>
       </div>
 
-      {/* Video Player Modal */}
-      {selectedVideo && (
-        <VideoPlayer
-          isOpen={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-          videoUrl={selectedVideo.url}
-          title={selectedVideo.title}
-          onPlay={() => {
-            // Handle video play - mark appropriate video as watched and start timer
-            if (selectedVideo.title === currentExercise.name) {
-              setHasWatchedMainVideo(true);
-            } else if (currentExercise.substitute && selectedVideo.title === currentExercise.substitute.name) {
-              setHasWatchedSubstituteVideo(true);
-            }
-            
-            // Check if we should start timer after watching video
-            setTimeout(() => checkAndStartTimer(), 100);
-            // Save that video was watched
-            manualSave();
-            
-            // Close the video player
-            setSelectedVideo(null);
-          }}
+      {/* PR Celebration Modal */}
+      {showPRModal && prCelebration.length > 0 && (
+        <PRCelebration
+          prs={prCelebration}
+          onClose={() => { setShowPRModal(false); setPrCelebration([]); }}
         />
       )}
 
@@ -968,7 +478,7 @@ export default function ExercisePage() {
           setDetails={{
             exerciseName: currentSetInProgress.exerciseName || currentExercise.name,
             setType: currentSetInProgress.setType || 'Set',
-            setNumber: currentSetInProgress.setIndex + 1
+            setNumber: currentSetInProgress.setIndex + 1,
           }}
           onRestStarted={handleRestStarted}
           onRestCompleted={handleRestCompleted}

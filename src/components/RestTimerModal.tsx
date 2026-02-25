@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Play, Pause, CheckCircle2, RotateCcw, Zap, Heart } from 'lucide-react';
+import { Clock, Pause, Play, CheckCircle2 } from 'lucide-react';
 
 interface RestTimerModalProps {
   isOpen: boolean;
@@ -17,34 +16,32 @@ interface RestTimerModalProps {
   onRestCompleted?: (actualDuration: number) => void;
 }
 
-export const RestTimerModal: React.FC<RestTimerModalProps> = ({ 
+export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   isOpen,
-  onComplete, 
+  onComplete,
   onClose,
   setDetails,
   onRestStarted,
-  onRestCompleted
+  onRestCompleted,
 }) => {
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [hasShown30SecWarning, setHasShown30SecWarning] = useState(false);
   const [restStartTime, setRestStartTime] = useState<number | null>(null);
 
   const restOptions = [
-    { value: 1, label: '1 min', color: 'bg-green-500/20 border-green-500 text-green-400 hover:bg-green-500/30', icon: '🏃‍♂️' },
-    { value: 2, label: '2 min', color: 'bg-blue-500/20 border-blue-500 text-blue-400 hover:bg-blue-500/30', icon: '🚶‍♂️' },
-    { value: 3, label: '3 min', color: 'bg-yellow-500/20 border-yellow-500 text-yellow-400 hover:bg-yellow-500/30', icon: '🧘‍♂️' },
-    { value: 4, label: '4 min', color: 'bg-purple-500/20 border-purple-500 text-purple-400 hover:bg-purple-500/30', icon: '😴' }
+    { value: 1, label: '1 min', color: 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20' },
+    { value: 2, label: '2 min', color: 'bg-primary/15 border-primary/50 text-primary hover:bg-primary/25' },
+    { value: 3, label: '3 min', color: 'bg-accent/10 border-accent/40 text-accent hover:bg-accent/20' },
+    { value: 4, label: '4 min', color: 'bg-accent/15 border-accent/50 text-accent hover:bg-accent/25' },
   ];
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => {
+        setTimeLeft(prev => {
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
@@ -54,59 +51,34 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
         });
       }, 1000);
     }
-
     return () => clearInterval(interval);
   }, [isRunning, timeLeft]);
 
-  // 30-second warning
+  // Auto-close when timer finishes
   useEffect(() => {
-    if (timeLeft === 30 && !hasShown30SecWarning && isRunning) {
-      setHasShown30SecWarning(true);
-      // Optional: Add haptic feedback simulation
-      document.body.style.animation = 'pulse 0.3s ease-in-out';
-      setTimeout(() => {
-        document.body.style.animation = '';
-      }, 300);
+    if (isCompleted) {
+      const timeout = setTimeout(() => {
+        handleFinish();
+      }, 1500);
+      return () => clearTimeout(timeout);
     }
-  }, [timeLeft, hasShown30SecWarning, isRunning]);
+  }, [isCompleted]);
 
   const handleSelectTime = (minutes: number) => {
     setSelectedMinutes(minutes);
     setTimeLeft(minutes * 60);
-    setIsRunning(true); // Auto-start timer immediately
+    setIsRunning(true);
     setIsCompleted(false);
-    setHasShown30SecWarning(false);
-    
-    // Track rest started
-    const startTime = Date.now();
-    setRestStartTime(startTime);
+    setRestStartTime(Date.now());
     onRestStarted?.(minutes * 60);
   };
 
-  const handleFeelGood = () => {
-    // Track immediate completion (0 rest time)
+  const handleSkip = () => {
     onRestCompleted?.(0);
-    onComplete();
     resetAndClose();
   };
 
-  const handlePause = () => {
-    setIsRunning(false);
-  };
-
-  const handleResume = () => {
-    setIsRunning(true);
-  };
-
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeLeft(selectedMinutes ? selectedMinutes * 60 : 0);
-    setIsCompleted(false);
-    setHasShown30SecWarning(false);
-  };
-
-  const handleComplete = () => {
-    // Track actual rest duration
+  const handleFinish = () => {
     if (restStartTime) {
       const actualDuration = Math.round((Date.now() - restStartTime) / 1000);
       onRestCompleted?.(actualDuration);
@@ -120,7 +92,6 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
     setTimeLeft(0);
     setIsRunning(false);
     setIsCompleted(false);
-    setHasShown30SecWarning(false);
     setRestStartTime(null);
     onClose();
   };
@@ -139,173 +110,89 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-lg bg-black/95 backdrop-blur-glass border-orange-500/30 shadow-2xl">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-center flex items-center justify-center gap-2 text-white">
-            <Clock className="h-5 w-5 text-orange-500" />
-            Rest Between Sets
+      <Card className="w-full max-w-sm bg-black/95 backdrop-blur-glass border-primary/30 shadow-2xl">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-center flex items-center justify-center gap-2 text-white text-base">
+            <Clock className="h-5 w-5 text-primary" />
+            Rest
           </CardTitle>
           {setDetails && (
-            <div className="text-center text-sm text-white/70">
-              <p className="font-medium">{setDetails.exerciseName}</p>
-              <p>{setDetails.setType} - Set {setDetails.setNumber} Complete</p>
-            </div>
+            <p className="text-center text-xs text-white/50">
+              {setDetails.exerciseName} - Set {setDetails.setNumber}
+            </p>
           )}
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {!selectedMinutes ? (
             <>
-              <p className="text-center text-white/80 text-sm">
-                How long would you like to rest before your next set?
-              </p>
-              
-              {/* Rest Time Options */}
+              {/* Time options */}
               <div className="grid grid-cols-2 gap-3">
-                {restOptions.map((option) => (
+                {restOptions.map(option => (
                   <Button
                     key={option.value}
                     onClick={() => handleSelectTime(option.value)}
                     variant="outline"
-                    className={`h-20 text-lg font-semibold ${option.color} hover:scale-105 transition-all duration-200 flex flex-col items-center space-y-1`}
+                    className={`h-16 text-lg font-semibold ${option.color} transition-all duration-200`}
                   >
-                    <span className="text-2xl">{option.icon}</span>
-                    <span>{option.label}</span>
+                    {option.label}
                   </Button>
                 ))}
               </div>
 
-              {/* Feel Good Option */}
-              <div className="mt-4">
-                <Button
-                  onClick={handleFeelGood}
-                  className="w-full h-16 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-lg transition-all duration-200 hover:scale-105"
-                >
-                  <div className="flex items-center justify-center space-x-3">
-                    <Heart className="h-6 w-6" />
-                    <span>Feel Good - Continue Now!</span>
-                    <Zap className="h-6 w-6" />
-                  </div>
-                </Button>
-                <p className="text-center text-xs text-white/60 mt-2">
-                  Skip rest and continue to your next set immediately
-                </p>
-              </div>
+              {/* Skip rest */}
+              <button
+                onClick={handleSkip}
+                className="w-full text-center text-sm text-white/40 hover:text-white/70 py-2 transition-colors"
+              >
+                Skip Rest
+              </button>
             </>
           ) : (
             <>
-              {/* Timer Display */}
+              {/* Timer display */}
               <div className="text-center">
-                <div className="text-6xl font-mono font-bold mb-4 text-white">
+                <div className="text-5xl font-mono font-bold mb-3 text-white">
                   {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
                 </div>
-                <Badge variant="outline" className="bg-orange-500/20 border-orange-500 text-orange-400 text-lg px-4 py-2">
-                  {selectedMinutes} minute rest
-                  {timeLeft <= 30 && timeLeft > 0 && (
-                    <span className="ml-2 text-red-400 font-bold animate-pulse">⚠️ 30s left!</span>
-                  )}
-                </Badge>
               </div>
 
-              {/* Progress Bar */}
-              <div className="w-full h-6 bg-white/10 rounded-full overflow-hidden">
-                <div 
+              {/* Progress bar */}
+              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                <div
                   className={`h-full transition-all duration-500 ${getProgressColor()}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
 
-              {/* Timer Controls */}
+              {/* Controls */}
               {!isCompleted ? (
                 <div className="flex gap-3 justify-center">
-                  <Button 
-                    onClick={isRunning ? handlePause : handleResume}
-                    variant="outline" 
+                  <Button
+                    onClick={() => setIsRunning(r => !r)}
+                    variant="outline"
                     size="lg"
                     className="bg-white/10 hover:bg-white/20 border-white/30 text-white"
                   >
-                    {isRunning ? (
-                      <>
-                        <Pause className="h-4 w-4 mr-2" />
-                        Pause
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-2" />
-                        Resume
-                      </>
-                    )}
+                    {isRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
-                  
-                  <Button 
-                    onClick={handleReset}
-                    variant="outline" 
+                  <Button
+                    onClick={handleFinish}
                     size="lg"
-                    className="bg-white/5 hover:bg-white/10 border-white/30 text-white/80"
+                    className="bg-gradient-primary hover:shadow-glow text-white font-semibold"
                   >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Reset
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleComplete}
-                    size="lg"
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold"
-                  >
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
                     Continue Now
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="text-center p-6 bg-green-500/20 rounded-lg border border-green-500/30">
-                    <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-xl mb-2">
-                      <CheckCircle2 className="h-6 w-6" />
-                      Rest Complete! 💪
-                    </div>
-                    <p className="text-sm text-white/70">
-                      You're ready for your next set
-                    </p>
+                <div className="text-center p-4 bg-success/20 rounded-lg border border-success/30">
+                  <div className="flex items-center justify-center gap-2 text-success font-bold text-lg">
+                    <CheckCircle2 className="h-5 w-5" />
+                    Ready!
                   </div>
-                  
-                  <Button 
-                    onClick={handleComplete} 
-                    className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-lg"
-                  >
-                    Continue to Next Set
-                  </Button>
                 </div>
               )}
-
-              {/* Back to Selection */}
-              <div className="flex justify-center">
-                <Button 
-                  onClick={() => {
-                    setSelectedMinutes(null);
-                    setTimeLeft(0);
-                    setIsRunning(false);
-                    setIsCompleted(false);
-                  }}
-                  variant="ghost" 
-                  size="sm"
-                  className="text-white/60 hover:text-white"
-                >
-                  ← Back to Options
-                </Button>
-              </div>
             </>
           )}
-
-          {/* Close Button */}
-          <div className="flex justify-center pt-4 border-t border-white/10">
-            <Button 
-              onClick={resetAndClose} 
-              variant="ghost" 
-              size="sm"
-              className="text-white/50 hover:text-white/80"
-            >
-              Skip Rest & Close
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

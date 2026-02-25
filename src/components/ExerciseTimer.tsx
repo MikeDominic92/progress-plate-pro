@@ -101,9 +101,7 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
     return 'bg-success';
   };
 
-  console.log("⏱️ ExerciseTimer render - isActive:", isActive, "duration:", duration, "exerciseType:", exerciseType);
   if (!isActive) {
-    console.log("❌ ExerciseTimer not active, returning null");
     return null;
   }
 

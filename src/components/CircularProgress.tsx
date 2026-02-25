@@ -22,9 +22,9 @@ export const CircularProgress = ({
         text={showText ? `${Math.round(percentage)}%` : ''}
         styles={buildStyles({
           textSize: '16px',
-          pathColor: 'hsl(24 95% 53%)',
+          pathColor: 'hsl(340 82% 66%)',
           textColor: 'hsl(0 0% 98%)',
-          trailColor: 'hsl(216 15% 10%)',
+          trailColor: 'hsl(230 15% 12%)',
           backgroundColor: 'transparent',
           strokeLinecap: 'round',
           pathTransitionDuration: 0.8,

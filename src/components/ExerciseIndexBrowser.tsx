@@ -79,7 +79,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
               Add Exercise
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-black border-orange-500/20">
+          <DialogContent className="max-w-2xl bg-black border-primary/20">
             <DialogHeader>
               <DialogTitle className="text-white">Add New Exercise</DialogTitle>
             </DialogHeader>
@@ -102,24 +102,24 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
             placeholder="Search exercises..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10 bg-black/50 border-orange-400/50 text-white placeholder:text-white/50 focus:border-orange-500"
+            className="pl-10 bg-black/50 border-primary/50 text-white placeholder:text-white/50 focus:border-primary"
           />
         </div>
         <Tabs value={selectedCategory} onValueChange={handleCategoryFilter} className="w-auto">
-          <TabsList className="bg-black/50 border border-orange-400/50">
-            <TabsTrigger value="all" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+          <TabsList className="bg-black/50 border border-primary/50">
+            <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               All
             </TabsTrigger>
-            <TabsTrigger value="warmup" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+            <TabsTrigger value="warmup" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               Warmup
             </TabsTrigger>
-            <TabsTrigger value="workout" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+            <TabsTrigger value="workout" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               Workout
             </TabsTrigger>
-            <TabsTrigger value="core" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+            <TabsTrigger value="core" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               Core
             </TabsTrigger>
-            <TabsTrigger value="substitute" className="data-[state=active]:bg-orange-500 data-[state=active]:text-black">
+            <TabsTrigger value="substitute" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               Substitute
             </TabsTrigger>
           </TabsList>
@@ -138,7 +138,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
               <div className="flex items-center space-x-2">
                 {getCategoryIcon(category)}
                 <h3 className="text-xl font-semibold text-white capitalize">{category} Exercises</h3>
-                <Badge variant="outline" className="border-orange-400/50 text-orange-400">
+                <Badge variant="outline" className="border-primary/50 text-primary">
                   {Object.values(subcategories).flat().length}
                 </Badge>
               </div>
@@ -151,7 +151,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
                   
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {exercises.map((exercise) => (
-                      <Card key={exercise.id} className="bg-black/50 border-orange-400/50 hover:border-orange-500/70 transition-colors">
+                      <Card key={exercise.id} className="bg-black/50 border-primary/50 hover:border-primary/70 transition-colors">
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-sm font-medium text-white leading-tight">
@@ -179,7 +179,7 @@ export const ExerciseIndexBrowser: React.FC<ExerciseIndexBrowserProps> = ({
                               size="sm"
                               variant="outline"
                               onClick={() => openVideoSafely(exercise)}
-                              className="flex-1 border-orange-400/50 text-orange-400 hover:bg-orange-500/10"
+                              className="flex-1 border-primary/50 text-primary hover:bg-primary/10"
                             >
                               <Play className="h-3 w-3 mr-1" />
                               Watch

@@ -1,0 +1,124 @@
+import React, { useState, useEffect } from 'react';
+import { FitnessInput } from '@/components/ui/fitness-input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Weight, Repeat } from 'lucide-react';
+import { ProgressionBadge } from '@/components/ProgressionBadge';
+import type { ProgressionSuggestion } from '@/utils/progressionEngine';
+
+interface SetLogProps {
+  set: any;
+  onLogChange: (field: string, value: string) => void;
+  onSetComplete?: () => void;
+  suggestion?: ProgressionSuggestion;
+  disabled?: boolean;
+}
+
+export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled = false }: SetLogProps) {
+  const [weightInput, setWeightInput] = useState<string>(set.weight ?? '');
+  const [repsInput, setRepsInput] = useState<string>(set.reps ?? '');
+  const [isWeightFocused, setIsWeightFocused] = useState(false);
+  const [isRepsFocused, setIsRepsFocused] = useState(false);
+
+  useEffect(() => {
+    if (!isWeightFocused) setWeightInput(set.weight ?? '');
+  }, [set.weight, isWeightFocused]);
+
+  useEffect(() => {
+    if (!isRepsFocused) setRepsInput(set.reps ?? '');
+  }, [set.reps, isRepsFocused]);
+
+  const isWarmUp = set.type === 'Warm Up Set';
+  const isComplete = Boolean(weightInput && repsInput);
+  const isConfirmed = set.confirmed;
+
+  return (
+    <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 bg-black ${
+      isWarmUp ? 'border-primary/30 shadow-glass' : 'shadow-md'
+    } ${
+      isConfirmed ? 'ring-1 ring-primary/40' :
+      isComplete && !disabled ? 'ring-1 ring-primary/40' :
+      disabled ? 'opacity-50' : ''
+    }`}>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-3">
+          <div className="space-y-1">
+            <h4 className="font-semibold text-white">{set.type}</h4>
+            <p className="text-sm text-gray-300">{set.instructions}</p>
+          </div>
+          {isConfirmed && (
+            <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
+              Done
+            </Badge>
+          )}
+        </div>
+
+        {suggestion && !isConfirmed && (
+          <div className="mb-3">
+            <ProgressionBadge suggestion={suggestion} />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <FitnessInput
+            label="Weight"
+            icon={<Weight className="h-4 w-4" />}
+            type="text"
+            inputMode="decimal"
+            placeholder="0"
+            value={weightInput}
+            onFocus={() => setIsWeightFocused(true)}
+            onBlur={() => {
+              setIsWeightFocused(false);
+              if (!isConfirmed && !disabled) {
+                onLogChange('weight', weightInput);
+              }
+            }}
+            onChange={(e) => {
+              let v = e.target.value.replace(/[^0-9.]/g, '');
+              const firstDot = v.indexOf('.');
+              if (firstDot !== -1) {
+                v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+              }
+              setWeightInput(v);
+            }}
+            variant={weightInput ? 'success' : 'default'}
+            disabled={isConfirmed || disabled}
+          />
+          <FitnessInput
+            label="Reps"
+            icon={<Repeat className="h-4 w-4" />}
+            type="text"
+            inputMode="numeric"
+            placeholder="0"
+            value={repsInput}
+            onFocus={() => setIsRepsFocused(true)}
+            onBlur={() => {
+              setIsRepsFocused(false);
+              if (!isConfirmed && !disabled) {
+                onLogChange('reps', repsInput);
+              }
+            }}
+            onChange={(e) => {
+              const v = e.target.value.replace(/[^0-9]/g, '');
+              setRepsInput(v);
+            }}
+            variant={repsInput ? 'success' : 'default'}
+            disabled={isConfirmed || disabled}
+          />
+        </div>
+
+        {!isConfirmed && isComplete && !disabled && onSetComplete && (
+          <Button
+            onClick={onSetComplete}
+            className="w-full"
+            variant="default"
+          >
+            Complete Set
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
