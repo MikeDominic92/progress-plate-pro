@@ -384,11 +384,11 @@ export default function ExercisePage() {
           </div>
 
           <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Optional video demo icon */}
+            {/* Video demo button */}
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-11 w-11 p-0"
+              className="h-11 px-3 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
               onClick={() => openVideo(
                 useSubstitute && currentExercise.substitute
                   ? currentExercise.substitute.videoUrl
@@ -396,7 +396,8 @@ export default function ExercisePage() {
                 activeExerciseName
               )}
             >
-              <Play className="h-4 w-4" />
+              <Play className="h-4 w-4 fill-primary" />
+              <span className="text-xs font-semibold hidden sm:inline">Form</span>
             </Button>
 
             <Button

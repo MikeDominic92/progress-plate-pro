@@ -169,9 +169,9 @@ export default function WarmupPage() {
                         </span>
                         <button
                           onClick={() => openVideo(exercise.videoUrl, exercise.name)}
-                          className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 hover:border-primary/50 transition-colors"
                         >
-                          <Play className="h-3 w-3" />
+                          <Play className="h-3.5 w-3.5 fill-primary" />
                           Watch
                         </button>
                       </div>
