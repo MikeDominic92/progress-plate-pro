@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Play, Pause, CheckCircle2, RotateCcw } from 'lucide-react';
+import { playBeep, notifyRestComplete, requestNotificationPermission } from '@/utils/timerNotifications';
 
 interface RestTimerSelectorProps {
   onComplete: () => void;
@@ -22,10 +23,10 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   const [hasShown30SecWarning, setHasShown30SecWarning] = useState(false);
 
   const restOptions = [
-    { value: 1, label: '1 min', color: 'bg-success/20 border-success text-success' },
-    { value: 2, label: '2 min', color: 'bg-primary/20 border-primary text-primary' },
-    { value: 3, label: '3 min', color: 'bg-accent/20 border-accent text-accent' },
-    { value: 4, label: '4 min', color: 'bg-warning/20 border-warning text-warning' }
+    { value: 1, label: '1 min', color: 'bg-success/20 border-success text-success hover:bg-success/30 active:bg-success/40' },
+    { value: 2, label: '2 min', color: 'bg-primary/20 border-primary text-primary hover:bg-primary/30 active:bg-primary/40' },
+    { value: 3, label: '3 min', color: 'bg-accent/20 border-accent text-accent hover:bg-accent/30 active:bg-accent/40' },
+    { value: 4, label: '4 min', color: 'bg-warning/20 border-warning text-warning hover:bg-warning/30 active:bg-warning/40' }
   ];
 
   useEffect(() => {
@@ -37,6 +38,8 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
+            playBeep();
+            notifyRestComplete();
             return 0;
           }
           return prev - 1;
@@ -56,6 +59,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   }, [timeLeft, hasShown30SecWarning, isRunning]);
 
   const handleSelectTime = (minutes: number) => {
+    requestNotificationPermission();
     setSelectedMinutes(minutes);
     setTimeLeft(minutes * 60);
     setIsRunning(true); // Auto-start timer immediately
@@ -104,15 +108,15 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <Card className="w-full max-w-md bg-card/95 backdrop-blur-glass border-primary/30 shadow-2xl">
-        <CardHeader>
+        <CardHeader className="px-4 sm:px-6">
           <CardTitle className="text-center flex items-center justify-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
             Rest Timer
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
           {!selectedMinutes ? (
             <>
               <p className="text-center text-muted-foreground text-sm">
@@ -124,7 +128,7 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
                     key={option.value}
                     onClick={() => handleSelectTime(option.value)}
                     variant="outline"
-                    className={`h-16 text-lg font-semibold ${option.color} hover:scale-105 transition-all duration-200`}
+                    className={`h-14 sm:h-16 text-base sm:text-lg font-semibold ${option.color} hover:scale-105 active:scale-95 transition-all duration-200`}
                   >
                     {option.label}
                   </Button>
@@ -153,33 +157,31 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
               </div>
 
               {!isCompleted ? (
-                <div className="flex gap-3 justify-center">
-                  <Button 
+                <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+                  <Button
                     onClick={handlePause}
-                    variant="secondary" 
-                    size="sm"
-                    className="bg-white/10 hover:bg-white/20 border-white/20"
+                    variant="secondary"
+                    className="h-11 px-3 sm:px-4 bg-white/10 hover:bg-white/20 active:bg-white/30 border-white/20"
                   >
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleReset}
-                    variant="outline" 
-                    size="sm"
-                    className="bg-white/5 hover:bg-white/10 border-white/20"
+                    variant="outline"
+                    className="h-11 px-3 sm:px-4 bg-white/5 hover:bg-white/10 active:bg-white/20 border-white/20"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleComplete}
-                    variant="default" 
-                    size="sm"
-                    className="bg-gradient-primary hover:shadow-glow"
+                    variant="default"
+                    className="h-11 px-3 sm:px-4 bg-gradient-primary hover:shadow-glow active:opacity-80"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Continue to Next Set
+                    <span className="hidden sm:inline">Continue to Next Set</span>
+                    <span className="sm:hidden">Continue</span>
                   </Button>
                 </div>
               ) : (
@@ -194,18 +196,17 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
                     </p>
                   </div>
                   
-                  <Button onClick={handleComplete} className="w-full bg-gradient-primary">
+                  <Button onClick={handleComplete} className="w-full h-11 bg-gradient-primary active:opacity-80">
                     Continue to Next Exercise
                   </Button>
                 </div>
               )}
 
               <div className="flex justify-center">
-                <Button 
-                  onClick={onClose} 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-muted-foreground"
+                <Button
+                  onClick={onClose}
+                  variant="ghost"
+                  className="h-11 px-4 text-muted-foreground active:bg-white/10"
                 >
                   Cancel
                 </Button>

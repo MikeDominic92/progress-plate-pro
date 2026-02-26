@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
@@ -22,7 +23,7 @@ function CustomTooltip({ active, payload }: any) {
   );
 }
 
-export function ExerciseProgressChart({ data, exerciseName, compact = false }: ExerciseProgressChartProps) {
+export const ExerciseProgressChart = memo(function ExerciseProgressChart({ data, exerciseName, compact = false }: ExerciseProgressChartProps) {
   if (data.length < 2) {
     return (
       <Card className="bg-black/50 border-white/10">
@@ -36,10 +37,10 @@ export function ExerciseProgressChart({ data, exerciseName, compact = false }: E
   const chartHeight = compact ? 160 : 250;
 
   // Format dates for X-axis
-  const formatted = data.map(d => ({
+  const formatted = useMemo(() => data.map(d => ({
     ...d,
     label: format(new Date(d.date), 'M/d'),
-  }));
+  })), [data]);
 
   return (
     <Card className="bg-black/50 border-white/10 backdrop-blur-sm">
@@ -101,4 +102,4 @@ export function ExerciseProgressChart({ data, exerciseName, compact = false }: E
       </CardContent>
     </Card>
   );
-}
+});

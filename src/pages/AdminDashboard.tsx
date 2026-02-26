@@ -252,16 +252,16 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/10 p-3 sm:p-4 md:p-6 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">Monitor user activity and workout analytics</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2">
             <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Select user" />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +274,7 @@ const AdminDashboard: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -343,12 +343,12 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="admin">Admin</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto">
+            <TabsTrigger value="overview" className="whitespace-nowrap flex-shrink-0">Overview</TabsTrigger>
+            <TabsTrigger value="users" className="whitespace-nowrap flex-shrink-0">Users</TabsTrigger>
+            <TabsTrigger value="sessions" className="whitespace-nowrap flex-shrink-0">Sessions</TabsTrigger>
+            <TabsTrigger value="analytics" className="whitespace-nowrap flex-shrink-0">Analytics</TabsTrigger>
+            <TabsTrigger value="admin" className="whitespace-nowrap flex-shrink-0">Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -406,7 +406,7 @@ const AdminDashboard: React.FC = () => {
                     <BarChart data={topExercises} layout="horizontal">
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={120} />
+                      <YAxis dataKey="name" type="category" width={60} />
                       <Tooltip />
                       <Bar dataKey="count" fill="#82ca9d" />
                     </BarChart>

@@ -8,6 +8,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
+import BottomNav from '@/components/BottomNav';
 
 const warmupExercises = [
   {
@@ -118,7 +119,7 @@ export default function WarmupPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2">
@@ -169,7 +170,7 @@ export default function WarmupPage() {
                         </span>
                         <button
                           onClick={() => openVideo(exercise.videoUrl, exercise.name)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 hover:border-primary/50 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-md text-xs font-semibold bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 hover:border-primary/50 active:bg-primary/35 active:border-primary/60 active:scale-95 transition-all"
                         >
                           <Play className="h-3.5 w-3.5 fill-primary" />
                           Watch
@@ -193,7 +194,7 @@ export default function WarmupPage() {
           {isReady && (
             <Button
               onClick={handleComplete}
-              className="w-full h-12 sm:h-14 bg-gradient-primary hover:shadow-glow font-bold"
+              className="w-full h-12 sm:h-14 bg-gradient-primary hover:shadow-glow active:shadow-none active:scale-[0.98] font-bold transition-all"
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
               All Done - Start Workout
@@ -202,7 +203,7 @@ export default function WarmupPage() {
           <Button
             onClick={handleSkip}
             variant="ghost"
-            className="w-full text-muted-foreground hover:text-foreground"
+            className="w-full h-11 sm:h-12 text-muted-foreground hover:text-foreground active:text-foreground active:bg-muted/30 active:scale-[0.98] transition-all"
           >
             <SkipForward className="h-4 w-4 mr-2" />
             Skip Warmup
@@ -219,6 +220,8 @@ export default function WarmupPage() {
           title={selectedVideo.title}
         />
       )}
+
+      <BottomNav />
     </div>
   );
 }

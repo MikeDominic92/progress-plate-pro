@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
@@ -9,29 +9,31 @@ interface CircularProgressProps {
   showText?: boolean;
 }
 
-export const CircularProgress = ({ 
-  percentage, 
-  size = 80, 
+export const CircularProgress = React.memo(({
+  percentage,
+  size = 80,
   strokeWidth = 8,
-  showText = true 
+  showText = true
 }: CircularProgressProps) => {
+  const progressStyles = useMemo(() => buildStyles({
+    textSize: '16px',
+    pathColor: 'hsl(340 82% 66%)',
+    textColor: 'hsl(0 0% 98%)',
+    trailColor: 'hsl(230 15% 12%)',
+    backgroundColor: 'transparent',
+    strokeLinecap: 'round',
+    pathTransitionDuration: 0.8,
+  }), []);
+
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <CircularProgressbar
         value={percentage}
         text={showText ? `${Math.round(percentage)}%` : ''}
-        styles={buildStyles({
-          textSize: '16px',
-          pathColor: 'hsl(340 82% 66%)',
-          textColor: 'hsl(0 0% 98%)',
-          trailColor: 'hsl(230 15% 12%)',
-          backgroundColor: 'transparent',
-          strokeLinecap: 'round',
-          pathTransitionDuration: 0.8,
-        })}
+        styles={progressStyles}
         strokeWidth={strokeWidth}
       />
       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-transparent pointer-events-none" />
     </div>
   );
-};
+});

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,16 +6,30 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
-import CardioPage from "./pages/CardioPage";
-import WarmupPage from "./pages/WarmupPage";
-import ExercisePage from "./pages/ExercisePage";
-import PostWorkoutPage from "./pages/PostWorkoutPage";
-import AdminDashboard from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
 import SonnyDefs from "@/components/characters/SonnyDefs";
+import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 
-const queryClient = new QueryClient();
+const CardioPage = lazy(() => import("./pages/CardioPage"));
+const WarmupPage = lazy(() => import("./pages/WarmupPage"));
+const ExercisePage = lazy(() => import("./pages/ExercisePage"));
+const PostWorkoutPage = lazy(() => import("./pages/PostWorkoutPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const NutritionPage = lazy(() => import("./pages/NutritionPage"));
+const CoachPage = lazy(() => import("./pages/CoachPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   return (
@@ -22,9 +37,16 @@ const App = () => {
       <AuthProvider>
         <TooltipProvider>
           <SonnyDefs />
+          <PWAUpdatePrompt />
           <Toaster />
           <Sonner />
+          <ErrorBoundary>
           <BrowserRouter>
+            <Suspense fallback={
+              <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              </div>
+            }>
             <Routes>
               {/* Redirect old routes */}
               <Route path="/auth" element={<Navigate to="/" replace />} />
@@ -47,6 +69,12 @@ const App = () => {
               <Route path="/post-workout" element={
                 <AuthGuard><PostWorkoutPage /></AuthGuard>
               } />
+              <Route path="/nutrition" element={
+                <AuthGuard><NutritionPage /></AuthGuard>
+              } />
+              <Route path="/coach" element={
+                <AuthGuard><CoachPage /></AuthGuard>
+              } />
 
               {/* Admin only */}
               <Route path="/admin" element={
@@ -55,7 +83,9 @@ const App = () => {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
+          </ErrorBoundary>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

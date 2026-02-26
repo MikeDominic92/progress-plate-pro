@@ -115,7 +115,7 @@ const AuthPage = () => {
 
       toast({
         title: "Account Created!",
-        description: "Welcome to Big Booty Builder! You can now start your fitness journey.",
+        description: "Welcome to KaraBaeFit! You can now start your fitness journey.",
       });
       
       navigate('/');
@@ -146,7 +146,7 @@ const AuthPage = () => {
           <Card className="bg-card/20 backdrop-blur-glass border-white/20 shadow-2xl">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                Big Booty Builder
+                KaraBaeFit
               </CardTitle>
               <CardDescription className="text-muted-foreground/80">
                 Sign in to your account or create a new one

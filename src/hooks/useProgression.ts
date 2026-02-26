@@ -43,13 +43,17 @@ export function useProgression(username: string): UseProgressionReturn {
     if (!username) return;
 
     try {
-      // Fetch all set_completed events for this user
+      // Fetch set_completed events for this user (last 90 days, max 500)
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       const { data: setEvents, error } = await supabase
         .from('session_analytics')
         .select('exercise_name, weight, reps, set_number, timestamp, session_id, event_data')
         .eq('username', username)
         .eq('event_type', 'set_completed')
-        .order('timestamp', { ascending: false });
+        .gte('timestamp', ninetyDaysAgo.toISOString())
+        .order('timestamp', { ascending: false })
+        .limit(500);
 
       if (error) {
         console.error('Error fetching progression history:', error);

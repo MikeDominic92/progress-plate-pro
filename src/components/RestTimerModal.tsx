@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Pause, Play, CheckCircle2 } from 'lucide-react';
+import { playBeep, notifyRestComplete, requestNotificationPermission } from '@/utils/timerNotifications';
 
 // Recommended rest duration by set type
 const RECOMMENDED_REST: Record<string, number> = {
@@ -43,10 +44,10 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   const recommendedMinutes = setDetails ? RECOMMENDED_REST[setDetails.setType] || 2 : null;
 
   const restOptions = [
-    { value: 1, label: '1 min', color: 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20' },
-    { value: 2, label: '2 min', color: 'bg-primary/15 border-primary/50 text-primary hover:bg-primary/25' },
-    { value: 3, label: '3 min', color: 'bg-accent/10 border-accent/40 text-accent hover:bg-accent/20' },
-    { value: 4, label: '4 min', color: 'bg-accent/15 border-accent/50 text-accent hover:bg-accent/25' },
+    { value: 1, label: '1 min', color: 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20 active:bg-primary/30' },
+    { value: 2, label: '2 min', color: 'bg-primary/15 border-primary/50 text-primary hover:bg-primary/25 active:bg-primary/35' },
+    { value: 3, label: '3 min', color: 'bg-accent/10 border-accent/40 text-accent hover:bg-accent/20 active:bg-accent/30' },
+    { value: 4, label: '4 min', color: 'bg-accent/15 border-accent/50 text-accent hover:bg-accent/25 active:bg-accent/35' },
   ];
 
   useEffect(() => {
@@ -66,9 +67,11 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
     return () => clearInterval(interval);
   }, [isRunning, timeLeft]);
 
-  // Auto-close when timer finishes
+  // Audio chime and browser notification when timer finishes
   useEffect(() => {
     if (isCompleted) {
+      playBeep();
+      notifyRestComplete();
       const timeout = setTimeout(() => {
         handleFinish();
       }, 1500);
@@ -77,6 +80,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   }, [isCompleted]);
 
   const handleSelectTime = (minutes: number) => {
+    requestNotificationPermission();
     setSelectedMinutes(minutes);
     setTimeLeft(minutes * 60);
     setIsRunning(true);
@@ -87,6 +91,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   };
 
   const handleSelectSeconds = (totalSeconds: number) => {
+    requestNotificationPermission();
     setSelectedMinutes(totalSeconds / 60);
     setTimeLeft(totalSeconds);
     setIsRunning(true);
@@ -132,9 +137,9 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
       <Card className="w-full max-w-sm md:max-w-md bg-black/95 backdrop-blur-glass border-primary/30 shadow-2xl">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 px-4 sm:px-6">
           <CardTitle className="text-center flex items-center justify-center gap-2 text-white text-base">
             <Clock className="h-5 w-5 text-primary" />
             Rest
@@ -145,7 +150,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
             </p>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           {!selectedMinutes ? (
             <>
               {/* Time options */}
@@ -173,7 +178,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
               <Button
                 onClick={() => handleSelectSeconds(30)}
                 variant="outline"
-                className="w-full h-10 md:h-12 text-sm font-medium bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
+                className="w-full h-11 text-sm font-medium bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:text-white active:bg-white/20"
               >
                 30s
               </Button>
@@ -182,17 +187,17 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
               {!showCustom ? (
                 <button
                   onClick={() => setShowCustom(true)}
-                  className="w-full text-center text-sm text-white/40 hover:text-white/70 py-1 transition-colors"
+                  className="w-full text-center text-sm text-white/40 hover:text-white/70 active:text-white/90 py-2 min-h-[44px] transition-colors"
                 >
                   Custom
                 </button>
               ) : (
-                <div className="flex items-center justify-center gap-3 p-2 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-center gap-2 sm:gap-3 p-2 bg-white/5 rounded-lg border border-white/10">
                   <Button
                     onClick={() => setCustomSeconds(s => Math.max(15, s - 15))}
                     variant="outline"
                     size="sm"
-                    className="h-9 w-9 md:h-10 md:w-10 p-0 bg-white/10 border-white/20 text-white"
+                    className="h-11 w-11 p-0 bg-white/10 border-white/20 text-white hover:bg-white/20 active:bg-white/30 text-lg font-bold"
                   >
                     -
                   </Button>
@@ -203,14 +208,14 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
                     onClick={() => setCustomSeconds(s => Math.min(600, s + 15))}
                     variant="outline"
                     size="sm"
-                    className="h-9 w-9 md:h-10 md:w-10 p-0 bg-white/10 border-white/20 text-white"
+                    className="h-11 w-11 p-0 bg-white/10 border-white/20 text-white hover:bg-white/20 active:bg-white/30 text-lg font-bold"
                   >
                     +
                   </Button>
                   <Button
                     onClick={() => handleSelectSeconds(customSeconds)}
                     size="sm"
-                    className="bg-gradient-primary text-white font-semibold"
+                    className="bg-gradient-primary text-white font-semibold h-11 active:opacity-80"
                   >
                     Start
                   </Button>
@@ -220,7 +225,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
               {/* Skip rest */}
               <button
                 onClick={handleSkip}
-                className="w-full text-center text-sm text-white/40 hover:text-white/70 py-2 transition-colors"
+                className="w-full text-center text-sm text-white/40 hover:text-white/70 active:text-white/90 py-2 min-h-[44px] transition-colors"
               >
                 Skip Rest
               </button>
@@ -249,14 +254,14 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
                     onClick={() => setIsRunning(r => !r)}
                     variant="outline"
                     size="lg"
-                    className="bg-white/10 hover:bg-white/20 border-white/30 text-white"
+                    className="bg-white/10 hover:bg-white/20 active:bg-white/30 border-white/30 text-white"
                   >
                     {isRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
                   <Button
                     onClick={handleFinish}
                     size="lg"
-                    className="bg-gradient-primary hover:shadow-glow text-white font-semibold"
+                    className="bg-gradient-primary hover:shadow-glow active:opacity-80 text-white font-semibold"
                   >
                     Continue Now
                   </Button>

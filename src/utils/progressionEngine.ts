@@ -1,5 +1,5 @@
 // Progressive Overload Engine - Pure computation, zero React/Supabase imports
-// RIR-Gated Double Progression algorithm for Kara's Big Booty Builder
+// RIR-Gated Double Progression algorithm for KaraBaeFit
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

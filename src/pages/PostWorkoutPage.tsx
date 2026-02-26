@@ -1,35 +1,56 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Home, Dumbbell, Flame } from 'lucide-react';
+import { Trophy, Home, Dumbbell, Flame, Download, AlertTriangle, Play, ChevronDown, ChevronUp, Timer } from 'lucide-react';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useProgression } from '@/hooks/useProgression';
 import { ExerciseProgressChart } from '@/components/ExerciseProgressChart';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { supabase } from '@/integrations/supabase/client';
+import { downloadWorkoutCsv } from '@/utils/exportWorkoutCsv';
+import { useToast } from '@/hooks/use-toast';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
+import BottomNav from '@/components/BottomNav';
 
 export default function PostWorkoutPage() {
   const navigate = useNavigate();
   const { username } = useAuthenticatedUser();
   const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username || '');
-  const { allPRs, getWeightTrend, recentSessions } = useProgression(username || '');
+  const { allPRs, getWeightTrend, getPlateauStatus, recentSessions } = useProgression(username || '');
+  const { toast } = useToast();
+  const [downloading, setDownloading] = useState(false);
+  const [abRipperOpen, setAbRipperOpen] = useState(true);
+  const [cardioOpen, setCardioOpen] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
+
+  const handleDownloadData = async () => {
+    if (!username) return;
+    setDownloading(true);
+    try {
+      await downloadWorkoutCsv(username);
+      toast({
+        title: 'Download Started',
+        description: 'Your workout history CSV is downloading.',
+      });
+    } catch (err: any) {
+      console.error('CSV export failed:', err);
+      toast({
+        title: 'Export Failed',
+        description: err?.message || 'Could not export workout data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (username) initializeSession();
   }, [username, initializeSession]);
 
-  useEffect(() => {
-    if (currentSession?.id && currentSession.current_phase !== 'completed') {
-      switch (currentSession.current_phase) {
-        case 'cardio': navigate('/cardio'); break;
-        case 'warmup': navigate('/warmup'); break;
-        case 'main': navigate('/exercise/0'); break;
-        default: navigate('/'); break;
-      }
-    }
-  }, [currentSession, navigate]);
+  // Post-workout page is always accessible (Ab Ripper X, cooldown cardio, etc.)
 
   const sessionSummary = useMemo(() => {
     if (!currentSession?.workout_data?.logs) return null;
@@ -98,6 +119,14 @@ export default function PostWorkoutPage() {
       }))
       .filter(c => c.data.length >= 2);
   }, [sessionSummary, getWeightTrend]);
+
+  // Compute plateau warnings for exercises in this session
+  const plateauWarnings = useMemo(() => {
+    if (!sessionSummary) return [];
+    return sessionSummary.exercises
+      .map(ex => ({ name: ex.name, status: getPlateauStatus(ex.name) }))
+      .filter(p => p.status.isPlateaued);
+  }, [sessionSummary, getPlateauStatus]);
 
   const handleDone = async () => {
     localStorage.removeItem('jackyWorkoutLog');
@@ -191,6 +220,105 @@ export default function PostWorkoutPage() {
           </Card>
         )}
 
+        {/* Ab Ripper X */}
+        <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
+          <button
+            onClick={() => setAbRipperOpen(!abRipperOpen)}
+            className="w-full flex items-center justify-between p-4"
+          >
+            <div className="flex items-center gap-2">
+              <Flame className="h-5 w-5 text-accent" />
+              <span className="text-white font-semibold text-base">P90X Ab Ripper X</span>
+              <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent/80">12 moves</span>
+            </div>
+            {abRipperOpen ? <ChevronUp className="h-4 w-4 text-white/40" /> : <ChevronDown className="h-4 w-4 text-white/40" />}
+          </button>
+          {abRipperOpen && (
+            <CardContent className="pt-0 space-y-3">
+              <button
+                onClick={() => setSelectedVideo({ url: 'https://vimeo.com/892893307', title: 'P90X Ab Ripper X - Follow Along' })}
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border border-accent/30 hover:border-accent/50 hover:from-accent/30 hover:to-accent/30 transition-all duration-200 group"
+              >
+                <div className="flex items-center justify-center h-9 w-9 rounded-full bg-accent/20 group-hover:bg-accent/30 transition-colors">
+                  <Play className="h-5 w-5 fill-accent text-accent" />
+                </div>
+                <div className="text-left">
+                  <span className="text-sm font-semibold text-accent block">Follow Along Video</span>
+                  <span className="text-[0.6rem] text-accent/60">Full Ab Ripper X workout (~16 min)</span>
+                </div>
+              </button>
+
+              <div className="space-y-1">
+                {[
+                  { name: 'In and Out', reps: '25 reps', desc: 'Sit, extend legs out, pull knees back to chest' },
+                  { name: 'Bicycle', reps: '25 reps', desc: 'Recumbent pedaling motion forward' },
+                  { name: 'Reverse Bicycle', reps: '25 reps', desc: 'Pedaling motion in reverse' },
+                  { name: 'Crunchy Frog', reps: '25 reps', desc: 'Pull knees in with arms wrapped, extend out' },
+                  { name: 'Wide-Leg Sit-Up', reps: '12/side', desc: 'Legs wide, reach to opposite foot' },
+                  { name: 'Fifer Scissor', reps: '24 reps', desc: 'Alternate lifting legs toward ceiling' },
+                  { name: 'Hip Rock \'n Raise', reps: '25 reps', desc: 'Butterfly legs, lift hips to ceiling' },
+                  { name: 'Pulse-Up (Heels to Heaven)', reps: '25 reps', desc: 'Legs vertical, pulse hips up' },
+                  { name: 'V-Up / Roll-Up Combo', reps: '25 reps', desc: 'Full sit-up then V-up balance' },
+                  { name: 'Oblique V-Up', reps: '25/side', desc: 'Side-lying, lift torso + legs together' },
+                  { name: 'Leg Climb', reps: '12/leg', desc: 'Climb hand-over-hand up raised leg' },
+                  { name: 'Mason Twist', reps: '40 reps', desc: 'Seated twist, touch floor each side' },
+                ].map((ex, i) => (
+                  <div key={i} className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <span className="text-[0.6rem] text-white/20 w-4 text-right flex-shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-white/80 font-medium">{ex.name}</span>
+                      <span className="text-[0.6rem] text-white/30 ml-1.5">{ex.desc}</span>
+                    </div>
+                    <span className="text-[0.6rem] text-accent/70 font-medium flex-shrink-0">{ex.reps}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
+        {/* Cooldown Cardio - 10 Min Stairmaster */}
+        <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
+          <button
+            onClick={() => setCardioOpen(!cardioOpen)}
+            className="w-full flex items-center justify-between p-4"
+          >
+            <div className="flex items-center gap-2">
+              <Timer className="h-5 w-5 text-green-400" />
+              <span className="text-white font-semibold text-base">Cooldown Cardio</span>
+              <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400/80">10 min</span>
+            </div>
+            {cardioOpen ? <ChevronUp className="h-4 w-4 text-white/40" /> : <ChevronDown className="h-4 w-4 text-white/40" />}
+          </button>
+          {cardioOpen && (
+            <CardContent className="pt-0 space-y-3">
+              <div className="p-3 bg-green-500/5 border border-green-500/20 rounded-xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-green-400">Stairmaster</span>
+                </div>
+                <p className="text-xs text-white/50">10 minutes at moderate pace. Focus on controlled steps, upright posture, and steady breathing. Great for glute activation cooldown.</p>
+              </div>
+              <div className="space-y-1">
+                {[
+                  { min: '0-2', label: 'Easy Warm-Up', detail: 'Level 4-5, light pace to get moving' },
+                  { min: '2-4', label: 'Steady Climb', detail: 'Level 6-7, find your rhythm' },
+                  { min: '4-7', label: 'Moderate Push', detail: 'Level 7-8, skip a step every 5th step' },
+                  { min: '7-9', label: 'Steady Pace', detail: 'Level 6-7, consistent steps' },
+                  { min: '9-10', label: 'Cool Down', detail: 'Level 4, slow controlled steps' },
+                ].map((seg, i) => (
+                  <div key={i} className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <span className="text-[0.6rem] text-green-400/60 font-mono w-8 flex-shrink-0">{seg.min}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs text-white/80 font-medium">{seg.label}</span>
+                      <span className="text-[0.6rem] text-white/30 ml-1.5">{seg.detail}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
         {/* PRs Hit Today */}
         {sessionSummary && sessionSummary.todayPRs.length > 0 && (
           <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 shadow-lg mb-6">
@@ -205,13 +333,38 @@ export default function PostWorkoutPage() {
                 {sessionSummary.todayPRs.map((pr, i) => (
                   <div key={i} className="flex items-center gap-3 p-2 bg-black/30 rounded-lg text-sm">
                     <Trophy className="h-4 w-4 text-yellow-400 flex-shrink-0" />
-                    <span className="text-white font-medium">{pr.exerciseName}</span>
-                    <span className="text-white/60">
+                    <span className="text-white font-medium truncate flex-shrink min-w-0">{pr.exerciseName}</span>
+                    <span className="text-white/60 flex-shrink-0">
                       {pr.prType === 'weight' && `${pr.value} lb (+${Math.round(pr.value - pr.previousValue)} lb)`}
                       {pr.prType === 'reps' && `${pr.value} reps (+${pr.value - pr.previousValue})`}
                       {pr.prType === 'estimated_1rm' && `e1RM: ${pr.value} lb`}
                       {pr.prType === 'volume' && `${pr.value} lb volume`}
                     </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Plateau Warnings */}
+        {plateauWarnings.length > 0 && (
+          <Card className="bg-yellow-500/10 border-yellow-500/30 shadow-lg mb-6">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-yellow-400 flex items-center gap-2 text-base">
+                <AlertTriangle className="h-5 w-5" />
+                Plateau Detected
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {plateauWarnings.map((p, i) => (
+                  <div key={i} className="flex items-start gap-3 p-2 bg-black/30 rounded-lg text-sm">
+                    <AlertTriangle className="h-4 w-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-white font-medium">{p.name}</span>
+                      <p className="text-white/60 text-xs mt-0.5">{p.status.suggestion}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -233,6 +386,17 @@ export default function PostWorkoutPage() {
           </div>
         )}
 
+        {/* Download My Data */}
+        <Button
+          variant="outline"
+          onClick={handleDownloadData}
+          disabled={downloading}
+          className="w-full mb-4 h-11 border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white active:text-white backdrop-blur-sm"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {downloading ? 'Exporting...' : 'Download My Data'}
+        </Button>
+
         {/* Done Button */}
         <div className="relative">
           <div className="absolute -top-2 -right-2 pointer-events-none">
@@ -240,7 +404,7 @@ export default function PostWorkoutPage() {
           </div>
           <Button
             onClick={handleDone}
-            className="w-full h-14 text-lg font-bold bg-gradient-primary hover:shadow-glow rounded-xl"
+            className="w-full h-14 text-lg font-bold bg-gradient-primary hover:shadow-glow active:shadow-glow active:scale-[0.98] rounded-xl transition-transform"
             size="lg"
           >
             <Home className="h-5 w-5 mr-2" />
@@ -248,6 +412,18 @@ export default function PostWorkoutPage() {
           </Button>
         </div>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+        />
+      )}
+
+      <BottomNav />
     </div>
   );
 }

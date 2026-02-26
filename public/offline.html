@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KBFit - Offline</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        color: #fff;
+      }
+      .container {
+        text-align: center;
+        padding: 2rem;
+      }
+      .icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: rgba(255,255,255,0.9);
+      }
+      p {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.4);
+        margin-bottom: 1.5rem;
+      }
+      button {
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(236, 72, 153, 0.3);
+        background: rgba(236, 72, 153, 0.15);
+        color: rgb(236, 72, 153);
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover { background: rgba(236, 72, 153, 0.25); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">&#9889;</div>
+      <h1>You're offline</h1>
+      <p>Check your connection and try again.</p>
+      <button onclick="location.reload()">Retry</button>
+    </div>
+  </body>
+</html>

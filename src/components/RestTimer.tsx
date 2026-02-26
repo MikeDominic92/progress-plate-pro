@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Play, Pause, RotateCcw, Timer } from 'lucide-react';
 import { CircularProgress } from './CircularProgress';
+import { playBeep, notifyRestComplete, requestNotificationPermission } from '@/utils/timerNotifications';
 
 interface RestTimerProps {
   onClose: () => void;
@@ -22,6 +23,9 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
       }, 1000);
     } else if (time === 0) {
       setIsRunning(false);
+      // Audio chime and browser notification
+      playBeep();
+      notifyRestComplete();
       // Haptic feedback simulation
       document.body.style.animation = 'pulse 0.3s ease-in-out';
       setTimeout(() => {
@@ -56,7 +60,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
             variant="outline" 
             onClick={onClose}
             aria-label="Close rest timer"
-            className="h-6 w-6 sm:h-8 sm:w-8 p-0 bg-destructive/20 hover:bg-destructive border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-sm sm:text-lg"
+            className="h-8 w-8 sm:h-8 sm:w-8 p-0 bg-destructive/20 hover:bg-destructive active:bg-destructive/80 border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-sm sm:text-lg"
           >
             ×
           </Button>
@@ -78,7 +82,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-3 sm:mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
           {presetTimes.map((preset) => (
             <Button
               key={preset}
@@ -89,7 +93,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
                 setInitialTime(preset);
                 setIsRunning(false);
               }}
-              className="text-xs h-6 sm:h-8 bg-white/5 hover:bg-white/10 border-white/20 px-1 sm:px-2"
+              className="text-xs sm:text-sm h-10 sm:h-10 bg-white/5 hover:bg-white/10 active:bg-white/20 border-white/20 px-2 sm:px-2"
             >
               {preset}s
             </Button>
@@ -99,8 +103,11 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
         <div className="flex gap-1 sm:gap-2 justify-center">
           <Button
             size="sm"
-            onClick={() => setIsRunning(!isRunning)}
-            className="bg-gradient-primary hover:shadow-glow h-8 sm:h-10 px-2 sm:px-4"
+            onClick={() => {
+              if (!isRunning) requestNotificationPermission();
+              setIsRunning(!isRunning);
+            }}
+            className="bg-gradient-primary hover:shadow-glow active:opacity-80 h-11 sm:h-11 px-3 sm:px-4"
           >
             {isRunning ? (
               <Pause className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -115,7 +122,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
               setTime(initialTime);
               setIsRunning(false);
             }}
-            className="bg-white/5 hover:bg-white/10 border-white/20 h-8 sm:h-10 px-2 sm:px-4"
+            className="bg-white/5 hover:bg-white/10 active:bg-white/20 border-white/20 h-11 sm:h-11 px-3 sm:px-4"
           >
             <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
@@ -123,7 +130,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
 
         {time === 0 && (
           <div className="text-success font-semibold animate-pulse text-sm sm:text-base">
-            Rest Complete! 💪
+            Rest Complete!
           </div>
         )}
       </CardContent>

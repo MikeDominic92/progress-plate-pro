@@ -271,6 +271,41 @@ export const useWorkoutStorage = (username: string) => {
     }
   }, [username, toast]);
 
+  // Delete a specific session by date
+  const deleteSessionByDate = useCallback(async (date: string) => {
+    try {
+      const { error } = await supabase
+        .from('workout_sessions')
+        .delete()
+        .eq('username', username)
+        .eq('session_date', date);
+
+      if (error) {
+        console.error('Error deleting session:', error);
+        toast({
+          title: "Delete Error",
+          description: "Failed to delete workout session.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Clear local state if it's the current session's date
+      if (currentSession?.session_date === date) {
+        setCurrentSession(null);
+      }
+
+      toast({
+        title: "Session Deleted",
+        description: `Workout for ${date} has been removed.`,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      return false;
+    }
+  }, [username, currentSession, toast]);
+
   return {
     currentSession,
     saving,
@@ -279,6 +314,7 @@ export const useWorkoutStorage = (username: string) => {
     manualSave,
     resetSession,
     clearSession,
+    deleteSessionByDate,
     saveSession: () => currentSession && saveSession(currentSession)
   };
 };

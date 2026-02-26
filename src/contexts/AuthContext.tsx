@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!loading && !session) {
       const autoSignIn = async () => {
         const email = `${DEFAULT_USERNAME.toLowerCase()}@temp.local`;
-        const password = 'KaraBooty90!';
+        const password = import.meta.env.VITE_AUTO_AUTH_PASSWORD;
 
         // Try to sign in first
         const { error: signInError } = await supabase.auth.signInWithPassword({

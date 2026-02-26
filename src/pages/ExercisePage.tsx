@@ -6,84 +6,18 @@ import { Play, ArrowLeft, ArrowRight } from 'lucide-react';
 import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { RestTimerModal } from '@/components/RestTimerModal';
 import { PRCelebration } from '@/components/PRCelebration';
+import { ConfettiCelebration } from '@/components/ConfettiCelebration';
 import { SetLog } from '@/components/SetLog';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useProgression } from '@/hooks/useProgression';
+import { useExerciseProgram } from '@/hooks/useExerciseProgram';
 import { useToast } from '@/hooks/use-toast';
 import type { PersonalRecord } from '@/utils/progressionEngine';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
-
-const initialWorkoutData = [
-  {
-    name: 'Machine/Barbell Hip Thrust',
-    tier: 'Great - A Tier',
-    videoUrl: 'https://www.youtube.com/shorts/-1cAnwFNBLg',
-    sets: [
-      { id: 0, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
-      { id: 1, type: 'Medium/Primer Set', instructions: '10-12 reps @ 3-4 RIR', weight: '', reps: '' },
-      { id: 2, type: 'Heavy/Top Set', instructions: '8-10 reps @ 1 RIR', weight: '', reps: '' },
-      { id: 3, type: 'Failure/Back-Off Set', instructions: 'AMRAP @ 0 RIR (drop weight 25-30%)', weight: '', reps: '' },
-    ],
-    substitute: {
-      name: 'Single Leg Dumbbell Hip Thrust',
-      tier: 'Substitute',
-      videoUrl: 'https://www.youtube.com/shorts/KSeceTJh9m0',
-      sets: [
-        { id: 4, type: 'Warm Up Set', instructions: '15-20 reps per leg (light weight)', weight: '', reps: '' },
-        { id: 5, type: 'Medium/Primer Set', instructions: '10-12 reps per leg @ 3-4 RIR', weight: '', reps: '' },
-        { id: 6, type: 'Heavy/Top Set', instructions: '8-10 reps per leg @ 1 RIR', weight: '', reps: '' },
-        { id: 7, type: 'Failure/Back-Off Set', instructions: 'AMRAP per leg @ 0 RIR (bodyweight or light)', weight: '', reps: '' },
-      ]
-    }
-  },
-  {
-    name: 'Walking Lunge',
-    tier: 'Best of the Best - S+ Tier',
-    videoUrl: 'https://www.youtube.com/shorts/BhUpWmlKcJ8?feature=share',
-    sets: [
-      { id: 8, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
-      { id: 9, type: 'Medium/Primer Set', instructions: '12 reps per leg @ 3-4 RIR', weight: '', reps: '' },
-      { id: 10, type: 'Heavy/Top Set', instructions: '10 reps per leg @ 1 RIR', weight: '', reps: '' },
-      { id: 11, type: 'Failure/Back-Off Set', instructions: 'AMRAP per leg (medium dumbbells)', weight: '', reps: '' },
-    ]
-  },
-  {
-    name: 'Romanian Deadlift (RDL)',
-    tier: 'Great - A Tier',
-    videoUrl: 'https://www.youtube.com/watch?v=5rIqP63yWFg',
-    sets: [
-      { id: 12, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
-      { id: 13, type: 'Medium/Primer Set', instructions: '12 reps @ 3-4 RIR', weight: '', reps: '' },
-      { id: 14, type: 'Heavy/Top Set', instructions: '8-10 reps @ 1 RIR', weight: '', reps: '' },
-      { id: 15, type: 'Failure/Back-Off Set', instructions: 'AMRAP @ 0 RIR (drop weight 25%)', weight: '', reps: '' },
-    ]
-  },
-  {
-    name: 'Machine Hip Abduction',
-    tier: 'Great - S Tier',
-    videoUrl: 'https://www.youtube.com/shorts/S_FGYHNHJ_c',
-    sets: [
-      { id: 16, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
-      { id: 17, type: 'Medium/Primer Set', instructions: '15 reps @ 3-4 RIR (lean forward)', weight: '', reps: '' },
-      { id: 18, type: 'Heavy/Top Set', instructions: '12-15 reps @ 1 RIR', weight: '', reps: '' },
-      { id: 19, type: 'Failure/Back-Off Set', instructions: 'AMRAP @ 0 RIR', weight: '', reps: '' },
-    ]
-  },
-  {
-    name: 'Step-Ups',
-    tier: 'Great - A Tier',
-    videoUrl: 'https://www.youtube.com/shorts/sejk5iTrcRE',
-    sets: [
-      { id: 20, type: 'Warm Up Set', instructions: '15-20 reps (light weight, perfect form)', weight: '', reps: '' },
-      { id: 21, type: 'Medium/Primer Set', instructions: '12 reps per leg @ 3-4 RIR (light/bodyweight)', weight: '', reps: '' },
-      { id: 22, type: 'Heavy/Top Set', instructions: '10-12 reps per leg @ 1 RIR', weight: '', reps: '' },
-      { id: 23, type: 'Failure/Back-Off Set', instructions: 'AMRAP per leg (bodyweight only)', weight: '', reps: '' },
-    ]
-  },
-];
+import BottomNav from '@/components/BottomNav';
 
 export default function ExercisePage() {
   const navigate = useNavigate();
@@ -93,6 +27,7 @@ export default function ExercisePage() {
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   const { toast } = useToast();
   const { getSuggestion, checkForPR, savePersonalRecords, refreshHistory, getLastSession } = useProgression(username || '');
+  const { exercises: programExercises, isFallback } = useExerciseProgram();
 
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
 
@@ -110,6 +45,7 @@ export default function ExercisePage() {
   } | null>(null);
   const [prCelebration, setPrCelebration] = useState<PersonalRecord[]>([]);
   const [showPRModal, setShowPRModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
 
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -119,13 +55,30 @@ export default function ExercisePage() {
     try {
       if (currentSession?.workout_data?.logs) {
         const logs = currentSession.workout_data.logs;
-        return Array.isArray(logs) ? logs : initialWorkoutData;
+        return Array.isArray(logs) ? logs : programExercises;
       }
     } catch (error) {
       console.error('Error loading workout logs:', error);
     }
-    return initialWorkoutData;
+    return programExercises;
   });
+
+  // When the exercise program resolves from Supabase (non-fallback), update
+  // workoutLog -- but only when there is no existing session data to preserve.
+  const hasAppliedProgram = useRef(false);
+  useEffect(() => {
+    if (!isFallback && !hasAppliedProgram.current && !hasHydratedFromSession.current) {
+      // Only apply if no sets have been started (weight/reps entered).
+      const hasUserData = workoutLog.some((ex: any) =>
+        ex.sets?.some((s: any) => s.weight || s.reps || s.confirmed) ||
+        ex.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed)
+      );
+      if (!hasUserData) {
+        setWorkoutLog(programExercises);
+        hasAppliedProgram.current = true;
+      }
+    }
+  }, [isFallback, programExercises]);
 
   useEffect(() => {
     initializeSession();
@@ -222,6 +175,7 @@ export default function ExercisePage() {
         if (prs.length > 0) {
           setPrCelebration(prs);
           setShowPRModal(true);
+          setShowConfetti(true);
           await savePersonalRecords(prs);
           for (const pr of prs) {
             await trackPR(currentSession.id, username, exerciseName, pr.prType, pr.value, pr.previousValue);
@@ -284,6 +238,19 @@ export default function ExercisePage() {
         }, 2000);
       }
     }
+  };
+
+  const handleUnlockSet = (setIndex: number) => {
+    const updatedLog = JSON.parse(JSON.stringify(workoutLog));
+    const exercise = updatedLog[currentExerciseIndex];
+    if (useSubstitute && exercise.substitute) {
+      exercise.substitute.sets[setIndex].confirmed = false;
+    } else {
+      exercise.sets[setIndex].confirmed = false;
+    }
+    setWorkoutLog(updatedLog);
+    updateSession({ workout_data: { logs: updatedLog, timers: {} } });
+    manualSave({ workout_data: { logs: updatedLog, timers: {} } });
   };
 
   const handleRestComplete = () => {
@@ -383,35 +350,33 @@ export default function ExercisePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {/* Video demo button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-11 px-3 gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
-              onClick={() => openVideo(
-                useSubstitute && currentExercise.substitute
-                  ? currentExercise.substitute.videoUrl
-                  : currentExercise.videoUrl,
-                activeExerciseName
-              )}
-            >
-              <Play className="h-4 w-4 fill-primary" />
-              <span className="text-xs font-semibold hidden sm:inline">Form</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => currentExerciseIndex < workoutLog.length - 1
-                ? navigate(`/exercise/${currentExerciseIndex + 1}`)
-                : navigate('/post-workout')}
-              className="flex-shrink-0 h-11 w-11 p-0"
-            >
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => currentExerciseIndex < workoutLog.length - 1
+              ? navigate(`/exercise/${currentExerciseIndex + 1}`)
+              : navigate('/post-workout')}
+            className="flex-shrink-0 h-11 w-11 p-0"
+          >
+            <ArrowRight className="h-5 w-5" />
+          </Button>
         </div>
+
+        {/* Watch Form Video */}
+        <button
+          onClick={() => openVideo(
+            useSubstitute && currentExercise.substitute
+              ? currentExercise.substitute.videoUrl
+              : currentExercise.videoUrl,
+            activeExerciseName
+          )}
+          className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border border-primary/30 hover:border-primary/50 hover:from-primary/30 hover:to-primary/30 transition-all duration-200 group"
+        >
+          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
+            <Play className="h-4 w-4 fill-primary text-primary" />
+          </div>
+          <span className="text-sm font-semibold text-primary">Watch Form Tutorial</span>
+        </button>
 
         {/* Substitute toggle */}
         {currentExercise.substitute && (
@@ -459,8 +424,9 @@ export default function ExercisePage() {
                   set={set}
                   onLogChange={(field, value) => handleLogChange(idx, field, value)}
                   onSetComplete={() => handleSetComplete(idx)}
+                  onUnlock={() => handleUnlockSet(idx)}
                   suggestion={suggestion}
-                  disabled={set.confirmed}
+                  disabled={set.confirmed || (firstIncompleteIdx !== -1 && idx > firstIncompleteIdx)}
                   lastSet={lastSet}
                   autoFocus={idx === firstIncompleteIdx}
                 />
@@ -470,11 +436,14 @@ export default function ExercisePage() {
         </div>
       </div>
 
+      {/* Confetti burst overlay for PR */}
+      <ConfettiCelebration show={showConfetti} />
+
       {/* PR Celebration Modal */}
       {showPRModal && prCelebration.length > 0 && (
         <PRCelebration
           prs={prCelebration}
-          onClose={() => { setShowPRModal(false); setPrCelebration([]); }}
+          onClose={() => { setShowPRModal(false); setPrCelebration([]); setShowConfetti(false); }}
         />
       )}
 
@@ -503,6 +472,8 @@ export default function ExercisePage() {
           title={selectedVideo.title}
         />
       )}
+
+      <BottomNav />
     </div>
   );
 }

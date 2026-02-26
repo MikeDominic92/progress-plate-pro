@@ -3,7 +3,7 @@ import { FitnessInput } from '@/components/ui/fitness-input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Weight, Repeat } from 'lucide-react';
+import { Weight, Repeat, Pencil } from 'lucide-react';
 import { ProgressionBadge } from '@/components/ProgressionBadge';
 import type { ProgressionSuggestion } from '@/utils/progressionEngine';
 
@@ -11,13 +11,14 @@ interface SetLogProps {
   set: any;
   onLogChange: (field: string, value: string) => void;
   onSetComplete?: () => void;
+  onUnlock?: () => void;
   suggestion?: ProgressionSuggestion;
   disabled?: boolean;
   lastSet?: { weight: number; reps: number };
   autoFocus?: boolean;
 }
 
-export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled = false, lastSet, autoFocus = false }: SetLogProps) {
+export const SetLog = React.memo(function SetLog({ set, onLogChange, onSetComplete, onUnlock, suggestion, disabled = false, lastSet, autoFocus = false }: SetLogProps) {
   const [weightInput, setWeightInput] = useState<string>(set.weight ?? '');
   const [repsInput, setRepsInput] = useState<string>(set.reps ?? '');
   const [isWeightFocused, setIsWeightFocused] = useState(false);
@@ -53,7 +54,7 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
     <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 bg-black ${
       isWarmUp ? 'border-primary/30 shadow-glass' : 'shadow-md'
     } ${
-      isConfirmed ? 'ring-1 ring-primary/40' :
+      isConfirmed ? 'ring-1 ring-green-500/30 bg-green-500/10 border-green-500/20' :
       isComplete && !disabled ? 'ring-1 ring-primary/40' :
       disabled ? 'opacity-50' : ''
     }`}>
@@ -69,9 +70,20 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
             )}
           </div>
           {isConfirmed && (
-            <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
-              Done
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" className="text-green-400 border-green-500/50 bg-green-500/10">
+                Done
+              </Badge>
+              {onUnlock && (
+                <button
+                  onClick={onUnlock}
+                  className="p-1 rounded-md text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
+                  aria-label="Unlock set for editing"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -155,4 +167,4 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
       </CardContent>
     </Card>
   );
-}
+});
