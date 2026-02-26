@@ -144,7 +144,7 @@ export default function CoachPage() {
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
               <MessageSquare className="h-12 w-12 text-white/15" />
               <div>
-                <p className="text-sm text-white/60 font-medium">Hey {username}, I'm Coach Dom.</p>
+                <p className="text-sm text-white/60 font-medium">Hey {username || 'there'}, I'm Coach Dom.</p>
                 <p className="text-xs text-white/30 mt-1">Ask me anything about your workouts, nutrition, or progress.</p>
               </div>
               <div className="flex flex-wrap justify-center gap-2 mt-2">

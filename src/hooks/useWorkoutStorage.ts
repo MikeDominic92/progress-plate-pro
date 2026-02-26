@@ -27,6 +27,7 @@ export const useWorkoutStorage = (username: string) => {
   const [currentSession, setCurrentSession] = useState<WorkoutSession | null>(null);
   const [saving, setSaving] = useState(false);
   const currentSessionRef = useRef<WorkoutSession | null>(null);
+  const saveVersion = useRef<number>(0);
   const { toast } = useToast();
 
   // Function to reset session state
@@ -133,6 +134,7 @@ export const useWorkoutStorage = (username: string) => {
   const saveSession = async (session: WorkoutSession) => {
     if (!session) return;
 
+    const version = ++saveVersion.current;
     setSaving(true);
     try {
       const sessionData = {
@@ -166,14 +168,17 @@ export const useWorkoutStorage = (username: string) => {
           .single();
 
         if (error) throw error;
-        if (data) {
+        if (data && saveVersion.current === version) {
           setCurrentSession(prev => prev ? { ...prev, id: data.id } : null);
         }
       }
 
       // Auto-save notification (subtle)
-      console.log('Workout progress saved');
+      if (saveVersion.current === version) {
+        console.log('Workout progress saved');
+      }
     } catch (error) {
+      if (saveVersion.current !== version) return;
       console.error('Error saving session:', error);
       toast({
         title: "Save Error",
@@ -181,7 +186,9 @@ export const useWorkoutStorage = (username: string) => {
         variant: "destructive",
       });
     } finally {
-      setSaving(false);
+      if (saveVersion.current === version) {
+        setSaving(false);
+      }
     }
   };
 

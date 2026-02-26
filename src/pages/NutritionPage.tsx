@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, ImagePlus, Search, Utensils, X } from 'lucide-react';
+import { Camera, ChevronLeft, ChevronRight, Download, ImagePlus, Search, Utensils, X } from 'lucide-react';
+import { addDays, subDays, isToday, format as fnsFormat, parseISO } from 'date-fns';
 import { useNutritionTracker, DAILY_TARGETS } from '@/hooks/useNutritionTracker';
 import type { FoodItem } from '@/hooks/useNutritionTracker';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
@@ -22,7 +23,7 @@ function MacroRing({ label, current, target, color, unit }: {
 
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="relative w-[76px] h-[76px]">
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 76 76">
           <circle cx="38" cy="38" r={radius} fill="none" stroke="white" strokeOpacity="0.06" strokeWidth="6" />
           <circle
@@ -49,8 +50,10 @@ function MacroRing({ label, current, target, color, unit }: {
 export default function NutritionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
+    selectedDate, setSelectedDate,
     meals, dailyTotals, targets, analyzing, error, syncError,
     analyzePhoto, analyzeDescription, addMeal, addManualItem, removeMeal, updateMeal,
+    retrySave,
   } = useNutritionTracker();
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +73,14 @@ export default function NutritionPage() {
 
   // Detail dialog state
   const [detailMealId, setDetailMealId] = useState<string | null>(null);
+
+  // Dismissible error states
+  const [dismissedError, setDismissedError] = useState(false);
+  const [dismissedSyncError, setDismissedSyncError] = useState(false);
+
+  // Reset dismissed state when the error message itself changes
+  useEffect(() => { setDismissedError(false); }, [error]);
+  useEffect(() => { setDismissedSyncError(false); }, [syncError]);
 
   // Auto-trigger camera when navigating with ?camera=true
   useEffect(() => {
@@ -155,12 +166,41 @@ export default function NutritionPage() {
     setEditingItems(prev => prev.filter((_, i) => i !== index));
   };
 
+  // CSV export handler
+  const handleExportCsv = () => {
+    const rows: string[] = ['Meal,Time,Items,Calories,Protein,Carbs,Fat'];
+    meals.forEach((meal, idx) => {
+      const itemNames = meal.items.map(i => i.name).join('; ');
+      const escapedItems = `"${itemNames.replace(/"/g, '""')}"`;
+      rows.push(
+        `Meal ${idx + 1},${meal.time},${escapedItems},${Math.round(meal.totals.calories)},${Math.round(meal.totals.protein)},${Math.round(meal.totals.carbs)},${Math.round(meal.totals.fat)}`
+      );
+    });
+    // Add totals row
+    rows.push(
+      `Total,,All meals,${Math.round(dailyTotals.calories)},${Math.round(dailyTotals.protein)},${Math.round(dailyTotals.carbs)},${Math.round(dailyTotals.fat)}`
+    );
+    const csvContent = rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nutrition-${selectedDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const remaining = {
     calories: Math.max(0, targets.calories - dailyTotals.calories),
     protein: Math.max(0, targets.protein - dailyTotals.protein),
     carbs: Math.max(0, targets.carbs - dailyTotals.carbs),
     fat: Math.max(0, targets.fat - dailyTotals.fat),
   };
+
+  const parsedDate = parseISO(selectedDate);
+  const isTodaySelected = isToday(parsedDate);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -179,11 +219,44 @@ export default function NutritionPage() {
           </div>
         </div>
 
+        {/* Date Picker */}
+        <div className="flex items-center justify-between px-1">
+          <button
+            aria-label="Previous day"
+            onClick={() => setSelectedDate(fnsFormat(subDays(parsedDate, 1), 'yyyy-MM-dd'))}
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4 text-white/60" />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-white/80">
+              {isTodaySelected ? 'Today' : fnsFormat(parsedDate, 'EEE, MMM d')}
+            </span>
+            <button
+              aria-label="Export CSV"
+              onClick={handleExportCsv}
+              disabled={meals.length === 0}
+              className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Export daily nutrition as CSV"
+            >
+              <Download className="h-3.5 w-3.5 text-white/50" />
+            </button>
+          </div>
+          <button
+            aria-label="Next day"
+            onClick={() => setSelectedDate(fnsFormat(addDays(parsedDate, 1), 'yyyy-MM-dd'))}
+            disabled={isTodaySelected}
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="h-4 w-4 text-white/60" />
+          </button>
+        </div>
+
         {/* Daily Macro Rings */}
         <Card className="bg-black/50 backdrop-blur-glass border-white/10">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-white/80">Today's Macros</span>
+              <span className="text-sm font-semibold text-white/80">{isTodaySelected ? "Today's" : fnsFormat(parsedDate, 'MMM d')} Macros</span>
               <span className="text-xs text-white/30">{remaining.calories > 0 ? `${Math.round(remaining.calories)} cal left` : 'Goal reached!'}</span>
             </div>
             <div className="flex items-center justify-around">
@@ -255,16 +328,38 @@ export default function NutritionPage() {
         </div>
 
         {/* Error */}
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
-            {error}
+        {error && !dismissedError && (
+          <div className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
+            <span>{error}</span>
+            <button
+              aria-label="Dismiss error"
+              onClick={() => setDismissedError(true)}
+              className="ml-2 p-1 text-red-400/60 hover:text-red-400 transition-colors flex-shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
         {/* Sync error */}
-        {syncError && (
-          <div className="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-[0.65rem] text-yellow-400/80">
-            {syncError}
+        {syncError && !dismissedSyncError && (
+          <div className="flex items-center justify-between p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-[0.65rem] text-yellow-400/80">
+            <span>{syncError}</span>
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+              <button
+                onClick={() => retrySave()}
+                className="px-2 py-0.5 rounded-md bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 text-[0.65rem] font-medium transition-colors"
+              >
+                Retry
+              </button>
+              <button
+                aria-label="Dismiss sync error"
+                onClick={() => setDismissedSyncError(true)}
+                className="p-1 text-yellow-400/60 hover:text-yellow-400 transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -322,7 +417,7 @@ export default function NutritionPage() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   aria-label="Food name"
                   placeholder="Food name"
@@ -339,7 +434,7 @@ export default function NutritionPage() {
                 />
                 <input
                   aria-label="Calories"
-                  placeholder="Calories"
+                  placeholder="Calories (kcal)"
                   inputMode="numeric"
                   value={manualForm.calories}
                   onChange={e => setManualForm(f => ({ ...f, calories: e.target.value.replace(/[^0-9.]/g, '') }))}
@@ -381,7 +476,7 @@ export default function NutritionPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-1">
             <Utensils className="h-4 w-4 text-white/30" />
-            <span className="text-sm font-semibold text-white/60">Today's Log</span>
+            <span className="text-sm font-semibold text-white/60">{isTodaySelected ? "Today's" : fnsFormat(parsedDate, 'MMM d')} Log</span>
             <Badge variant="outline" className="text-[0.65rem] px-1.5 py-0 text-white/30 border-white/10">
               {meals.length} {meals.length === 1 ? 'meal' : 'meals'}
             </Badge>

@@ -107,7 +107,7 @@ export default function MealTimeline({
   entries.sort((a, b) => a.minutes - b.minutes);
 
   return (
-    <div className="relative" style={{ paddingLeft: '4.5rem' }}>
+    <div className="relative" style={{ paddingLeft: '3.5rem' }}>
       {/* Vertical rail */}
       <div className="absolute top-0 bottom-0 w-px bg-white/10" style={{ left: RAIL_LEFT }} />
 
@@ -170,44 +170,44 @@ export default function MealTimeline({
                   </div>
                   {editingItems.map((item, idx) => (
                     <div key={idx} className="grid grid-cols-[1fr_auto] gap-1 items-start">
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                         <input
                           value={item.name}
                           onChange={e => onUpdateEditingItem(idx, 'name', e.target.value)}
-                          placeholder="Name"
+                          placeholder="Food name"
                           className="col-span-2 px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
                         <input
                           value={item.portion}
                           onChange={e => onUpdateEditingItem(idx, 'portion', e.target.value)}
-                          placeholder="Portion"
+                          placeholder="Portion size"
                           className="col-span-2 px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
                         <input
                           value={item.calories || ''}
                           onChange={e => onUpdateEditingItem(idx, 'calories', e.target.value)}
-                          placeholder="Cal"
+                          placeholder="Calories (kcal)"
                           inputMode="numeric"
                           className="px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
                         <input
                           value={item.protein || ''}
                           onChange={e => onUpdateEditingItem(idx, 'protein', e.target.value)}
-                          placeholder="Protein"
+                          placeholder="Protein (g)"
                           inputMode="numeric"
                           className="px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
                         <input
                           value={item.carbs || ''}
                           onChange={e => onUpdateEditingItem(idx, 'carbs', e.target.value)}
-                          placeholder="Carbs"
+                          placeholder="Carbs (g)"
                           inputMode="numeric"
                           className="px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
                         <input
                           value={item.fat || ''}
                           onChange={e => onUpdateEditingItem(idx, 'fat', e.target.value)}
-                          placeholder="Fat"
+                          placeholder="Fat (g)"
                           inputMode="numeric"
                           className="px-2 py-1 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
                         />
@@ -249,7 +249,7 @@ export default function MealTimeline({
                     <span className="text-xs font-medium text-white/50">{Math.round(meal.totals.calories)} cal</span>
                   </div>
 
-                  <p className="text-[0.7rem] text-white/40 truncate mb-1.5">
+                  <p className="text-[0.7rem] text-white/40 line-clamp-2 mb-1.5" title={meal.items.map(item => item.name).join(', ')}>
                     {meal.items.map(item => item.name).join(', ')}
                   </p>
 

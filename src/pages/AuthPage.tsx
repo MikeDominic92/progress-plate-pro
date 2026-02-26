@@ -155,8 +155,8 @@ const AuthPage = () => {
             <CardContent>
               <Tabs defaultValue="signin" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="signin">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  <TabsTrigger value="signin" className="text-sm sm:text-base">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" className="text-sm sm:text-base">Sign Up</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="signin">

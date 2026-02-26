@@ -154,7 +154,7 @@ export default function PostWorkoutPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-sm md:max-w-lg lg:max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-primary/20 backdrop-blur-glass rounded-full text-primary-foreground font-medium text-sm mb-4 border border-primary/30">
@@ -204,7 +204,7 @@ export default function PostWorkoutPage() {
                 )}
               </div>
 
-              <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+              <div className="space-y-2 md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:space-y-0">
                 {sessionSummary.exercises.map((ex, i) => (
                   <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/5 text-sm">
                     <span className="text-white/70 truncate flex-1 mr-2">{ex.name}</span>
@@ -224,7 +224,7 @@ export default function PostWorkoutPage() {
         <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
           <button
             onClick={() => setAbRipperOpen(!abRipperOpen)}
-            className="w-full flex items-center justify-between p-4"
+            className="w-full flex items-center justify-between p-4 active:bg-white/5 active:scale-[0.98] transition-all"
           >
             <div className="flex items-center gap-2">
               <Flame className="h-5 w-5 text-accent" />
@@ -237,7 +237,7 @@ export default function PostWorkoutPage() {
             <CardContent className="pt-0 space-y-3">
               <button
                 onClick={() => setSelectedVideo({ url: 'https://vimeo.com/892893307', title: 'P90X Ab Ripper X - Follow Along' })}
-                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border border-accent/30 hover:border-accent/50 hover:from-accent/30 hover:to-accent/30 transition-all duration-200 group"
+                className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 border border-accent/30 hover:border-accent/50 hover:from-accent/30 hover:to-accent/30 active:scale-95 transition-all duration-200 group"
               >
                 <div className="flex items-center justify-center h-9 w-9 rounded-full bg-accent/20 group-hover:bg-accent/30 transition-colors">
                   <Play className="h-5 w-5 fill-accent text-accent" />
@@ -281,7 +281,7 @@ export default function PostWorkoutPage() {
         <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
           <button
             onClick={() => setCardioOpen(!cardioOpen)}
-            className="w-full flex items-center justify-between p-4"
+            className="w-full flex items-center justify-between p-4 active:bg-white/5 active:scale-[0.98] transition-all"
           >
             <div className="flex items-center gap-2">
               <Timer className="h-5 w-5 text-green-400" />
@@ -374,7 +374,7 @@ export default function PostWorkoutPage() {
 
         {/* Progress Charts */}
         {exerciseCharts.length > 0 && (
-          <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 mb-6">
+          <div className="space-y-4 md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:space-y-0 mb-6">
             {exerciseCharts.map((chart) => (
               <ExerciseProgressChart
                 key={chart.name}
@@ -391,7 +391,7 @@ export default function PostWorkoutPage() {
           variant="outline"
           onClick={handleDownloadData}
           disabled={downloading}
-          className="w-full mb-4 h-11 border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white active:text-white backdrop-blur-sm"
+          className="w-full mb-4 h-11 border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15 active:scale-95 text-white/80 hover:text-white active:text-white backdrop-blur-sm"
         >
           <Download className="h-4 w-4 mr-2" />
           {downloading ? 'Exporting...' : 'Download My Data'}

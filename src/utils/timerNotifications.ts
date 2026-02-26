@@ -8,7 +8,8 @@
 
 /**
  * Play a short 880 Hz beep for 0.3 seconds using the Web Audio API.
- * No external audio file is required.
+ * Also triggers a vibration pattern via the Vibration API as a fallback
+ * for users on silent mode. No external audio file is required.
  */
 export function playBeep(): void {
   try {
@@ -30,6 +31,11 @@ export function playBeep(): void {
     osc.stop(ctx.currentTime + 0.3);
   } catch {
     // Silently ignore -- audio may be blocked by the browser.
+  }
+
+  // Vibration API fallback for users on silent mode
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
   }
 }
 

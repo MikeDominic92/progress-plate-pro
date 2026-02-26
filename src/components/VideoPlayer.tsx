@@ -135,11 +135,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-black border-primary/20 p-0">
+      <DialogContent className="max-w-2xl md:max-w-3xl lg:max-w-4xl bg-black border-primary/20 p-0">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-white text-lg">{title}</DialogTitle>
+              <DialogTitle className="text-white text-base md:text-lg">{title}</DialogTitle>
               {timeSegment && (
                 <p className="text-primary text-sm mt-1">{timeSegment}</p>
               )}

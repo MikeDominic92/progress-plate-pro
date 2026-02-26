@@ -14,9 +14,9 @@ const NotFound = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/30" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center pb-14">
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 pb-14">
         <div className="text-center">
-          <h1 className="mb-4 text-5xl font-extrabold text-white/90">404</h1>
+          <h1 className="mb-4 text-4xl sm:text-5xl md:text-6xl font-extrabold text-white/90">404</h1>
           <p className="mb-6 text-lg text-white/50">Page not found</p>
           <a
             href="/"

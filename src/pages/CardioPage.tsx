@@ -20,10 +20,36 @@ export default function CardioPage() {
     completed: false,
   });
 
-  // Cardio countdown timer state
-  const [timerSeconds, setTimerSeconds] = useState(600); // 10 minutes
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [timerFinished, setTimerFinished] = useState(false);
+  // Cardio countdown timer state (restored from sessionStorage on refresh)
+  const [timerSeconds, setTimerSeconds] = useState(() => {
+    const saved = sessionStorage.getItem('cardio_timer_state');
+    if (saved) {
+      try { return JSON.parse(saved).timerSeconds ?? 600; } catch { return 600; }
+    }
+    return 600;
+  });
+  const [timerRunning, setTimerRunning] = useState(() => {
+    const saved = sessionStorage.getItem('cardio_timer_state');
+    if (saved) {
+      try { return JSON.parse(saved).isRunning ?? false; } catch { return false; }
+    }
+    return false;
+  });
+  const [timerFinished, setTimerFinished] = useState(() => {
+    const saved = sessionStorage.getItem('cardio_timer_state');
+    if (saved) {
+      try { return (JSON.parse(saved).timerSeconds ?? 600) === 0; } catch { return false; }
+    }
+    return false;
+  });
+
+  // Persist timer state to sessionStorage on changes
+  useEffect(() => {
+    sessionStorage.setItem('cardio_timer_state', JSON.stringify({
+      timerSeconds,
+      isRunning: timerRunning,
+    }));
+  }, [timerSeconds, timerRunning]);
 
   useEffect(() => {
     if (username) initializeSession();
@@ -78,6 +104,7 @@ export default function CardioPage() {
         cardio_calories: cardioData.calories || '0',
       };
       updateSession(updates);
+      sessionStorage.removeItem('cardio_timer_state');
       try { await manualSave(updates); } catch {}
       navigate('/warmup', { replace: true });
     }
@@ -92,6 +119,7 @@ export default function CardioPage() {
       cardio_calories: '0',
     };
     updateSession(updates);
+    sessionStorage.removeItem('cardio_timer_state');
     try { await manualSave(updates); } catch {}
     navigate('/warmup', { replace: true });
   };
@@ -101,7 +129,7 @@ export default function CardioPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-sm md:max-w-lg lg:max-w-2xl relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2">
@@ -140,7 +168,7 @@ export default function CardioPage() {
                   <div className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-white mb-2">
                     {Math.floor(timerSeconds / 60).toString().padStart(2, '0')}:{(timerSeconds % 60).toString().padStart(2, '0')}
                   </div>
-                  <div className="w-full h-2 md:h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+                  <div className="w-full h-2 sm:h-2.5 md:h-3 bg-white/10 rounded-full overflow-hidden mb-2">
                     <div
                       className={`h-full transition-all duration-500 ${
                         timerSeconds <= 30 ? 'bg-red-500 animate-pulse' :
@@ -169,7 +197,7 @@ export default function CardioPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <FitnessInput
                 label="Time (min)"
                 icon={<Timer className="h-4 w-4" />}

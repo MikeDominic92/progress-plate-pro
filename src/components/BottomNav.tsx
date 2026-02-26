@@ -20,13 +20,7 @@ export default function BottomNav() {
             <button
               key={path}
               aria-label={label}
-              onClick={() => {
-                if (path === '/nutrition') {
-                  navigate('/nutrition?camera=true');
-                } else {
-                  navigate(path);
-                }
-              }}
+              onClick={() => navigate(path)}
               className={`flex flex-col items-center gap-0.5 px-4 py-1.5 transition-colors ${
                 active ? 'text-primary' : 'text-white/40 hover:text-white/60'
               }`}

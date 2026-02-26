@@ -47,7 +47,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
   const presetTimes = [60, 90, 120, 180]; // 1min, 1.5min, 2min, 3min
 
   return (
-    <Card className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50 bg-gradient-card/95 backdrop-blur-glass border-white/20 shadow-xl w-[calc(100vw-1rem)] max-w-xs sm:w-auto animate-slide-in">
+    <Card className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50 bg-gradient-card/95 backdrop-blur-glass border-white/20 shadow-xl w-[calc(100vw-1rem)] max-w-xs md:max-w-sm sm:w-auto animate-slide-in">
       <CardContent className="p-3 sm:p-6 text-center space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
@@ -60,7 +60,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
             variant="outline" 
             onClick={onClose}
             aria-label="Close rest timer"
-            className="h-8 w-8 sm:h-8 sm:w-8 p-0 bg-destructive/20 hover:bg-destructive active:bg-destructive/80 border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-sm sm:text-lg"
+            className="h-11 w-11 p-0 bg-destructive/20 hover:bg-destructive active:bg-destructive/80 active:scale-95 border-destructive/40 text-destructive-foreground hover:text-white transition-all duration-200 font-bold text-sm sm:text-lg"
           >
             ×
           </Button>
@@ -93,7 +93,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
                 setInitialTime(preset);
                 setIsRunning(false);
               }}
-              className="text-xs sm:text-sm h-10 sm:h-10 bg-white/5 hover:bg-white/10 active:bg-white/20 border-white/20 px-2 sm:px-2"
+              className="text-xs sm:text-sm h-11 bg-white/5 hover:bg-white/10 active:bg-white/20 active:scale-95 border-white/20 px-2 sm:px-2"
             >
               {preset}s
             </Button>
@@ -107,7 +107,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
               if (!isRunning) requestNotificationPermission();
               setIsRunning(!isRunning);
             }}
-            className="bg-gradient-primary hover:shadow-glow active:opacity-80 h-11 sm:h-11 px-3 sm:px-4"
+            className="bg-gradient-primary hover:shadow-glow active:opacity-80 active:scale-95 h-11 sm:h-11 px-3 sm:px-4"
           >
             {isRunning ? (
               <Pause className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -122,7 +122,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
               setTime(initialTime);
               setIsRunning(false);
             }}
-            className="bg-white/5 hover:bg-white/10 active:bg-white/20 border-white/20 h-11 sm:h-11 px-3 sm:px-4"
+            className="bg-white/5 hover:bg-white/10 active:bg-white/20 active:scale-95 border-white/20 h-11 sm:h-11 px-3 sm:px-4"
           >
             <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>

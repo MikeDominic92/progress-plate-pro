@@ -314,7 +314,7 @@ export default function ExercisePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-2 sm:p-4 md:p-6 max-w-lg md:max-w-2xl lg:max-w-3xl space-y-3">
+      <div className="container mx-auto p-2 sm:p-4 md:p-6 max-w-sm md:max-w-lg lg:max-w-3xl space-y-3">
         {/* Header: name + nav + progress */}
         <div className="flex items-center gap-2">
           <Button
@@ -409,7 +409,7 @@ export default function ExercisePage() {
         />
 
         {/* Sets */}
-        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+        <div className="space-y-3 md:grid md:grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:space-y-0">
           {(() => {
             const lastSession = getLastSession(activeExerciseName);
             const firstIncompleteIdx = activeSets.findIndex((s: any) => !s.confirmed);

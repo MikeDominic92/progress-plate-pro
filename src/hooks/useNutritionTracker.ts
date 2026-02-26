@@ -54,16 +54,17 @@ export function useNutritionTracker() {
   const [error, setError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const syncVersion = useRef(0);
+  const loadVersion = useRef(0);
 
   // Load meals: try Supabase first, fall back to localStorage
   useEffect(() => {
-    let cancelled = false;
+    const currentLoad = ++loadVersion.current;
 
     async function load() {
       // 1. Try localStorage immediately for fast paint
       try {
         const stored = localStorage.getItem(getStorageKey(selectedDate));
-        if (stored && !cancelled) {
+        if (stored && loadVersion.current === currentLoad) {
           setMeals(JSON.parse(stored));
         }
       } catch { /* ignore */ }
@@ -71,7 +72,7 @@ export function useNutritionTracker() {
       // 2. Then fetch from Supabase (source of truth)
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user || cancelled) return;
+        if (!user || loadVersion.current !== currentLoad) return;
 
         const { data, error: fetchErr } = await supabase
           .from('nutrition_logs')
@@ -85,7 +86,7 @@ export function useNutritionTracker() {
           return;
         }
 
-        if (data?.meals && !cancelled) {
+        if (data?.meals && loadVersion.current === currentLoad) {
           const cloudMeals = data.meals as MealEntry[];
           setMeals(cloudMeals);
           // Update localStorage to match cloud
@@ -97,7 +98,6 @@ export function useNutritionTracker() {
     }
 
     load();
-    return () => { cancelled = true; };
   }, [selectedDate]);
 
   // Save meals to localStorage + Supabase
@@ -373,6 +373,39 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
     }
   }, []);
 
+  // Retry the last save if cloud sync failed
+  const retrySave = useCallback(() => {
+    setSyncError(null);
+
+    const version = ++syncVersion.current;
+
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        if (syncVersion.current !== version) return; // stale
+
+        await supabase
+          .from('nutrition_logs')
+          .upsert(
+            {
+              user_id: user.id,
+              log_date: selectedDate,
+              meals: mealsForCloud(meals),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id,log_date' }
+          );
+      } catch (err) {
+        console.error('Cloud sync retry failed:', err);
+        if (syncVersion.current === version) {
+          setSyncError('Cloud sync failed. Changes saved locally.');
+        }
+      }
+    })();
+  }, [selectedDate, meals]);
+
+
   return {
     selectedDate,
     setSelectedDate,
@@ -388,5 +421,6 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
     addManualItem,
     removeMeal,
     updateMeal,
+    retrySave,
   };
 }

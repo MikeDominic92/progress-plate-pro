@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Trophy, Flame, Zap, Clock, Activity, Dumbbell, X, Play, Trash2 } from 'lucide-react';
+import { Trophy, Flame, Zap, Clock, Activity, Dumbbell, X, Play, Trash2, Scale, Target } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularProgress } from '@/components/CircularProgress';
@@ -8,9 +9,8 @@ import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useProgression } from '@/hooks/useProgression';
 import { useWeightTracker } from '@/hooks/useWeightTracker';
-import { WeightTracker } from '@/components/WeightTracker';
 import { WorkoutCalendar } from '@/components/WorkoutCalendar';
-import { format, differenceInCalendarDays } from 'date-fns';
+import { format, differenceInCalendarDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { workoutPlan } from '@/data/workoutPlan';
 import type { WorkoutDay } from '@/data/workoutPlan';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
@@ -45,9 +45,14 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { clearSession, deleteSessionByDate } = useWorkoutStorage(username);
   const [deletingDate, setDeletingDate] = useState<string | null>(null);
+  const [weightInput, setWeightInput] = useState('');
+  const [goalInput, setGoalInput] = useState('');
+  const [editingGoal, setEditingGoal] = useState(false);
+  const [savingWeight, setSavingWeight] = useState(false);
+  const [selectedCalDate, setSelectedCalDate] = useState<Date | null>(null);
   const { completedSessionCount, allPRs } = useProgression(username);
   const weight = useWeightTracker(username);
-
+  const { toast } = useToast();
 
   useEffect(() => {
     if (username.trim()) {
@@ -144,7 +149,52 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
     return { currentStreak: current, bestStreak: maxRun };
   })();
   const progressPct = Math.round((totalCompletedDays / 90) * 100);
+  const thisWeekCount = (() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    return completedDayDates.filter(d =>
+      isWithinInterval(new Date(d + 'T00:00:00'), { start: weekStart, end: weekEnd })
+    ).length;
+  })();
   const nextWorkoutDay: WorkoutDay | undefined = workoutPlan[totalCompletedDays];
+
+  const logDate = selectedCalDate ? format(selectedCalDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const logDateLabel = selectedCalDate ? format(selectedCalDate, 'M/d') : 'Today';
+
+  const handleLogWeight = async () => {
+    const val = parseFloat(weightInput);
+    if (isNaN(val) || val <= 0) return;
+    setSavingWeight(true);
+    try {
+      await weight.logWeight(logDate, val);
+      setWeightInput('');
+      setSelectedCalDate(null);
+      toast({ title: "Weight logged", description: `${val} lb recorded for ${logDateLabel}` });
+    } catch (err) {
+      console.error('Weight log error:', err);
+      toast({ title: "Failed to log weight", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingWeight(false);
+    }
+  };
+
+  const handleSetGoal = async () => {
+    const val = parseFloat(goalInput);
+    if (isNaN(val) || val <= 0) return;
+    setSavingWeight(true);
+    try {
+      await weight.updateGoalWeight(val);
+      setGoalInput('');
+      setEditingGoal(false);
+      toast({ title: "Goal updated", description: `Goal set to ${val} lb` });
+    } catch (err) {
+      console.error('Goal save error:', err);
+      toast({ title: "Failed to save goal", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingWeight(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
@@ -154,8 +204,8 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(0_100%_75%/0.1),transparent_50%)]" />
 
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4 pb-20">
-        <div className="w-full max-w-sm">
-          <div className="relative bg-card/20 backdrop-blur-glass rounded-2xl border border-white/20 shadow-2xl p-4 sm:p-6 transition-all duration-500 hover:bg-card/30 active:bg-card/30 hover:border-primary/30 active:border-primary/30">
+        <div className="w-full max-w-sm md:max-w-md lg:max-w-lg">
+          <div className="relative bg-card/20 backdrop-blur-glass rounded-2xl border border-white/20 shadow-2xl p-3 sm:p-4 md:p-6 lg:p-8 transition-all duration-500 hover:bg-card/30 active:bg-card/30 hover:border-primary/30 active:border-primary/30">
 
             {/* Title */}
             <div className="text-center mb-6 relative">
@@ -311,7 +361,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
             <div className="mb-6" />
 
             {/* Stat Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-6 relative">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4 mb-1 relative">
               <div className="absolute -top-1 -right-2 pointer-events-none">
                 <SonnyAngelDetailed variant="strawberry" size={36} />
               </div>
@@ -338,6 +388,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                 )}
               </div>
             </div>
+            <p className="text-center text-xs text-white/30 mt-1 mb-4">This week: {thisWeekCount} workout{thisWeekCount !== 1 ? 's' : ''}</p>
 
             {/* Date/Time Display */}
             <div className="text-center mb-4">
@@ -355,22 +406,84 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                 workoutDates={completedDayDates.map(d => new Date(d + 'T00:00:00'))}
                 weightLogDates={[...weight.weightDatesSet].map(d => new Date(d + 'T00:00:00'))}
                 completedDayDates={completedDayDates}
+                weightLogs={weight.weightLogs}
+                goalWeight={weight.goalWeight}
+                selectedDate={selectedCalDate}
+                onSelectDate={setSelectedCalDate}
               />
             </div>
 
-            {/* Weight Display */}
-            <div className="mb-4 flex flex-col items-center gap-0.5">
-              <span className="text-2xl font-extrabold text-green-400">
-                {weight.latestWeight ? `${weight.latestWeight}` : '--'}
-                <span className="text-sm font-semibold text-green-400/60 ml-1">lb</span>
-              </span>
-              {weight.latestWeight && weight.latestWeight > 120 ? (
-                <span className="text-sm font-semibold text-yellow-400">
-                  {(weight.latestWeight - 120).toFixed(1)} lb to go
-                </span>
-              ) : weight.latestWeight ? (
-                <span className="text-sm font-semibold text-green-400">Goal reached!</span>
-              ) : null}
+            {/* Weight Log + Goal Input */}
+            <div className="mb-4 space-y-2 w-full">
+              <div className="flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary flex-shrink-0" />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  placeholder={`Weight for ${logDateLabel} (lb)`}
+                  value={weightInput}
+                  onChange={(e) => setWeightInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogWeight()}
+                  aria-label="Log weight in pounds"
+                  className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/[0.03] text-white placeholder:text-white/25 px-3 py-2 text-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none hover:border-white/20"
+                />
+                <Button
+                  onClick={handleLogWeight}
+                  disabled={savingWeight || !weightInput}
+                  size="sm"
+                  className="bg-gradient-primary hover:shadow-glow active:bg-primary/20 text-xs px-4 h-9"
+                >
+                  {savingWeight ? '...' : 'Log'}
+                </Button>
+              </div>
+
+              {/* Goal weight row */}
+              {!editingGoal && (
+                <button
+                  onClick={() => { setEditingGoal(true); setGoalInput(weight.goalWeight ? String(weight.goalWeight) : ''); }}
+                  className="flex items-center gap-2 w-full text-left px-1 py-1 rounded-md hover:bg-white/5 transition-colors"
+                >
+                  <Target className="h-3.5 w-3.5 text-yellow-400/70 flex-shrink-0" />
+                  {weight.goalWeight ? (
+                    <span className="text-xs text-white/40">Goal: <span className="text-yellow-400 font-medium">{weight.goalWeight} lb</span> <span className="text-white/20 ml-1">tap to edit</span></span>
+                  ) : (
+                    <span className="text-xs text-primary/60">Set a goal weight</span>
+                  )}
+                </button>
+              )}
+              {editingGoal && (
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-yellow-400/70 flex-shrink-0" />
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="Goal weight (lb)"
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSetGoal()}
+                    aria-label="Set goal weight in pounds"
+                    className="flex-1 min-w-0 rounded-lg border border-yellow-400/20 bg-white/[0.03] text-white placeholder:text-white/25 px-3 py-2 text-sm transition-all duration-200 focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/10 focus:outline-none"
+                    autoFocus
+                  />
+                  <Button
+                    onClick={handleSetGoal}
+                    disabled={savingWeight || !goalInput}
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs px-3 h-9 text-green-400 hover:text-green-300 hover:bg-green-400/10"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    onClick={() => setEditingGoal(false)}
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs px-2 h-9 text-white/30 hover:text-white/50"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Loading state */}
