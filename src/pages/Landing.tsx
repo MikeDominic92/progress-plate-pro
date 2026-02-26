@@ -358,35 +358,19 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
               />
             </div>
 
-            {/* Weight Goal */}
-            <div className="mb-4 px-1 flex items-center justify-center gap-3 text-xs">
-              <span className="text-white/50">
-                Current: <span className="text-white/80 font-medium">{weight.latestWeight ? `${weight.latestWeight} lb` : '--'}</span>
+            {/* Weight Display */}
+            <div className="mb-4 flex flex-col items-center gap-0.5">
+              <span className="text-2xl font-extrabold text-green-400">
+                {weight.latestWeight ? `${weight.latestWeight}` : '--'}
+                <span className="text-sm font-semibold text-green-400/60 ml-1">lb</span>
               </span>
-              <span className="text-white/20">|</span>
-              <span className="text-white/50">
-                Goal: <span className="text-green-400/80 font-medium">120 lb</span>
-              </span>
-              {weight.latestWeight && (
-                <>
-                  <span className="text-white/20">|</span>
-                  <span className={`font-medium ${weight.latestWeight <= 120 ? 'text-green-400/80' : 'text-white/50'}`}>
-                    {weight.latestWeight <= 120 ? 'Goal reached!' : `${(weight.latestWeight - 120).toFixed(1)} lb to go`}
-                  </span>
-                </>
-              )}
-            </div>
-
-            {/* Weight Tracker */}
-            <div className="mb-4">
-              <WeightTracker
-                weightLogs={weight.weightLogs}
-                goalWeight={weight.goalWeight}
-                latestWeight={weight.latestWeight}
-                weightDelta={weight.weightDelta}
-                onLogWeight={weight.logWeight}
-                onUpdateGoalWeight={weight.updateGoalWeight}
-              />
+              {weight.latestWeight && weight.latestWeight > 120 ? (
+                <span className="text-sm font-semibold text-yellow-400">
+                  {(weight.latestWeight - 120).toFixed(1)} lb to go
+                </span>
+              ) : weight.latestWeight ? (
+                <span className="text-sm font-semibold text-green-400">Goal reached!</span>
+              ) : null}
             </div>
 
             {/* Loading state */}
