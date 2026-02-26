@@ -3,6 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Pause, Play, CheckCircle2 } from 'lucide-react';
 
+// Recommended rest duration by set type
+const RECOMMENDED_REST: Record<string, number> = {
+  'Warm Up Set': 1,
+  'Medium/Primer Set': 2,
+  'Heavy/Top Set': 3,
+  'Failure/Back-Off Set': 4,
+};
+
 interface RestTimerModalProps {
   isOpen: boolean;
   onComplete: () => void;
@@ -29,6 +37,10 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
   const [isRunning, setIsRunning] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [restStartTime, setRestStartTime] = useState<number | null>(null);
+  const [showCustom, setShowCustom] = useState(false);
+  const [customSeconds, setCustomSeconds] = useState(90);
+
+  const recommendedMinutes = setDetails ? RECOMMENDED_REST[setDetails.setType] || 2 : null;
 
   const restOptions = [
     { value: 1, label: '1 min', color: 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20' },
@@ -70,7 +82,18 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
     setIsRunning(true);
     setIsCompleted(false);
     setRestStartTime(Date.now());
+    setShowCustom(false);
     onRestStarted?.(minutes * 60);
+  };
+
+  const handleSelectSeconds = (totalSeconds: number) => {
+    setSelectedMinutes(totalSeconds / 60);
+    setTimeLeft(totalSeconds);
+    setIsRunning(true);
+    setIsCompleted(false);
+    setRestStartTime(Date.now());
+    setShowCustom(false);
+    onRestStarted?.(totalSeconds);
   };
 
   const handleSkip = () => {
@@ -110,7 +133,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-sm bg-black/95 backdrop-blur-glass border-primary/30 shadow-2xl">
+      <Card className="w-full max-w-sm md:max-w-md bg-black/95 backdrop-blur-glass border-primary/30 shadow-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-center flex items-center justify-center gap-2 text-white text-base">
             <Clock className="h-5 w-5 text-primary" />
@@ -132,12 +155,67 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
                     key={option.value}
                     onClick={() => handleSelectTime(option.value)}
                     variant="outline"
-                    className={`h-16 text-lg font-semibold ${option.color} transition-all duration-200`}
+                    className={`h-14 text-base sm:h-16 sm:text-lg font-semibold relative ${option.color} transition-all duration-200 ${
+                      recommendedMinutes === option.value ? 'ring-2 ring-primary ring-offset-1 ring-offset-black' : ''
+                    }`}
                   >
                     {option.label}
+                    {recommendedMinutes === option.value && (
+                      <span className="absolute -top-2 -right-2 text-[10px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-medium">
+                        Suggested
+                      </span>
+                    )}
                   </Button>
                 ))}
               </div>
+
+              {/* 30s option */}
+              <Button
+                onClick={() => handleSelectSeconds(30)}
+                variant="outline"
+                className="w-full h-10 md:h-12 text-sm font-medium bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
+              >
+                30s
+              </Button>
+
+              {/* Custom timer */}
+              {!showCustom ? (
+                <button
+                  onClick={() => setShowCustom(true)}
+                  className="w-full text-center text-sm text-white/40 hover:text-white/70 py-1 transition-colors"
+                >
+                  Custom
+                </button>
+              ) : (
+                <div className="flex items-center justify-center gap-3 p-2 bg-white/5 rounded-lg border border-white/10">
+                  <Button
+                    onClick={() => setCustomSeconds(s => Math.max(15, s - 15))}
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-9 md:h-10 md:w-10 p-0 bg-white/10 border-white/20 text-white"
+                  >
+                    -
+                  </Button>
+                  <span className="text-white font-mono text-lg w-16 text-center">
+                    {Math.floor(customSeconds / 60)}:{(customSeconds % 60).toString().padStart(2, '0')}
+                  </span>
+                  <Button
+                    onClick={() => setCustomSeconds(s => Math.min(600, s + 15))}
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-9 md:h-10 md:w-10 p-0 bg-white/10 border-white/20 text-white"
+                  >
+                    +
+                  </Button>
+                  <Button
+                    onClick={() => handleSelectSeconds(customSeconds)}
+                    size="sm"
+                    className="bg-gradient-primary text-white font-semibold"
+                  >
+                    Start
+                  </Button>
+                </div>
+              )}
 
               {/* Skip rest */}
               <button
@@ -151,7 +229,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
             <>
               {/* Timer display */}
               <div className="text-center">
-                <div className="text-5xl font-mono font-bold mb-3 text-white">
+                <div className="text-4xl sm:text-5xl font-mono font-bold mb-3 text-white">
                   {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
                 </div>
               </div>

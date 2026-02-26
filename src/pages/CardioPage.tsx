@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FitnessInput } from '@/components/ui/fitness-input';
-import { Timer, CheckCircle2, Target, SkipForward } from 'lucide-react';
+import { Timer, CheckCircle2, Target, SkipForward, Pause, Play } from 'lucide-react';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
+import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 
 export default function CardioPage() {
   const navigate = useNavigate();
@@ -18,9 +19,35 @@ export default function CardioPage() {
     completed: false,
   });
 
+  // Cardio countdown timer state
+  const [timerSeconds, setTimerSeconds] = useState(600); // 10 minutes
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerFinished, setTimerFinished] = useState(false);
+
   useEffect(() => {
     if (username) initializeSession();
   }, [username, initializeSession]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timerRunning && timerSeconds > 0) {
+      interval = setInterval(() => {
+        setTimerSeconds(prev => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            setTimerFinished(true);
+            // Auto-fill the time field
+            setCardioData(d => ({ ...d, time: '10' }));
+            updateSession({ cardio_time: '10' });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning, timerSeconds, updateSession]);
 
   useEffect(() => {
     if (currentSession) {
@@ -41,13 +68,13 @@ export default function CardioPage() {
   }, [currentSession]);
 
   const handleComplete = async () => {
-    if (cardioData.time && cardioData.calories) {
+    if (cardioData.time) {
       setCardioData({ ...cardioData, completed: true });
       const updates = {
         current_phase: 'warmup' as const,
         cardio_completed: true,
         cardio_time: cardioData.time,
-        cardio_calories: cardioData.calories,
+        cardio_calories: cardioData.calories || '0',
       };
       updateSession(updates);
       try { await manualSave(updates); } catch {}
@@ -56,6 +83,7 @@ export default function CardioPage() {
   };
 
   const handleSkip = async () => {
+    if (!window.confirm('Skip cardio warm-up? You can still come back.')) return;
     const updates = {
       current_phase: 'warmup' as const,
       cardio_completed: true,
@@ -72,12 +100,17 @@ export default function CardioPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 py-8 max-w-lg relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2">
-            Cardio Warm-Up
-          </h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2">
+              Cardio Warm-Up
+            </h1>
+            <div className="pointer-events-none opacity-85">
+              <SonnyAngelDetailed variant="duck" size={48} />
+            </div>
+          </div>
           <p className="text-muted-foreground text-sm">
             10 minutes of stair master to get the blood flowing
           </p>
@@ -99,7 +132,44 @@ export default function CardioPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Countdown timer */}
+            {!cardioData.completed && (
+              <div className="space-y-2">
+                <div className="text-center">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-mono font-bold text-white mb-2">
+                    {Math.floor(timerSeconds / 60).toString().padStart(2, '0')}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                  </div>
+                  <div className="w-full h-2 md:h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        timerSeconds <= 30 ? 'bg-red-500 animate-pulse' :
+                        timerSeconds <= 60 ? 'bg-yellow-500' :
+                        'bg-green-500'
+                      }`}
+                      style={{ width: `${((600 - timerSeconds) / 600) * 100}%` }}
+                    />
+                  </div>
+                  {timerFinished ? (
+                    <p className="text-sm text-green-400 font-medium">Time's up!</p>
+                  ) : (
+                    <Button
+                      onClick={() => setTimerRunning(r => !r)}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      {timerRunning ? (
+                        <><Pause className="h-4 w-4 mr-1" /> Pause</>
+                      ) : (
+                        <><Play className="h-4 w-4 mr-1" /> {timerSeconds < 600 ? 'Resume' : 'Start Timer'}</>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <FitnessInput
                 label="Time (min)"
                 icon={<Timer className="h-4 w-4" />}
@@ -130,7 +200,7 @@ export default function CardioPage() {
               />
             </div>
 
-            {cardioData.time && cardioData.calories && !cardioData.completed && (
+            {cardioData.time && !cardioData.completed && (
               <Button
                 onClick={handleComplete}
                 className="w-full bg-gradient-primary hover:shadow-glow"
@@ -144,12 +214,17 @@ export default function CardioPage() {
               <div className="text-center p-3 bg-success/10 rounded-lg border border-success/20">
                 <div className="flex items-center justify-center gap-2 text-success font-medium">
                   <CheckCircle2 className="h-4 w-4" />
-                  Done! {cardioData.time} min, {cardioData.calories} cal
+                  Done! {cardioData.time} min{cardioData.calories && cardioData.calories !== '0' ? `, ${cardioData.calories} cal` : ''}
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Elephant character */}
+        <div className="flex justify-center pointer-events-none opacity-85 mb-2">
+          <SonnyAngelDetailed variant="elephant" size={40} />
+        </div>
 
         {/* Skip */}
         {!cardioData.completed && (

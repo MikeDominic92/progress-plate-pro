@@ -2,20 +2,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
 import Index from "./pages/Index";
-import AuthPage from "./pages/AuthPage";
 import CardioPage from "./pages/CardioPage";
 import WarmupPage from "./pages/WarmupPage";
-import WorkoutPage from "./pages/WorkoutPage";
-import WorkoutOverviewPage from "./pages/WorkoutOverviewPage";
 import ExercisePage from "./pages/ExercisePage";
 import PostWorkoutPage from "./pages/PostWorkoutPage";
-import { ExerciseIndexPage } from "./pages/ExerciseIndexPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import SonnyDefs from "@/components/characters/SonnyDefs";
 
 const queryClient = new QueryClient();
 
@@ -24,62 +21,38 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          <SonnyDefs />
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public routes */}
-              <Route path="/auth" element={
-                <AuthGuard requireAuth={false}>
-                  <AuthPage />
-                </AuthGuard>
-              } />
-              
-              {/* Protected routes - require authentication */}
+              {/* Redirect old routes */}
+              <Route path="/auth" element={<Navigate to="/" replace />} />
+              <Route path="/workout" element={<Navigate to="/exercise/0" replace />} />
+              <Route path="/exercise-index" element={<Navigate to="/" replace />} />
+
+              {/* App routes */}
               <Route path="/" element={
-                <AuthGuard requireAuth={true}>
-                  <Index />
-                </AuthGuard>
+                <AuthGuard><Index /></AuthGuard>
               } />
               <Route path="/cardio" element={
-                <AuthGuard requireAuth={true}>
-                  <CardioPage />
-                </AuthGuard>
+                <AuthGuard><CardioPage /></AuthGuard>
               } />
               <Route path="/warmup" element={
-                <AuthGuard requireAuth={true}>
-                  <WarmupPage />
-                </AuthGuard>
-              } />
-              <Route path="/workout" element={
-                <AuthGuard requireAuth={true}>
-                  <WorkoutOverviewPage />
-                </AuthGuard>
+                <AuthGuard><WarmupPage /></AuthGuard>
               } />
               <Route path="/exercise/:exerciseIndex" element={
-                <AuthGuard requireAuth={true}>
-                  <ExercisePage />
-                </AuthGuard>
-              } />
-              <Route path="/exercise-index" element={
-                <AuthGuard requireAuth={true}>
-                  <ExerciseIndexPage />
-                </AuthGuard>
+                <AuthGuard><ExercisePage /></AuthGuard>
               } />
               <Route path="/post-workout" element={
-                <AuthGuard requireAuth={true}>
-                  <PostWorkoutPage />
-                </AuthGuard>
+                <AuthGuard><PostWorkoutPage /></AuthGuard>
               } />
-              
-              {/* Admin only routes */}
+
+              {/* Admin only */}
               <Route path="/admin" element={
-                <AuthGuard requireAuth={true} requireAdmin={true}>
-                  <AdminDashboard />
-                </AuthGuard>
+                <AuthGuard requireAdmin={true}><AdminDashboard /></AuthGuard>
               } />
-              
-              {/* 404 route */}
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

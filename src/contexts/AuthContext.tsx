@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+const DEFAULT_USERNAME = 'Kara';
 
 interface AuthContextType {
   user: User | null;
@@ -35,92 +37,118 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const { toast } = useToast();
+  const initialSessionResolved = useRef(false);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role, username')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
+
+      setIsAdmin(data?.role === 'admin');
+      setUsername(data?.username || null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setIsAdmin(false);
+      setUsername(null);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        initialSessionResolved.current = true;
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Check admin status and username when user changes
+
+        // Fetch role and username when user changes
         if (session?.user) {
-          setTimeout(() => {
-            checkAdminStatus(session.user.id);
-            fetchUsername(session.user.id);
-          }, 0);
+          fetchUserRole(session.user.id);
         } else {
           setIsAdmin(false);
           setUsername(null);
         }
-        
+
         setLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (initialSessionResolved.current) {
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        setTimeout(() => {
-          checkAdminStatus(session.user.id);
-          fetchUsername(session.user.id);
-        }, 0);
+        fetchUserRole(session.user.id);
       }
-      
+
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
+  // Auto-authenticate as Kara - no login screen needed
+  useEffect(() => {
+    if (!loading && !session) {
+      const autoSignIn = async () => {
+        const email = `${DEFAULT_USERNAME.toLowerCase()}@temp.local`;
+        const password = 'KaraBooty90!';
 
-      if (error) {
-        console.error('Error checking admin status:', error);
-        return;
-      }
+        // Try to sign in first
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      setIsAdmin(data?.role === 'admin');
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
+        if (signInError) {
+          // If sign-in fails, create the account
+          const { data, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { username: DEFAULT_USERNAME }
+            }
+          });
+
+          if (signUpError) {
+            console.error('Auto-auth failed:', signUpError);
+            setLoading(false);
+            return;
+          }
+
+          // Create user role entry
+          if (data.user) {
+            await supabase.from('user_roles').upsert({
+              user_id: data.user.id,
+              username: DEFAULT_USERNAME,
+              role: 'user'
+            }, { onConflict: 'user_id' });
+          }
+        }
+      };
+
+      autoSignIn();
     }
-  };
-
-  const fetchUsername = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('username')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching username:', error);
-        return;
-      }
-
-      setUsername(data?.username || null);
-    } catch (error) {
-      console.error('Error fetching username:', error);
-      setUsername(null);
-    }
-  };
+  }, [loading, session]);
 
   const signUp = async (username: string, password: string) => {
     // Create a temporary email using username
     const tempEmail = `${username.toLowerCase()}@temp.local`;
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email: tempEmail,
       password,
@@ -157,7 +185,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signIn = async (username: string, password: string) => {
     // Convert username to temp email for sign in
     const tempEmail = `${username.toLowerCase()}@temp.local`;
-    
+
     const { error } = await supabase.auth.signInWithPassword({
       email: tempEmail,
       password,
@@ -178,11 +206,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         description: "Error signing out. Please try again.",
         variant: "destructive",
       });
-    } else {
-      // Clear localStorage
-      localStorage.removeItem('username');
-      localStorage.removeItem('forceNewSession');
     }
+
+    // Always clear state and localStorage on sign out
+    setUser(null);
+    setSession(null);
+    setIsAdmin(false);
+    setUsername(null);
+    localStorage.removeItem('username');
+    localStorage.removeItem('forceNewSession');
   };
 
   const value = {

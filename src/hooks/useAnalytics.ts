@@ -45,7 +45,8 @@ export const useAnalytics = () => {
     setNumber: number,
     weight: number,
     reps: number,
-    restDuration?: number
+    restDuration?: number,
+    setType?: string
   ) => {
     await trackEvent({
       sessionId,
@@ -55,7 +56,7 @@ export const useAnalytics = () => {
       setNumber,
       weight,
       reps,
-      eventData: { restDuration }
+      eventData: { restDuration, setType }
     });
   }, [trackEvent]);
 
@@ -117,11 +118,34 @@ export const useAnalytics = () => {
     });
   }, [trackEvent]);
 
+  const trackPR = useCallback(async (
+    sessionId: string,
+    username: string,
+    exerciseName: string,
+    prType: string,
+    value: number,
+    previousValue: number
+  ) => {
+    await trackEvent({
+      sessionId,
+      username,
+      eventType: 'set_completed',
+      exerciseName,
+      eventData: {
+        pr_detected: true,
+        pr_type: prType,
+        pr_value: value,
+        pr_previous_value: previousValue
+      }
+    });
+  }, [trackEvent]);
+
   return {
     trackEvent,
     trackSetCompleted,
     trackRestTimer,
     trackPhaseCompletion,
-    trackExerciseCompletion
+    trackExerciseCompletion,
+    trackPR
   };
 };

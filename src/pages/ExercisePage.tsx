@@ -7,12 +7,14 @@ import { ExerciseTimer } from '@/components/ExerciseTimer';
 import { RestTimerModal } from '@/components/RestTimerModal';
 import { PRCelebration } from '@/components/PRCelebration';
 import { SetLog } from '@/components/SetLog';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useProgression } from '@/hooks/useProgression';
 import { useToast } from '@/hooks/use-toast';
 import type { PersonalRecord } from '@/utils/progressionEngine';
+import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 
 const initialWorkoutData = [
   {
@@ -90,7 +92,7 @@ export default function ExercisePage() {
   const { trackSetCompleted, trackRestTimer, trackExerciseCompletion, trackPR } = useAnalytics();
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   const { toast } = useToast();
-  const { getSuggestion, checkForPR, savePersonalRecords, refreshHistory } = useProgression(username || '');
+  const { getSuggestion, checkForPR, savePersonalRecords, refreshHistory, getLastSession } = useProgression(username || '');
 
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
 
@@ -108,6 +110,7 @@ export default function ExercisePage() {
   } | null>(null);
   const [prCelebration, setPrCelebration] = useState<PersonalRecord[]>([]);
   const [showPRModal, setShowPRModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
 
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasHydratedFromSession = useRef(false);
@@ -338,23 +341,13 @@ export default function ExercisePage() {
   const hasSubData = currentExercise.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed);
   const canSwitch = currentExercise.substitute && !hasMainData && !hasSubData;
 
-  const openVideo = (url: string) => {
-    try {
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+  const openVideo = (url: string, title: string) => {
+    setSelectedVideo({ url, title });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-2 sm:p-4 max-w-lg space-y-3">
+      <div className="container mx-auto p-2 sm:p-4 md:p-6 max-w-lg md:max-w-2xl lg:max-w-3xl space-y-3">
         {/* Header: name + nav + progress */}
         <div className="flex items-center gap-2">
           <Button
@@ -368,7 +361,12 @@ export default function ExercisePage() {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-extrabold truncate">{activeExerciseName}</h1>
+              <div className="flex items-center gap-1">
+                <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold truncate">{activeExerciseName}</h1>
+                <div className="pointer-events-none opacity-85 flex-shrink-0">
+                  <SonnyAngelDetailed variant="lion" size={32} />
+                </div>
+              </div>
               <span className="text-sm text-muted-foreground flex-shrink-0 ml-2">
                 {currentExerciseIndex + 1} of {workoutLog.length}
               </span>
@@ -394,7 +392,8 @@ export default function ExercisePage() {
               onClick={() => openVideo(
                 useSubstitute && currentExercise.substitute
                   ? currentExercise.substitute.videoUrl
-                  : currentExercise.videoUrl
+                  : currentExercise.videoUrl,
+                activeExerciseName
               )}
             >
               <Play className="h-4 w-4" />
@@ -444,20 +443,29 @@ export default function ExercisePage() {
         />
 
         {/* Sets */}
-        <div className="space-y-3">
-          {activeSets.map((set: any, idx: number) => {
-            const suggestion = getSuggestion(activeExerciseName, set.type, idx);
-            return (
-              <SetLog
-                key={set.id}
-                set={set}
-                onLogChange={(field, value) => handleLogChange(idx, field, value)}
-                onSetComplete={() => handleSetComplete(idx)}
-                suggestion={suggestion}
-                disabled={set.confirmed}
-              />
-            );
-          })}
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+          {(() => {
+            const lastSession = getLastSession(activeExerciseName);
+            const firstIncompleteIdx = activeSets.findIndex((s: any) => !s.confirmed);
+            return activeSets.map((set: any, idx: number) => {
+              const suggestion = getSuggestion(activeExerciseName, set.type, idx);
+              // Match last session data by setType
+              const lastSetForType = lastSession?.sets.find(s => s.setType === set.type);
+              const lastSet = lastSetForType ? { weight: lastSetForType.weight, reps: lastSetForType.reps } : undefined;
+              return (
+                <SetLog
+                  key={set.id}
+                  set={set}
+                  onLogChange={(field, value) => handleLogChange(idx, field, value)}
+                  onSetComplete={() => handleSetComplete(idx)}
+                  suggestion={suggestion}
+                  disabled={set.confirmed}
+                  lastSet={lastSet}
+                  autoFocus={idx === firstIncompleteIdx}
+                />
+              );
+            });
+          })()}
         </div>
       </div>
 
@@ -482,6 +490,16 @@ export default function ExercisePage() {
           }}
           onRestStarted={handleRestStarted}
           onRestCompleted={handleRestCompleted}
+        />
+      )}
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
         />
       )}
     </div>

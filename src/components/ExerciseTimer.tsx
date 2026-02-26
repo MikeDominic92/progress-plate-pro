@@ -107,14 +107,19 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
 
   return (
     <Card className={`mb-4 transition-all duration-300 ${getTimerColor()}`}>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Timer className={`h-5 w-5 ${isCriticalTime ? 'animate-pulse' : ''}`} />
             <span className="font-semibold">
               {exerciseType === 'warmup' ? 'Warm-up' : 'Exercise'} Timer
             </span>
-            {isCriticalTime && (
+            {isPaused && (
+              <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
+                Paused - Resting
+              </Badge>
+            )}
+            {isCriticalTime && !isPaused && (
               <Badge variant="destructive" className="animate-pulse">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Low Time
@@ -122,12 +127,12 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
             )}
           </div>
           
-          <div className="text-2xl font-mono font-bold">
+          <div className="text-xl sm:text-2xl md:text-3xl font-mono font-bold">
             {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
           </div>
         </div>
         
-        <div className="w-full h-3 bg-black border border-success rounded-full overflow-hidden mb-4">
+        <div className="w-full h-2 sm:h-3 bg-black border border-success rounded-full overflow-hidden mb-4">
           <div 
             className={`h-full transition-all duration-500 ${getProgressColor()}`}
             style={{ width: `${progress}%` }}
@@ -143,7 +148,7 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
           ) : isPaused ? (
             <Button onClick={handleStart} variant="default" size="sm" className="border border-green-500 bg-black text-white">
               <Play className="h-4 w-4 mr-2" />
-              Resume After Set
+              Resume Timer
             </Button>
           ) : (
             <Button onClick={handlePause} variant="secondary" size="sm" className="border border-gray-400 bg-black text-white">

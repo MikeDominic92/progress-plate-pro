@@ -185,4 +185,147 @@
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+
+  /* Sonny Angel character animations */
+
+  /* Bunny -- bouncy hop with squash-stretch */
+  @keyframes sonny-hoppy {
+    0%, 100% { transform: translateY(0) scaleY(1) scaleX(1); }
+    10% { transform: translateY(0) scaleY(0.92) scaleX(1.05); }
+    30% { transform: translateY(-14px) scaleY(1.05) scaleX(0.97); }
+    50% { transform: translateY(0) scaleY(0.95) scaleX(1.03); }
+    60% { transform: translateY(-6px) scaleY(1.02) scaleX(1); }
+    75% { transform: translateY(0) scaleY(1) scaleX(1); }
+  }
+  .sonny-hoppy {
+    animation: sonny-hoppy 2s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Strawberry -- gentle pirouette twirl */
+  @keyframes sonny-twirl {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(10deg) scale(1.04); }
+    50% { transform: rotate(-3deg) scale(1); }
+    75% { transform: rotate(-10deg) scale(1.04); }
+  }
+  .sonny-twirl {
+    animation: sonny-twirl 3.5s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Cat -- curious crouch and peek */
+  @keyframes sonny-pounce {
+    0%, 100% { transform: translateY(0) scaleX(1) scaleY(1); }
+    20% { transform: translateY(3px) scaleX(1.05) scaleY(0.93); }
+    40% { transform: translateY(-10px) scaleX(0.95) scaleY(1.08); }
+    55% { transform: translateY(-2px) scaleX(1) scaleY(1); }
+    70% { transform: translateY(0) rotate(4deg); }
+    85% { transform: translateY(0) rotate(-2deg); }
+  }
+  .sonny-pounce {
+    animation: sonny-pounce 3s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Bear -- sleepy gentle head nod */
+  @keyframes sonny-sleepy {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    15% { transform: rotate(3deg) translateY(1px); }
+    30% { transform: rotate(5deg) translateY(3px); }
+    45% { transform: rotate(3deg) translateY(2px); }
+    60% { transform: rotate(0deg) translateY(0); }
+    75% { transform: rotate(-2deg) translateY(1px); }
+  }
+  .sonny-sleepy {
+    animation: sonny-sleepy 4s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Duck -- cute waddle walk */
+  @keyframes sonny-waddle {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    20% { transform: translateX(-6px) rotate(-5deg); }
+    40% { transform: translateX(0) rotate(0deg); }
+    60% { transform: translateX(6px) rotate(5deg); }
+    80% { transform: translateX(0) rotate(0deg); }
+  }
+  .sonny-waddle {
+    animation: sonny-waddle 2s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Flower -- blooming pulse with gentle sway */
+  @keyframes sonny-bloom {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.06) rotate(2deg); }
+    50% { transform: scale(0.97) rotate(0deg); }
+    75% { transform: scale(1.04) rotate(-2deg); }
+  }
+  .sonny-bloom {
+    animation: sonny-bloom 4s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Elephant -- heavy little stomps side to side */
+  @keyframes sonny-stomp {
+    0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+    15% { transform: translateX(-3px) translateY(-2px) rotate(-2deg); }
+    30% { transform: translateX(-3px) translateY(2px) rotate(-1deg); }
+    45% { transform: translateX(3px) translateY(-2px) rotate(2deg); }
+    60% { transform: translateX(3px) translateY(2px) rotate(1deg); }
+    75% { transform: translateX(0) translateY(-1px) rotate(0deg); }
+  }
+  .sonny-stomp {
+    animation: sonny-stomp 3s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Koala -- lazy clingy sway */
+  @keyframes sonny-cling {
+    0%, 100% { transform: rotate(0deg) translateY(0); }
+    30% { transform: rotate(-5deg) translateY(-2px); }
+    60% { transform: rotate(5deg) translateY(-2px); }
+  }
+  .sonny-cling {
+    animation: sonny-cling 5s ease-in-out infinite;
+    transform-origin: center top;
+    display: inline-block;
+  }
+
+  /* Lion -- proud little strut with chest puff */
+  @keyframes sonny-strut {
+    0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+    20% { transform: scale(1.05) translateY(-3px) rotate(0deg); }
+    40% { transform: scale(1) translateY(0) rotate(3deg); }
+    60% { transform: scale(1.05) translateY(-3px) rotate(0deg); }
+    80% { transform: scale(1) translateY(0) rotate(-3deg); }
+  }
+  .sonny-strut {
+    animation: sonny-strut 3.5s ease-in-out infinite;
+    transform-origin: center bottom;
+    display: inline-block;
+  }
+
+  /* Monkey -- playful swing from branch */
+  @keyframes sonny-swing {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    15% { transform: rotate(-12deg) translateX(-5px); }
+    30% { transform: rotate(8deg) translateX(3px); }
+    45% { transform: rotate(-8deg) translateX(-3px); }
+    60% { transform: rotate(12deg) translateX(5px); }
+    75% { transform: rotate(-4deg) translateX(-2px); }
+  }
+  .sonny-swing {
+    animation: sonny-swing 2.5s ease-in-out infinite;
+    transform-origin: center top;
+    display: inline-block;
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FitnessInput } from '@/components/ui/fitness-input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,13 +13,16 @@ interface SetLogProps {
   onSetComplete?: () => void;
   suggestion?: ProgressionSuggestion;
   disabled?: boolean;
+  lastSet?: { weight: number; reps: number };
+  autoFocus?: boolean;
 }
 
-export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled = false }: SetLogProps) {
+export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled = false, lastSet, autoFocus = false }: SetLogProps) {
   const [weightInput, setWeightInput] = useState<string>(set.weight ?? '');
   const [repsInput, setRepsInput] = useState<string>(set.reps ?? '');
   const [isWeightFocused, setIsWeightFocused] = useState(false);
   const [isRepsFocused, setIsRepsFocused] = useState(false);
+  const weightInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isWeightFocused) setWeightInput(set.weight ?? '');
@@ -29,9 +32,22 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
     if (!isRepsFocused) setRepsInput(set.reps ?? '');
   }, [set.reps, isRepsFocused]);
 
+  // Auto-focus the weight input for the first incomplete set
+  useEffect(() => {
+    if (autoFocus && !set.confirmed && !disabled && weightInputRef.current) {
+      weightInputRef.current.focus();
+    }
+  }, [autoFocus, set.confirmed, disabled]);
+
   const isWarmUp = set.type === 'Warm Up Set';
   const isComplete = Boolean(weightInput && repsInput);
   const isConfirmed = set.confirmed;
+
+  // Soft validation warnings
+  const weightNum = parseFloat(weightInput) || 0;
+  const repsNum = parseInt(repsInput) || 0;
+  const showWeightWarning = weightNum > 500;
+  const showRepsWarning = repsNum > 50;
 
   return (
     <Card className={`transition-all duration-300 backdrop-blur-glass border-white/10 bg-black ${
@@ -41,11 +57,16 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
       isComplete && !disabled ? 'ring-1 ring-primary/40' :
       disabled ? 'opacity-50' : ''
     }`}>
-      <CardContent className="p-5">
+      <CardContent className="p-3 sm:p-4 md:p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="space-y-1">
-            <h4 className="font-semibold text-white">{set.type}</h4>
+            <h4 className="font-semibold text-white md:text-lg">{set.type}</h4>
             <p className="text-sm text-gray-300">{set.instructions}</p>
+            {lastSet && lastSet.weight > 0 && (
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Last: {lastSet.weight} lb x {lastSet.reps}
+              </p>
+            )}
           </div>
           {isConfirmed && (
             <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
@@ -60,8 +81,9 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 mb-1">
           <FitnessInput
+            ref={weightInputRef}
             label="Weight"
             icon={<Weight className="h-4 w-4" />}
             type="text"
@@ -108,6 +130,18 @@ export function SetLog({ set, onLogChange, onSetComplete, suggestion, disabled =
             disabled={isConfirmed || disabled}
           />
         </div>
+
+        {/* Soft validation warnings */}
+        {(showWeightWarning || showRepsWarning) && (
+          <div className="mb-2 space-y-0.5">
+            {showWeightWarning && (
+              <p className="text-xs md:text-sm text-yellow-500">Double-check: {weightNum} lb</p>
+            )}
+            {showRepsWarning && (
+              <p className="text-xs md:text-sm text-yellow-500">Double-check: {repsNum} reps</p>
+            )}
+          </div>
+        )}
 
         {!isConfirmed && isComplete && !disabled && onSetComplete && (
           <Button

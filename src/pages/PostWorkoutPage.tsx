@@ -8,12 +8,13 @@ import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useProgression } from '@/hooks/useProgression';
 import { ExerciseProgressChart } from '@/components/ExerciseProgressChart';
 import { supabase } from '@/integrations/supabase/client';
+import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 
 export default function PostWorkoutPage() {
   const navigate = useNavigate();
   const { username } = useAuthenticatedUser();
   const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username || '');
-  const { allPRs, getWeightTrend } = useProgression(username || '');
+  const { allPRs, getWeightTrend, recentSessions } = useProgression(username || '');
 
   useEffect(() => {
     if (username) initializeSession();
@@ -65,8 +66,19 @@ export default function PostWorkoutPage() {
     const today = new Date().toISOString().split('T')[0];
     const todayPRs = allPRs.filter(pr => pr.date === today);
 
-    return { totalVolume, exercises, todayPRs };
-  }, [currentSession, allPRs]);
+    // Find previous session volume (skip today's entry)
+    const previousSession = recentSessions.find(s => s.date !== today && s.totalVolume > 0);
+    const previousVolume = previousSession?.totalVolume || null;
+
+    let volumeDelta: number | null = null;
+    let volumeDeltaPct: number | null = null;
+    if (previousVolume && totalVolume > 0) {
+      volumeDelta = totalVolume - previousVolume;
+      volumeDeltaPct = Math.round((volumeDelta / previousVolume) * 100);
+    }
+
+    return { totalVolume, exercises, todayPRs, previousVolume, volumeDelta, volumeDeltaPct };
+  }, [currentSession, allPRs, recentSessions]);
 
   const headerMessage = useMemo(() => {
     if (!sessionSummary) return 'Solid consistency!';
@@ -113,16 +125,21 @@ export default function PostWorkoutPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 py-8 max-w-lg relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-primary/20 backdrop-blur-glass rounded-full text-primary-foreground font-medium text-sm mb-4 border border-primary/30">
             <Trophy className="h-4 w-4" />
             Workout Complete!
           </div>
-          <h1 className="text-3xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2 tracking-tight">
-            {headerMessage}
-          </h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2 tracking-tight">
+              {headerMessage}
+            </h1>
+            <div className="pointer-events-none">
+              <SonnyAngelDetailed variant="bear" size={48} />
+            </div>
+          </div>
         </div>
 
         {/* Session Summary */}
@@ -135,17 +152,30 @@ export default function PostWorkoutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-primary" />
-                  <span className="text-white/80 text-sm">Total Volume</span>
+              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-primary" />
+                    <span className="text-white/80 text-sm">Total Volume</span>
+                  </div>
+                  <span className="text-primary font-bold text-lg">
+                    {sessionSummary.totalVolume.toLocaleString()} lb
+                  </span>
                 </div>
-                <span className="text-primary font-bold text-lg">
-                  {sessionSummary.totalVolume.toLocaleString()} lb
-                </span>
+                {sessionSummary.volumeDelta !== null && sessionSummary.volumeDeltaPct !== null && (
+                  <div className="flex items-center justify-end mt-1">
+                    <span className={`text-xs font-medium ${
+                      sessionSummary.volumeDeltaPct > 2 ? 'text-green-400' :
+                      sessionSummary.volumeDeltaPct < -2 ? 'text-red-400' :
+                      'text-yellow-400'
+                    }`}>
+                      {sessionSummary.volumeDelta > 0 ? '+' : ''}{sessionSummary.volumeDelta.toLocaleString()} lb ({sessionSummary.volumeDeltaPct > 0 ? '+' : ''}{sessionSummary.volumeDeltaPct}%) vs last
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                 {sessionSummary.exercises.map((ex, i) => (
                   <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white/5 text-sm">
                     <span className="text-white/70 truncate flex-1 mr-2">{ex.name}</span>
@@ -191,7 +221,7 @@ export default function PostWorkoutPage() {
 
         {/* Progress Charts */}
         {exerciseCharts.length > 0 && (
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 mb-6">
             {exerciseCharts.map((chart) => (
               <ExerciseProgressChart
                 key={chart.name}
@@ -204,14 +234,19 @@ export default function PostWorkoutPage() {
         )}
 
         {/* Done Button */}
-        <Button
-          onClick={handleDone}
-          className="w-full h-14 text-lg font-bold bg-gradient-primary hover:shadow-glow rounded-xl"
-          size="lg"
-        >
-          <Home className="h-5 w-5 mr-2" />
-          Done
-        </Button>
+        <div className="relative">
+          <div className="absolute -top-2 -right-2 pointer-events-none">
+            <SonnyAngelDetailed variant="koala" size={40} />
+          </div>
+          <Button
+            onClick={handleDone}
+            className="w-full h-14 text-lg font-bold bg-gradient-primary hover:shadow-glow rounded-xl"
+            size="lg"
+          >
+            <Home className="h-5 w-5 mr-2" />
+            Done
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useProgression } from '@/hooks/useProgression';
 import { format } from 'date-fns';
+import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 
 interface WorkoutSession {
   id: string;
@@ -105,7 +106,10 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
           <div className="relative bg-card/20 backdrop-blur-glass rounded-2xl border border-white/20 shadow-2xl p-6 transition-all duration-500 hover:bg-card/30 hover:border-primary/30">
 
             {/* Title */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-6 relative">
+              <div className="absolute -top-2 -right-2 pointer-events-none">
+                <SonnyAngelDetailed variant="bunny" size={48} />
+              </div>
               <h1 className="text-3xl font-extrabold mb-1 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
                 Big Booty Builder
               </h1>
@@ -115,15 +119,21 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
             </div>
 
             {/* Progress Ring */}
-            <div className="flex flex-col items-center mb-6">
+            <div className="flex flex-col items-center mb-6 relative">
               <CircularProgress percentage={progressPct} size={100} strokeWidth={10} />
               <p className="text-sm text-muted-foreground mt-2">
                 Day {totalCompletedDays + 1} of 90
               </p>
+              <div className="absolute -bottom-2 -left-4 pointer-events-none">
+                <SonnyAngelDetailed variant="flower" size={40} />
+              </div>
             </div>
 
             {/* Stat Pills */}
-            <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-6 relative">
+              <div className="absolute -top-1 -right-2 pointer-events-none">
+                <SonnyAngelDetailed variant="strawberry" size={36} />
+              </div>
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-sm animate-slide-in" style={{ animationDelay: '0.1s' }}>
                 <Flame className="h-3.5 w-3.5 text-accent" />
                 <span className="text-white/80 font-medium">{completedSessionCount}</span>

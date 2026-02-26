@@ -165,8 +165,8 @@ export const workoutPlan: WorkoutDay[] = [
   }
 ];
 
-// Generate remaining days (10-40) with cycling pattern
-for (let day = 10; day <= 40; day++) {
+// Generate remaining days (10-90) with cycling pattern
+for (let day = 10; day <= 90; day++) {
   const cycleDay = ((day - 1) % 9) + 1;
   const baseworkout = workoutPlan[cycleDay - 1];
   

@@ -109,16 +109,22 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleResetData = async () => {
+    const confirmed = window.confirm(
+      'This will permanently delete ALL workout sessions, profiles, and analytics data. This action cannot be undone. Are you sure?'
+    );
+    if (!confirmed) return;
+
     try {
       await deleteAllData();
       toast({
         title: "Success",
         description: "All data has been reset successfully.",
       });
+      fetchData(); // Refresh the dashboard
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to reset data. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to reset data. Please try again.",
         variant: "destructive",
       });
     }

@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Timer, CheckCircle2, Play, SkipForward } from 'lucide-react';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
+import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 
 const warmupExercises = [
   {
@@ -43,6 +45,7 @@ export default function WarmupPage() {
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     if (username) initializeSession();
@@ -74,18 +77,8 @@ export default function WarmupPage() {
     });
   };
 
-  const openVideo = (url: string) => {
-    try {
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+  const openVideo = (url: string, title: string) => {
+    setSelectedVideo({ url, title });
   };
 
   const handleComplete = async () => {
@@ -102,6 +95,7 @@ export default function WarmupPage() {
   };
 
   const handleSkip = async () => {
+    if (!window.confirm('Skip warmup exercises?')) return;
     const updates = {
       current_phase: 'main' as const,
       warmup_completed: true,
@@ -115,19 +109,26 @@ export default function WarmupPage() {
   };
 
   const checkedCount = checked.size;
-  const isReady = checkedCount >= Math.ceil(totalExercises / 2);
+  const threshold = Math.ceil(totalExercises / 2);
+  const isReady = checkedCount >= threshold;
+  const remaining = threshold - checkedCount;
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 py-6 max-w-lg relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-6 max-w-lg md:max-w-2xl lg:max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2">
-            Warm-up
-          </h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-hero bg-clip-text text-transparent mb-2">
+              Warm-up
+            </h1>
+            <div className="pointer-events-none opacity-85">
+              <SonnyAngelDetailed variant="cat" size={40} />
+            </div>
+          </div>
           <p className="text-sm text-muted-foreground">
             2 sets of 10-20 reps per side/movement
           </p>
@@ -140,20 +141,23 @@ export default function WarmupPage() {
               <Timer className="h-5 w-5" />
               Warmup Checklist
               <span className="text-xs text-muted-foreground ml-auto">{checkedCount}/{totalExercises}</span>
+              <div className="pointer-events-none opacity-85">
+                <SonnyAngelDetailed variant="monkey" size={36} />
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {warmupExercises.map((category, catIdx) => (
               <div key={catIdx} className="space-y-2">
                 <h4 className="font-semibold text-foreground text-sm">{category.category}</h4>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                   {category.exercises.map((exercise, exIdx) => {
                     const key = `${catIdx}-${exIdx}`;
                     const isChecked = checked.has(key);
                     return (
                       <div
                         key={key}
-                        className="flex items-center gap-3 p-2.5 rounded-lg bg-card/50 border border-border/50 hover:bg-card/70 transition-colors"
+                        className="flex items-center gap-3 p-2 sm:p-2.5 md:p-3 rounded-lg bg-card/50 border border-border/50 hover:bg-card/70 transition-colors"
                       >
                         <Checkbox
                           checked={isChecked}
@@ -164,7 +168,7 @@ export default function WarmupPage() {
                           {exercise.name}
                         </span>
                         <button
-                          onClick={() => openVideo(exercise.videoUrl)}
+                          onClick={() => openVideo(exercise.videoUrl, exercise.name)}
                           className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
                         >
                           <Play className="h-3 w-3" />
@@ -181,10 +185,15 @@ export default function WarmupPage() {
 
         {/* Actions */}
         <div className="space-y-2">
+          {!isReady && remaining > 0 && (
+            <p className="text-sm text-primary/70 text-center">
+              Check {remaining} more to continue
+            </p>
+          )}
           {isReady && (
             <Button
               onClick={handleComplete}
-              className="w-full h-14 bg-gradient-primary hover:shadow-glow font-bold"
+              className="w-full h-12 sm:h-14 bg-gradient-primary hover:shadow-glow font-bold"
             >
               <CheckCircle2 className="h-4 w-4 mr-2" />
               All Done - Start Workout
@@ -200,6 +209,16 @@ export default function WarmupPage() {
           </Button>
         </div>
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+        />
+      )}
     </div>
   );
 }

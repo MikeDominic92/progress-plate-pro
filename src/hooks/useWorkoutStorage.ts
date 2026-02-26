@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,6 +26,7 @@ interface WorkoutSession {
 export const useWorkoutStorage = (username: string) => {
   const [currentSession, setCurrentSession] = useState<WorkoutSession | null>(null);
   const [saving, setSaving] = useState(false);
+  const currentSessionRef = useRef<WorkoutSession | null>(null);
   const { toast } = useToast();
 
   // Function to reset session state
@@ -211,16 +212,21 @@ export const useWorkoutStorage = (username: string) => {
     await saveSession(sessionToSave);
   }, [currentSession]);
 
+  // Keep the session ref in sync for the auto-save interval
+  useEffect(() => {
+    currentSessionRef.current = currentSession;
+  }, [currentSession]);
+
   // Auto-save every 30 seconds
   useEffect(() => {
-    if (!currentSession) return;
-
     const interval = setInterval(() => {
-      saveSession(currentSession);
-    }, 30000); // Save every 30 seconds
+      if (currentSessionRef.current) {
+        saveSession(currentSessionRef.current);
+      }
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [currentSession]);
+  }, []); // empty deps - interval reads from ref
 
   // Clear session and storage completely including database records
   const clearSession = useCallback(async () => {
