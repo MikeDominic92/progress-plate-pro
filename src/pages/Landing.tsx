@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Trophy, Flame, Zap, Clock, Activity, Dumbbell, X, Play, Trash2, Scale, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +52,21 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
   const [savingWeight, setSavingWeight] = useState(false);
   const [selectedCalDate, setSelectedCalDate] = useState<Date | null>(null);
   const { completedSessionCount, allPRs } = useProgression(username);
+  const navigate = useNavigate();
+
+  // Secret admin access: tap title 5 times
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleTitleTap = useCallback(() => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      navigate('/admin');
+      return;
+    }
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 1500);
+  }, [navigate]);
   const weight = useWeightTracker(username);
   const { toast } = useToast();
 
@@ -212,7 +228,10 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
               <div className="absolute -top-2 -right-2 pointer-events-none">
                 <SonnyAngelDetailed variant="bunny" size={48} />
               </div>
-              <h1 className="text-3xl font-extrabold mb-1 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
+              <h1
+                onClick={handleTitleTap}
+                className="text-3xl font-extrabold mb-1 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight cursor-default select-none"
+              >
                 KaraBaeFit
               </h1>
               <p className="text-xs text-muted-foreground/60">
