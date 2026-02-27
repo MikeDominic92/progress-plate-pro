@@ -119,7 +119,7 @@ export default function WarmupPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/50" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 max-w-sm md:max-w-lg lg:max-w-2xl relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6 pb-20 max-w-sm md:max-w-lg lg:max-w-2xl relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2">

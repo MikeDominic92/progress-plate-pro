@@ -109,7 +109,7 @@ export default function CoachPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card/30" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(340_82%_66%/0.1),transparent_50%)]" />
 
-      <div className="relative z-10 max-w-lg mx-auto h-screen flex flex-col pb-14">
+      <div className="relative z-10 max-w-lg mx-auto h-screen flex flex-col pb-20">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 bg-background/80 backdrop-blur-sm">
           <Button

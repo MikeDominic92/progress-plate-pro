@@ -314,7 +314,7 @@ export default function ExercisePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-2 sm:p-4 md:p-6 max-w-sm md:max-w-lg lg:max-w-3xl space-y-3">
+      <div className="container mx-auto p-2 sm:p-4 md:p-6 max-w-sm md:max-w-lg lg:max-w-3xl space-y-3 pb-20">
         {/* Header: name + nav + progress */}
         <div className="flex items-center gap-2">
           <Button
