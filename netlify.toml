@@ -3,7 +3,17 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Kill stale service workers - never cache sw.js
+# Never cache HTML or service worker files
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]
@@ -11,6 +21,11 @@
 
 [[headers]]
   for = "/workbox-*.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/offline.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
