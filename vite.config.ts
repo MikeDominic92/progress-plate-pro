@@ -33,7 +33,7 @@ export default defineConfig(() => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       manifest: {
         name: "KBFit",
         short_name: "KBFit",
@@ -47,7 +47,7 @@ export default defineConfig(() => ({
         ],
       },
       workbox: {
-        navigateFallback: "/offline.html",
+        navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/\.netlify/],
         runtimeCaching: [
           {
