@@ -133,6 +133,11 @@ const AdminDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Version watermark */}
+      <span className="fixed bottom-2 right-3 text-[10px] text-white/10 pointer-events-none select-none">
+        v2.0 - Feb 27
+      </span>
     </div>
   );
 };
