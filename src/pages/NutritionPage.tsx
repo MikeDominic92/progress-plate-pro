@@ -27,7 +27,7 @@ function MacroRing({ label, current, target, color, unit }: {
   const over = current > target;
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 min-w-0 flex-1">
       <div className="relative w-16 h-16 sm:w-20 sm:h-20">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 76 76">
           <circle cx="38" cy="38" r={radius} fill="none" stroke="white" strokeOpacity="0.06" strokeWidth="6" />
@@ -46,8 +46,8 @@ function MacroRing({ label, current, target, color, unit }: {
           <span className="text-[0.65rem] text-white/30">{unit}</span>
         </div>
       </div>
-      <span className="text-[0.65rem] text-white/40">{label}</span>
-      <span className="text-[0.65rem] text-white/20">{target}{unit} goal</span>
+      <span className="text-[0.65rem] text-white/40 truncate max-w-full">{label}</span>
+      <span className="text-[0.65rem] text-white/20 truncate max-w-full">{target}{unit} goal</span>
     </div>
   );
 }

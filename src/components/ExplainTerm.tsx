@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HelpCircle, X } from 'lucide-react';
 
 const TERM_EXPLANATIONS: Record<string, string> = {
@@ -32,16 +33,19 @@ export default function ExplainTerm({ term, children, className = '' }: ExplainT
 
   return (
     <>
-      <button
+      <span
+        role="button"
+        tabIndex={0}
         onClick={(e) => { e.stopPropagation(); setOpen(true); }}
-        className={`inline-flex items-center gap-0.5 ${className}`}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(true); } }}
+        className={`inline-flex items-center gap-0.5 cursor-pointer ${className}`}
         aria-label={`Explain: ${term}`}
       >
         {children}
         <HelpCircle className="h-3 w-3 text-white/20 flex-shrink-0" />
-      </button>
+      </span>
 
-      {open && (
+      {open && createPortal(
         <div
           className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setOpen(false)}
@@ -61,7 +65,8 @@ export default function ExplainTerm({ term, children, className = '' }: ExplainT
             </div>
             <p className="text-sm text-white/70 leading-relaxed">{explanation}</p>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

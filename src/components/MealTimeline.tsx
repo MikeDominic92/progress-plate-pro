@@ -50,10 +50,11 @@ function getHourMarkers(meals: MealEntry[]): number[] {
 }
 
 const RAIL_LEFT = '2.5rem';
-const NODE_LEFT = 'calc(2.5rem - 7px)';   // center a 14px node on the rail
-const DOT_LEFT  = 'calc(2.5rem - 5px)';   // center a 10px dot on the rail
-const TICK_LEFT = 'calc(2.5rem - 3px)';    // center a 6px tick on the rail
-const CONN_LEFT = 'calc(2.5rem + 7px)';    // connector starts at right edge of node
+// Entry divs sit inside 3.5rem padding; offset by -3.5rem so nodes align with the rail
+const NODE_LEFT = 'calc(-1rem - 7px)';
+const DOT_LEFT  = 'calc(-1rem - 5px)';
+const TICK_LEFT = 'calc(-1rem - 3px)';
+const CONN_LEFT = 'calc(-1rem + 7px)';
 
 export default function MealTimeline({
   meals,
@@ -117,7 +118,7 @@ export default function MealTimeline({
             <div key={`h-${entry.hour}`} className="relative flex items-center h-6 mb-1">
               <span
                 className="absolute text-[0.65rem] text-white/20 whitespace-nowrap text-right"
-                style={{ right: 'calc(100% - 2rem)', width: '3rem' }}
+                style={{ right: 'calc(100% + 1.5rem)', width: '3rem' }}
               >
                 {formatHourLabel(entry.hour)}
               </span>
@@ -134,7 +135,7 @@ export default function MealTimeline({
             {/* Time label left of rail */}
             <span
               className="absolute text-[0.65rem] text-white/30 whitespace-nowrap text-right pt-2.5"
-              style={{ right: 'calc(100% - 2rem)', width: '3.5rem' }}
+              style={{ right: 'calc(100% + 1.5rem)', width: '3.5rem' }}
             >
               {meal.time}
             </span>
@@ -160,10 +161,10 @@ export default function MealTimeline({
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-primary/80">Editing meal</span>
                     <div className="flex items-center gap-1">
-                      <button aria-label="Cancel editing" onClick={onCancelEditing} className="p-1 text-white/30 hover:text-white/60">
+                      <button aria-label="Cancel editing" onClick={onCancelEditing} className="p-2 text-white/30 hover:text-white/60">
                         <X className="h-4 w-4" />
                       </button>
-                      <button aria-label="Save changes" onClick={onSaveEditing} className="p-1 text-green-400/70 hover:text-green-400">
+                      <button aria-label="Save changes" onClick={onSaveEditing} className="p-2 text-green-400/70 hover:text-green-400">
                         <Check className="h-4 w-4" />
                       </button>
                     </div>
@@ -270,7 +271,7 @@ export default function MealTimeline({
         <div className="relative flex items-center h-8">
           <span
             className="absolute text-[0.65rem] text-primary/40 whitespace-nowrap text-right"
-            style={{ right: 'calc(100% - 2rem)', width: '3rem' }}
+            style={{ right: 'calc(100% + 1.5rem)', width: '3rem' }}
           >
             Now
           </span>
