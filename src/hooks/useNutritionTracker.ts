@@ -242,7 +242,7 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 8192,
           },
         }),
       });
@@ -253,7 +253,10 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
       }
 
       const data = await response.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      // Thinking models may return multiple parts; grab the last text part
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const text = [...parts].reverse().find((p: any) => p.text && !p.thoughtSignature)?.text
+        || parts[parts.length - 1]?.text || '';
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
@@ -421,7 +424,7 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 8192,
           },
         }),
       });
@@ -432,7 +435,10 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
       }
 
       const data = await response.json();
-      const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      // Thinking models may return multiple parts; grab the last text part
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const responseText = [...parts].reverse().find((p: any) => p.text && !p.thoughtSignature)?.text
+        || parts[parts.length - 1]?.text || '';
 
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
