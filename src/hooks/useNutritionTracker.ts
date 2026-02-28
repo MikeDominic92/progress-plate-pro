@@ -17,6 +17,7 @@ export interface MealEntry {
   items: FoodItem[];
   totals: { calories: number; protein: number; carbs: number; fat: number };
   photoBase64?: string;
+  photoUrl?: string;
 }
 
 export interface DailyTargets {
@@ -27,12 +28,13 @@ export interface DailyTargets {
 }
 
 // Kara: 5'0", 20yo, 134 lbs, goal 120 lbs, active 3x/week
-// BMR ~1,300 * 1.55 TDEE ~2,015 - 500 deficit = ~1,500
+// BMR ~1,300 * 1.55 TDEE ~2,015 - 1,000 deficit = ~1,015, floored at 1,200
+// Target: 2 lb/week loss
 export const DAILY_TARGETS: DailyTargets = {
-  calories: 1500,
+  calories: 1200,
   protein: 120,
-  carbs: 145,
-  fat: 50,
+  carbs: 90,
+  fat: 40,
 };
 
 const STORAGE_PREFIX = 'nutrition_log_';
@@ -42,12 +44,46 @@ function getStorageKey(date: string) {
   return `${STORAGE_PREFIX}${date}`;
 }
 
-/** Strip photoBase64 from meals before saving to Supabase (saves bandwidth/storage). */
+/** Strip photoBase64 from meals before saving to Supabase (saves bandwidth/storage). Keep photoUrl. */
 function mealsForCloud(meals: MealEntry[]): MealEntry[] {
   return meals.map(({ photoBase64, ...rest }) => rest);
 }
 
-export function useNutritionTracker() {
+/** Upload a meal photo to Supabase Storage. Returns public URL or null on failure. */
+async function uploadMealPhoto(
+  base64: string,
+  userId: string,
+  date: string,
+  mealId: string
+): Promise<string | null> {
+  try {
+    const byteChars = atob(base64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteArray[i] = byteChars.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+    const path = `${userId}/${date}/${mealId}.jpg`;
+
+    const { error } = await supabase.storage
+      .from('meal-photos')
+      .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+
+    if (error) {
+      console.error('Photo upload failed:', error);
+      return null;
+    }
+
+    const { data } = supabase.storage.from('meal-photos').getPublicUrl(path);
+    return data.publicUrl;
+  } catch (err) {
+    console.error('Photo upload failed:', err);
+    return null;
+  }
+}
+
+export function useNutritionTracker(customTargets?: DailyTargets) {
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
@@ -251,9 +287,57 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
       totals,
       photoBase64,
     };
-    saveMeals([...meals, entry]);
+    const updated = [...meals, entry];
+    saveMeals(updated);
+
+    // Async: upload photo to Supabase Storage, then update entry with photoUrl
+    if (photoBase64) {
+      (async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          const url = await uploadMealPhoto(photoBase64, user.id, selectedDate, entry.id);
+          if (!url) return;
+
+          // Update the entry in current state with photoUrl
+          setMeals(prev => {
+            const withUrl = prev.map(m =>
+              m.id === entry.id ? { ...m, photoUrl: url } : m
+            );
+            // Persist to localStorage
+            localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(withUrl));
+            // Sync to cloud (strip base64, keep photoUrl)
+            const version = ++syncVersion.current;
+            (async () => {
+              try {
+                const { data: { user: u } } = await supabase.auth.getUser();
+                if (!u || syncVersion.current !== version) return;
+                await supabase
+                  .from('nutrition_logs')
+                  .upsert(
+                    {
+                      user_id: u.id,
+                      log_date: selectedDate,
+                      meals: mealsForCloud(withUrl),
+                      updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: 'user_id,log_date' }
+                  );
+              } catch (err) {
+                console.error('Cloud sync after photo upload failed:', err);
+              }
+            })();
+            return withUrl;
+          });
+        } catch (err) {
+          console.error('Photo upload flow failed:', err);
+        }
+      })();
+    }
+
     return entry;
-  }, [meals, saveMeals]);
+  }, [meals, saveMeals, selectedDate]);
 
   // Add a single manual food item
   const addManualItem = useCallback((item: FoodItem) => {
@@ -411,7 +495,7 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
     setSelectedDate,
     meals,
     dailyTotals,
-    targets: DAILY_TARGETS,
+    targets: customTargets || DAILY_TARGETS,
     analyzing,
     error,
     syncError,

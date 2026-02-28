@@ -27,8 +27,9 @@ interface UseProgressionReturn {
   refreshHistory: () => Promise<void>;
   completedSessionCount: number;
   allHistory: Record<string, SetRecord[]>;
-  recentSessions: { date: string; totalVolume: number; prCount: number }[];
+  recentSessions: { date: string; totalVolume: number; prCount: number; rpe?: number | null }[];
   allPRs: PersonalRecord[];
+  totalVolumeAllTime: number;
   loading: boolean;
 }
 
@@ -36,7 +37,8 @@ export function useProgression(username: string): UseProgressionReturn {
   const [allHistory, setAllHistory] = useState<Record<string, SetRecord[]>>({});
   const [completedSessionCount, setCompletedSessionCount] = useState(0);
   const [allPRs, setAllPRs] = useState<PersonalRecord[]>([]);
-  const [recentSessions, setRecentSessions] = useState<{ date: string; totalVolume: number; prCount: number }[]>([]);
+  const [recentSessions, setRecentSessions] = useState<{ date: string; totalVolume: number; prCount: number; rpe?: number | null }[]>([]);
+  const [totalVolumeAllTime, setTotalVolumeAllTime] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchHistory = useCallback(async () => {
@@ -83,10 +85,19 @@ export function useProgression(username: string): UseProgressionReturn {
 
       setAllHistory(grouped);
 
+      // Compute total volume across all time
+      let totalVol = 0;
+      for (const records of Object.values(grouped)) {
+        for (const r of records) {
+          totalVol += r.weight * r.reps;
+        }
+      }
+      setTotalVolumeAllTime(totalVol);
+
       // Count completed sessions
       const { data: sessions, error: sessError } = await supabase
         .from('workout_sessions')
-        .select('id, session_date')
+        .select('id, session_date, workout_data')
         .eq('username', username)
         .eq('current_phase', 'completed');
 
@@ -97,7 +108,6 @@ export function useProgression(username: string): UseProgressionReturn {
         const sessionDates = [...new Set(sessions.map(s => s.session_date))].sort().reverse().slice(0, 5);
         const recent = sessionDates.map(date => {
           let totalVolume = 0;
-          // Sum volume across all exercises for this date
           for (const records of Object.values(grouped)) {
             for (const r of records) {
               if (r.date === date) {
@@ -105,7 +115,9 @@ export function useProgression(username: string): UseProgressionReturn {
               }
             }
           }
-          return { date, totalVolume, prCount: 0 };
+          const session = sessions.find(s => s.session_date === date);
+          const rpe = (session?.workout_data as any)?.rpe ?? null;
+          return { date, totalVolume, prCount: 0, rpe };
         });
         setRecentSessions(recent);
       }
@@ -233,6 +245,7 @@ export function useProgression(username: string): UseProgressionReturn {
     allHistory,
     recentSessions,
     allPRs,
+    totalVolumeAllTime,
     loading,
   };
 }

@@ -10,6 +10,12 @@ import { ResetSessionButton } from '@/components/ResetSessionButton';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useProgression } from '@/hooks/useProgression';
 import { useWeightTracker } from '@/hooks/useWeightTracker';
+import { useSettings } from '@/hooks/useSettings';
+import { useBadges } from '@/hooks/useBadges';
+import { BadgeCelebration } from '@/components/BadgeCelebration';
+import { BadgeGallery } from '@/components/BadgeGallery';
+import { Award } from 'lucide-react';
+import ExplainTerm from '@/components/ExplainTerm';
 import { WorkoutCalendar } from '@/components/WorkoutCalendar';
 import { format, differenceInCalendarDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { workoutPlan } from '@/data/workoutPlan';
@@ -51,7 +57,9 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
   const [editingGoal, setEditingGoal] = useState(false);
   const [savingWeight, setSavingWeight] = useState(false);
   const [selectedCalDate, setSelectedCalDate] = useState<Date | null>(null);
-  const { completedSessionCount, allPRs } = useProgression(username);
+  const { completedSessionCount, allPRs, recentSessions, totalVolumeAllTime } = useProgression(username);
+  const badges = useBadges(username);
+  const [showBadgeGallery, setShowBadgeGallery] = useState(false);
   const navigate = useNavigate();
 
   // Secret admin access: tap title 5 times
@@ -68,6 +76,8 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
     tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 1500);
   }, [navigate]);
   const weight = useWeightTracker(username);
+  const { settings, formatWeight } = useSettings(username);
+  const weightUnit = settings.weight_unit;
   const { toast } = useToast();
 
   useEffect(() => {
@@ -164,6 +174,22 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
 
     return { currentStreak: current, bestStreak: maxRun };
   })();
+  // Check for new badge unlocks
+  useEffect(() => {
+    if (badges.loading) return;
+    const dailyVolumes = recentSessions.map(s => s.totalVolume);
+    badges.checkAndUnlock({
+      prCount: allPRs.length,
+      bestStreak,
+      currentStreak,
+      sessionCount: completedSessionCount,
+      dailyVolumes,
+      totalVolumeAllTime,
+      nutritionStreak: 0,
+      macroAccuracy: false,
+    });
+  }, [completedSessionCount, allPRs.length, bestStreak, totalVolumeAllTime, badges.loading]);
+
   const progressPct = Math.round((totalCompletedDays / 90) * 100);
   const thisWeekCount = (() => {
     const now = new Date();
@@ -186,7 +212,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
       await weight.logWeight(logDate, val);
       setWeightInput('');
       setSelectedCalDate(null);
-      toast({ title: "Weight logged", description: `${val} lb recorded for ${logDateLabel}` });
+      toast({ title: "Weight logged", description: `${formatWeight(val)} recorded for ${logDateLabel}` });
     } catch (err) {
       console.error('Weight log error:', err);
       toast({ title: "Failed to log weight", description: "Please try again.", variant: "destructive" });
@@ -203,7 +229,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
       await weight.updateGoalWeight(val);
       setGoalInput('');
       setEditingGoal(false);
-      toast({ title: "Goal updated", description: `Goal set to ${val} lb` });
+      toast({ title: "Goal updated", description: `Goal set to ${formatWeight(val)}` });
     } catch (err) {
       console.error('Goal save error:', err);
       toast({ title: "Failed to save goal", description: "Please try again.", variant: "destructive" });
@@ -392,7 +418,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-sm animate-slide-in" style={{ animationDelay: '0.2s' }}>
                 <Trophy className="h-3.5 w-3.5 text-yellow-300" />
                 <span className="text-white/80 font-medium">{allPRs.length}</span>
-                <span className="text-white/40 text-xs">PRs</span>
+                <ExplainTerm term="PRs"><span className="text-white/40 text-xs">PRs</span></ExplainTerm>
               </div>
               <div
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-sm animate-slide-in"
@@ -401,11 +427,20 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
               >
                 <Zap className="h-3.5 w-3.5 text-primary" />
                 <span className="text-white/80 font-medium">{currentStreak}</span>
-                <span className="text-white/40 text-xs">streak</span>
+                <ExplainTerm term="Streak"><span className="text-white/40 text-xs">streak</span></ExplainTerm>
                 {bestStreak > currentStreak && (
                   <span className="text-white/30 text-xs ml-0.5">(best: {bestStreak})</span>
                 )}
               </div>
+              <button
+                onClick={() => setShowBadgeGallery(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-sm animate-slide-in hover:bg-primary/10 transition-colors"
+                style={{ animationDelay: '0.4s' }}
+              >
+                <Award className="h-3.5 w-3.5 text-yellow-400" />
+                <span className="text-white/80 font-medium">{badges.unlockedIds.length}</span>
+                <span className="text-white/40 text-xs">badges</span>
+              </button>
             </div>
             <p className="text-center text-xs text-white/30 mt-1 mb-4">This week: {thisWeekCount} workout{thisWeekCount !== 1 ? 's' : ''}</p>
 
@@ -429,6 +464,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                 goalWeight={weight.goalWeight}
                 selectedDate={selectedCalDate}
                 onSelectDate={setSelectedCalDate}
+                weightUnit={weightUnit}
               />
             </div>
 
@@ -439,7 +475,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                 <input
                   type="number"
                   inputMode="decimal"
-                  placeholder={`Weight for ${logDateLabel} (lb)`}
+                  placeholder={`Weight for ${logDateLabel} (${weightUnit})`}
                   value={weightInput}
                   onChange={(e) => setWeightInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogWeight()}
@@ -464,7 +500,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                 >
                   <Target className="h-3.5 w-3.5 text-yellow-400/70 flex-shrink-0" />
                   {weight.goalWeight ? (
-                    <span className="text-xs text-white/40">Goal: <span className="text-yellow-400 font-medium">{weight.goalWeight} lb</span> <span className="text-white/20 ml-1">tap to edit</span></span>
+                    <span className="text-xs text-white/40">Goal: <span className="text-yellow-400 font-medium">{formatWeight(weight.goalWeight!)}</span> <span className="text-white/20 ml-1">tap to edit</span></span>
                   ) : (
                     <span className="text-xs text-primary/60">Set a goal weight</span>
                   )}
@@ -476,7 +512,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                   <input
                     type="number"
                     inputMode="decimal"
-                    placeholder="Goal weight (lb)"
+                    placeholder={`Goal weight (${weightUnit})`}
                     value={goalInput}
                     onChange={(e) => setGoalInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSetGoal()}
@@ -551,6 +587,16 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {badges.newlyUnlocked.length > 0 && (
+        <BadgeCelebration badgeIds={badges.newlyUnlocked} onClose={badges.dismissCelebration} />
+      )}
+
+      <BadgeGallery
+        unlockedIds={badges.unlockedIds}
+        open={showBadgeGallery}
+        onOpenChange={setShowBadgeGallery}
+      />
 
       <BottomNav />
     </div>

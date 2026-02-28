@@ -5,12 +5,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Camera, ChevronLeft, ChevronRight, Download, ImagePlus, Search, Utensils, X } from 'lucide-react';
 import { addDays, subDays, isToday, format as fnsFormat, parseISO } from 'date-fns';
-import { useNutritionTracker, DAILY_TARGETS } from '@/hooks/useNutritionTracker';
+import { useNutritionTracker } from '@/hooks/useNutritionTracker';
+import { useSettings } from '@/hooks/useSettings';
+import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import type { FoodItem } from '@/hooks/useNutritionTracker';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 import BottomNav from '@/components/BottomNav';
 import MealTimeline from '@/components/MealTimeline';
 import MealDetailDialog from '@/components/MealDetailDialog';
+import FavoritesSection from '@/components/FavoritesSection';
+import { useMealFavorites } from '@/hooks/useMealFavorites';
+import ExplainTerm from '@/components/ExplainTerm';
 
 function MacroRing({ label, current, target, color, unit }: {
   label: string; current: number; target: number; color: string; unit: string;
@@ -49,12 +54,16 @@ function MacroRing({ label, current, target, color, unit }: {
 
 export default function NutritionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { username } = useAuthenticatedUser();
+  const { settings } = useSettings(username);
   const {
     selectedDate, setSelectedDate,
     meals, dailyTotals, targets, analyzing, error, syncError,
     analyzePhoto, analyzeDescription, addMeal, addManualItem, removeMeal, updateMeal,
     retrySave,
-  } = useNutritionTracker();
+  } = useNutritionTracker(settings.daily_targets);
+
+  const mealFavs = useMealFavorites(username);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -256,7 +265,7 @@ export default function NutritionPage() {
         <Card className="bg-black/50 backdrop-blur-glass border-white/10">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-white/80">{isTodaySelected ? "Today's" : fnsFormat(parsedDate, 'MMM d')} Macros</span>
+              <ExplainTerm term="Macros"><span className="text-sm font-semibold text-white/80">{isTodaySelected ? "Today's" : fnsFormat(parsedDate, 'MMM d')} Macros</span></ExplainTerm>
               <span className="text-xs text-white/30">{remaining.calories > 0 ? `${Math.round(remaining.calories)} cal left` : 'Goal reached!'}</span>
             </div>
             <div className="flex items-center justify-around">
@@ -267,6 +276,14 @@ export default function NutritionPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Favorites Quick-Log */}
+        <FavoritesSection
+          favorites={mealFavs.favorites}
+          onQuickLog={(fav) => addMeal(fav.items, fav.totals)}
+          onRemove={(id) => mealFavs.removeFavorite(id)}
+          loading={mealFavs.loading}
+        />
 
         {/* Camera + Gallery + Description Buttons */}
         <div className="flex gap-2">
@@ -508,6 +525,8 @@ export default function NutritionPage() {
           mealIndex={meals.findIndex(m => m.id === detailMealId)}
           open={detailMealId !== null}
           onOpenChange={(open) => { if (!open) setDetailMealId(null); }}
+          onSaveAsFavorite={(meal) => mealFavs.addFavorite(meal)}
+          isFavorited={detailMealId ? mealFavs.isFavorited(meals.find(m => m.id === detailMealId) ?? { items: [] }) : false}
         />
 
         {/* Daily Summary Bar */}
@@ -537,8 +556,8 @@ export default function NutritionPage() {
 
         {/* Info Card */}
         <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-[0.65rem] text-white/25 space-y-1">
-          <p>Daily targets: {DAILY_TARGETS.calories} cal | {DAILY_TARGETS.protein}g protein | {DAILY_TARGETS.carbs}g carbs | {DAILY_TARGETS.fat}g fat</p>
-          <p>Based on: 5'0", 20yo, 134 lbs, goal 120 lbs, 3x/week lifting, ~1 lb/week loss</p>
+          <p>Daily targets: {targets.calories} cal | {targets.protein}g protein | {targets.carbs}g carbs | {targets.fat}g fat</p>
+          <p>Based on: 5'0", 20yo, 134 lbs, goal 120 lbs, 3x/week lifting, ~2 lb/week loss</p>
         </div>
       </div>
 

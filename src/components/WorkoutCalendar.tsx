@@ -11,6 +11,8 @@ interface WeightLog {
   weight: number;
 }
 
+const LB_TO_KG = 0.453592;
+
 interface WorkoutCalendarProps {
   workoutDates: Date[];
   weightLogDates: Date[];
@@ -19,6 +21,7 @@ interface WorkoutCalendarProps {
   goalWeight?: number | null;
   selectedDate?: Date | null;
   onSelectDate?: (date: Date | null) => void;
+  weightUnit?: 'lb' | 'kg';
 }
 
 export function WorkoutCalendar({
@@ -29,6 +32,7 @@ export function WorkoutCalendar({
   goalWeight = null,
   selectedDate: externalSelected,
   onSelectDate,
+  weightUnit = 'lb',
 }: WorkoutCalendarProps) {
   const [internalSelected, setInternalSelected] = useState<Date | null>(null);
   const selectedDate = externalSelected !== undefined ? externalSelected : internalSelected;
@@ -54,6 +58,9 @@ export function WorkoutCalendar({
   const latestLog = sortedLogs.length > 0 ? sortedLogs[sortedLogs.length - 1] : null;
   const totalChange = startingLog && latestLog ? latestLog.weight - startingLog.weight : null;
 
+  const displayWeight = (lbs: number) => weightUnit === 'kg' ? (lbs * LB_TO_KG).toFixed(1) : String(lbs);
+  const unitLabel = weightUnit;
+
   const handleDayClick = (day: Date) => {
     if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')) {
       setSelectedDate(null);
@@ -75,7 +82,7 @@ export function WorkoutCalendar({
               entry.gained ? 'text-red-400' : 'text-green-400'
             }`}
           >
-            {entry.weight}
+            {displayWeight(entry.weight)}
           </span>
         ) : (
           <span className="text-[0.5rem] leading-none invisible">0</span>
@@ -162,7 +169,7 @@ export function WorkoutCalendar({
             {startingLog && (
               <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white/[0.03]">
                 <span className="text-[0.6rem] text-white/35 uppercase tracking-wide">Starting</span>
-                <span className="text-sm font-bold text-white/80">{startingLog.weight} <span className="text-[0.6rem] font-normal text-white/30">lb</span></span>
+                <span className="text-sm font-bold text-white/80">{displayWeight(startingLog.weight)} <span className="text-[0.6rem] font-normal text-white/30">{unitLabel}</span></span>
                 <span className="text-[0.55rem] text-white/25">{format(new Date(startingLog.date + 'T00:00:00'), 'M/d/yyyy')}</span>
               </div>
             )}
@@ -172,7 +179,7 @@ export function WorkoutCalendar({
               <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white/[0.03]">
                 <span className="text-[0.6rem] text-white/35 uppercase tracking-wide">Current</span>
                 <span className={`text-sm font-bold ${totalChange !== null && totalChange > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                  {latestLog.weight} <span className="text-[0.6rem] font-normal opacity-60">lb</span>
+                  {displayWeight(latestLog.weight)} <span className="text-[0.6rem] font-normal opacity-60">{unitLabel}</span>
                 </span>
                 <span className="text-[0.55rem] text-white/25">{format(new Date(latestLog.date + 'T00:00:00'), 'M/d/yyyy')}</span>
               </div>
@@ -184,7 +191,7 @@ export function WorkoutCalendar({
                 <span className="text-[0.6rem] text-white/35 uppercase tracking-wide">Goal</span>
                 <div className="flex items-center gap-1">
                   <Target className="h-3 w-3 text-yellow-400/70" />
-                  <span className="text-sm font-bold text-yellow-400">{goalWeight} <span className="text-[0.6rem] font-normal opacity-60">lb</span></span>
+                  <span className="text-sm font-bold text-yellow-400">{displayWeight(goalWeight!)} <span className="text-[0.6rem] font-normal opacity-60">{unitLabel}</span></span>
                 </div>
               </div>
             )}
@@ -195,7 +202,7 @@ export function WorkoutCalendar({
                 <span className="text-[0.6rem] text-white/35 uppercase tracking-wide">To Go</span>
                 <div className="flex items-center gap-1">
                   <TrendingDown className="h-3 w-3 text-yellow-400/70" />
-                  <span className="text-sm font-bold text-yellow-400">{(latestLog.weight - goalWeight).toFixed(1)} <span className="text-[0.6rem] font-normal opacity-60">lb</span></span>
+                  <span className="text-sm font-bold text-yellow-400">{displayWeight(Math.round((latestLog.weight - goalWeight) * 10) / 10)} <span className="text-[0.6rem] font-normal opacity-60">{unitLabel}</span></span>
                 </div>
               </div>
             )}
@@ -220,7 +227,7 @@ export function WorkoutCalendar({
                 <Minus className="h-3 w-3 text-white/30" />
               )}
               <span className={`text-xs font-semibold ${totalChange > 0 ? 'text-red-400' : totalChange < 0 ? 'text-green-400' : 'text-white/40'}`}>
-                {totalChange > 0 ? '+' : ''}{totalChange.toFixed(1)} lb since start
+                {totalChange > 0 ? '+' : ''}{displayWeight(Math.round(totalChange * 10) / 10)} {unitLabel} since start
               </span>
             </div>
           )}

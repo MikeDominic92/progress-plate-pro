@@ -65,7 +65,7 @@ export default function CoachPage() {
   const { latestWeight, weightDelta, goalWeight, weightLogs } = useWeightTracker(username);
   const { dailyTotals, meals } = useNutritionTracker();
 
-  const { messages, sending, error, sendMessage, clearChat } = useCoachChat({
+  const { messages, sending, isStreaming, streamingContent, error, sendMessage, clearChat } = useCoachChat({
     completedSessionCount,
     allPRs,
     recentSessions,
@@ -83,7 +83,7 @@ export default function CoachPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, sending]);
+  }, [messages, sending, streamingContent]);
 
   const handleSend = () => {
     if (!input.trim() || sending) return;
@@ -164,7 +164,17 @@ export default function CoachPage() {
               {messages.map((msg, i) => (
                 <ChatBubble key={i} message={msg} />
               ))}
-              {sending && <TypingIndicator />}
+              {isStreaming && streamingContent && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] px-4 py-3 rounded-2xl bg-white/5 border border-white/10 rounded-bl-sm">
+                    <p className="text-sm text-white/90 whitespace-pre-wrap leading-relaxed">
+                      {streamingContent}
+                      <span className="inline-block w-1.5 h-4 bg-primary/70 ml-0.5 animate-pulse" />
+                    </p>
+                  </div>
+                </div>
+              )}
+              {sending && !isStreaming && <TypingIndicator />}
               {error && (
                 <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400">
                   {error}
@@ -193,7 +203,7 @@ export default function CoachPage() {
               onClick={handleSend}
               disabled={!input.trim() || sending}
               size="icon"
-              className="h-10 w-10 bg-primary/20 border border-primary/30 hover:bg-primary/30 rounded-xl disabled:opacity-30 transition-colors"
+              className="h-11 w-11 bg-primary/20 border border-primary/30 hover:bg-primary/30 rounded-xl disabled:opacity-30 transition-colors"
             >
               <Send className="h-4 w-4" />
             </Button>

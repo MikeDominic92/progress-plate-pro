@@ -29,7 +29,7 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">
             Session - {new Date(session.session_date).toLocaleDateString('en-US', {
@@ -41,7 +41,7 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
         </DialogHeader>
 
         {/* Session summary */}
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className={`grid gap-2 sm:gap-3 text-sm ${(session.workout_data as any)?.rpe != null ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <div>
             <p className="text-muted-foreground text-xs">Duration</p>
             <p className="font-medium">{session.duration}m</p>
@@ -54,6 +54,12 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
             <p className="text-muted-foreground text-xs">Volume</p>
             <p className="font-medium">{session.totalVolume.toLocaleString()} lb</p>
           </div>
+          {(session.workout_data as any)?.rpe != null && (
+            <div>
+              <p className="text-muted-foreground text-xs">RPE</p>
+              <p className="font-medium">{(session.workout_data as any).rpe}/10</p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 flex-wrap">

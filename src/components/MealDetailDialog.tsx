@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Star } from 'lucide-react';
 import type { MealEntry } from '@/hooks/useNutritionTracker';
 
 interface MealDetailDialogProps {
@@ -6,19 +7,21 @@ interface MealDetailDialogProps {
   mealIndex: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSaveAsFavorite?: (meal: MealEntry) => void;
+  isFavorited?: boolean;
 }
 
-export default function MealDetailDialog({ meal, mealIndex, open, onOpenChange }: MealDetailDialogProps) {
+export default function MealDetailDialog({ meal, mealIndex, open, onOpenChange, onSaveAsFavorite, isFavorited }: MealDetailDialogProps) {
   if (!meal) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-2xl bg-background/95 backdrop-blur-xl border-white/10 p-0 overflow-hidden">
-        {meal.photoBase64 && (
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm rounded-2xl bg-background/95 backdrop-blur-xl border-white/10 p-0 overflow-hidden">
+        {(meal.photoUrl || meal.photoBase64) && (
           <img
-            src={`data:image/jpeg;base64,${meal.photoBase64}`}
+            src={meal.photoUrl || `data:image/jpeg;base64,${meal.photoBase64}`}
             alt="Food"
-            className="w-full h-48 object-cover"
+            className="w-full h-36 sm:h-48 object-cover"
           />
         )}
 
@@ -54,6 +57,21 @@ export default function MealDetailDialog({ meal, mealIndex, open, onOpenChange }
               <span className="text-purple-400/80">{Math.round(meal.totals.fat)}g F</span>
             </div>
           </div>
+
+          {onSaveAsFavorite && (
+            <button
+              onClick={() => onSaveAsFavorite(meal)}
+              disabled={isFavorited}
+              className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors text-sm font-medium ${
+                isFavorited
+                  ? 'bg-yellow-400/10 border-yellow-400/30 text-yellow-400/60 cursor-default'
+                  : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white/80'
+              }`}
+            >
+              <Star className={`h-4 w-4 ${isFavorited ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+              {isFavorited ? 'Saved to Favorites' : 'Save as Favorite'}
+            </button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

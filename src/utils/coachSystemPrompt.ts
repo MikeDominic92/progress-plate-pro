@@ -12,7 +12,7 @@ export interface CoachContext {
   goalWeight: number | null;
   weightLogs: { date: string; weight: number }[];
   nextWorkoutDay: WorkoutDay | undefined;
-  recentSessions: { date: string; totalVolume: number; prCount: number }[];
+  recentSessions: { date: string; totalVolume: number; prCount: number; rpe?: number | null }[];
   dailyNutritionTotals: { calories: number; protein: number; carbs: number; fat: number };
   meals: MealEntry[];
   currentTime: Date;
@@ -21,7 +21,7 @@ export interface CoachContext {
 export function buildCoachContext(params: {
   completedSessionCount: number;
   allPRs: PersonalRecord[];
-  recentSessions: { date: string; totalVolume: number; prCount: number }[];
+  recentSessions: { date: string; totalVolume: number; prCount: number; rpe?: number | null }[];
   latestWeight: number | null;
   weightDelta: number | null;
   goalWeight: number | null;
@@ -129,7 +129,7 @@ export function buildSystemPrompt(ctx: CoachContext): string {
   const recentBlock =
     ctx.recentSessions.length > 0
       ? ctx.recentSessions
-          .map((s) => `  ${s.date}: volume ${s.totalVolume.toLocaleString()} lb, ${s.prCount} PRs`)
+          .map((s) => `  ${s.date}: volume ${s.totalVolume.toLocaleString()} lb, ${s.prCount} PRs${s.rpe != null ? `, RPE ${s.rpe}/10` : ''}`)
           .join('\n')
       : '  No recent sessions yet.';
 

@@ -18,6 +18,8 @@ const PostWorkoutPage = lazy(() => import("./pages/PostWorkoutPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NutritionPage = lazy(() => import("./pages/NutritionPage"));
 const CoachPage = lazy(() => import("./pages/CoachPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const ProgressPage = lazy(() => import("./pages/ProgressPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -74,6 +76,12 @@ const App = () => {
               } />
               <Route path="/coach" element={
                 <AuthGuard><CoachPage /></AuthGuard>
+              } />
+              <Route path="/settings" element={
+                <AuthGuard><SettingsPage /></AuthGuard>
+              } />
+              <Route path="/progress" element={
+                <AuthGuard><ProgressPage /></AuthGuard>
               } />
 
               {/* Admin - accessible via secret 5-tap on title */}

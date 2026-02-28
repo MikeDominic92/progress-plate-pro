@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { downloadWorkoutCsv } from '@/utils/exportWorkoutCsv';
 import { useToast } from '@/hooks/use-toast';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
+import RPESelector from '@/components/RPESelector';
+import ExplainTerm from '@/components/ExplainTerm';
 import BottomNav from '@/components/BottomNav';
 
 export default function PostWorkoutPage() {
@@ -24,6 +26,31 @@ export default function PostWorkoutPage() {
   const [abRipperOpen, setAbRipperOpen] = useState(true);
   const [cardioOpen, setCardioOpen] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
+  const [sessionRpe, setSessionRpe] = useState<number | null>(null);
+  const [rpeSubmitted, setRpeSubmitted] = useState(false);
+
+  // Load existing RPE on mount
+  useEffect(() => {
+    if (currentSession?.workout_data?.rpe != null) {
+      setSessionRpe(currentSession.workout_data.rpe);
+      setRpeSubmitted(true);
+    }
+  }, [currentSession?.workout_data?.rpe]);
+
+  const handleSaveRpe = async () => {
+    if (!currentSession || sessionRpe === null) return;
+    try {
+      const updatedData = { ...(currentSession.workout_data || {}), rpe: sessionRpe };
+      await supabase
+        .from('workout_sessions')
+        .update({ workout_data: updatedData, updated_at: new Date().toISOString() })
+        .eq('id', currentSession.id);
+      setRpeSubmitted(true);
+      toast({ title: 'RPE saved', description: `Session rated ${sessionRpe}/10` });
+    } catch {
+      toast({ title: 'Failed to save RPE', variant: 'destructive' });
+    }
+  };
 
   const handleDownloadData = async () => {
     if (!username) return;
@@ -171,6 +198,29 @@ export default function PostWorkoutPage() {
           </div>
         </div>
 
+        {/* RPE Rating */}
+        <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
+          <CardContent className="p-4 space-y-3">
+            <CardTitle className="text-white text-base flex items-center gap-2">
+              How hard was this session?
+            </CardTitle>
+            {rpeSubmitted ? (
+              <RPESelector value={sessionRpe} onChange={() => {}} compact />
+            ) : (
+              <>
+                <RPESelector value={sessionRpe} onChange={setSessionRpe} />
+                <Button
+                  onClick={handleSaveRpe}
+                  disabled={sessionRpe === null}
+                  className="w-full bg-gradient-primary hover:shadow-glow"
+                >
+                  Save RPE
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Session Summary */}
         {sessionSummary && (
           <Card className="bg-black/50 backdrop-blur-glass border-white/10 shadow-lg mb-6">
@@ -185,7 +235,7 @@ export default function PostWorkoutPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Flame className="h-4 w-4 text-primary" />
-                    <span className="text-white/80 text-sm">Total Volume</span>
+                    <ExplainTerm term="Volume"><span className="text-white/80 text-sm">Total Volume</span></ExplainTerm>
                   </div>
                   <span className="text-primary font-bold text-lg">
                     {sessionSummary.totalVolume.toLocaleString()} lb
@@ -325,7 +375,7 @@ export default function PostWorkoutPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-primary flex items-center gap-2 text-base">
                 <Trophy className="h-5 w-5" />
-                Personal Records
+                <ExplainTerm term="PRs">Personal Records</ExplainTerm>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -353,7 +403,7 @@ export default function PostWorkoutPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-yellow-400 flex items-center gap-2 text-base">
                 <AlertTriangle className="h-5 w-5" />
-                Plateau Detected
+                <ExplainTerm term="Plateau">Plateau Detected</ExplainTerm>
               </CardTitle>
             </CardHeader>
             <CardContent>

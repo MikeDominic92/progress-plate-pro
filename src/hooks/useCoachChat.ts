@@ -12,7 +12,7 @@ export interface ChatMessage {
 interface CoachChatParams {
   completedSessionCount: number;
   allPRs: PersonalRecord[];
-  recentSessions: { date: string; totalVolume: number; prCount: number }[];
+  recentSessions: { date: string; totalVolume: number; prCount: number; rpe?: number | null }[];
   latestWeight: number | null;
   weightDelta: number | null;
   goalWeight: number | null;
@@ -25,6 +25,7 @@ const STORAGE_KEY = 'coach_chat_messages';
 const MAX_STORED = 200;
 const MAX_API_MESSAGES = 50;
 const GEMINI_PROXY = '/.netlify/functions/gemini-proxy';
+const GEMINI_STREAM_PROXY = '/.netlify/functions/gemini-proxy-stream';
 
 function loadMessages(): ChatMessage[] {
   try {
@@ -57,11 +58,12 @@ function mergeConsecutive(msgs: { role: string; parts: { text: string }[] }[]) {
 export function useCoachChat(params: CoachChatParams) {
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [sending, setSending] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const paramsRef = useRef(params);
   paramsRef.current = params;
 
-  // Sync loaded messages on mount
   useEffect(() => {
     setMessages(loadMessages());
   }, []);
@@ -80,12 +82,12 @@ export function useCoachChat(params: CoachChatParams) {
     saveMessages(updated);
     setSending(true);
     setError(null);
+    setStreamingContent('');
 
     try {
       const ctx = buildCoachContext(paramsRef.current);
       const systemPrompt = buildSystemPrompt(ctx);
 
-      // Build conversation history for API (cap at MAX_API_MESSAGES most recent)
       const recentMsgs = updated.slice(-MAX_API_MESSAGES);
       const contents = mergeConsecutive(
         recentMsgs.map(m => ({
@@ -94,31 +96,88 @@ export function useCoachChat(params: CoachChatParams) {
         }))
       );
 
-      // Ensure first message is from user (Gemini requirement)
       if (contents.length > 0 && contents[0].role !== 'user') {
         contents.shift();
       }
 
-      const response = await fetch(GEMINI_PROXY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents,
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 8192,
-          },
-        }),
-      });
+      const requestBody = {
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents,
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 8192,
+        },
+      };
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `API error (${response.status})`);
+      // Try streaming first
+      let reply = '';
+      let streamed = false;
+
+      try {
+        const response = await fetch(GEMINI_STREAM_PROXY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (response.ok && response.body) {
+          setIsStreaming(true);
+          streamed = true;
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = '';
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') continue;
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    accumulated += parsed.text;
+                    setStreamingContent(accumulated);
+                  }
+                } catch {
+                  // skip
+                }
+              }
+            }
+          }
+
+          reply = accumulated;
+        }
+      } catch {
+        // Streaming failed, fall through to non-streaming
       }
 
-      const data = await response.json();
-      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      // Fallback to non-streaming if streaming didn't work
+      if (!streamed || !reply) {
+        setIsStreaming(false);
+        setStreamingContent('');
+
+        const response = await fetch(GEMINI_PROXY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `API error (${response.status})`);
+        }
+
+        const data = await response.json();
+        reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      }
 
       if (!reply) {
         throw new Error('No response from Coach Dom. Try again.');
@@ -137,6 +196,8 @@ export function useCoachChat(params: CoachChatParams) {
       setError(err.message || 'Something went wrong.');
     } finally {
       setSending(false);
+      setIsStreaming(false);
+      setStreamingContent('');
     }
   }, [messages, sending]);
 
@@ -146,5 +207,5 @@ export function useCoachChat(params: CoachChatParams) {
     setError(null);
   }, []);
 
-  return { messages, sending, error, sendMessage, clearChat };
+  return { messages, sending, isStreaming, streamingContent, error, sendMessage, clearChat };
 }
