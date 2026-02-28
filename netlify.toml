@@ -3,6 +3,15 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+
+[functions."gemini-proxy"]
+  timeout = 26
+
+[functions."gemini-proxy-stream"]
+  timeout = 26
+
 # Security headers for all pages
 [[headers]]
   for = "/*"

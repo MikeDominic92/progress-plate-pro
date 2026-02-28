@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface WeightLog {
   date: string;
@@ -46,11 +47,14 @@ export function useWeightTracker(username: string) {
   const writeWeightData = async (logs: WeightLog[], goal: number | null) => {
     if (!username.trim()) return;
 
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('preferences')
-      .eq('username', username.trim())
-      .single();
+    const { data: existing } = await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('username', username.trim())
+        .single(),
+      { maxRetries: 2 },
+    );
 
     const currentPrefs = (existing?.preferences as Record<string, unknown>) || {};
     const updatedPrefs = {
@@ -58,10 +62,13 @@ export function useWeightTracker(username: string) {
       weight_tracking: { goal_weight: goal, weight_logs: logs },
     };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ preferences: updatedPrefs as unknown as import('@/integrations/supabase/types').Json })
-      .eq('username', username.trim());
+    const { error } = await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .update({ preferences: updatedPrefs as unknown as import('@/integrations/supabase/types').Json })
+        .eq('username', username.trim()),
+      { maxRetries: 2 },
+    );
 
     if (error) throw error;
   };

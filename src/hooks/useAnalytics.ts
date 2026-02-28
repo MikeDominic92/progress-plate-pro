@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface AnalyticsEvent {
   sessionId?: string;
@@ -16,19 +17,22 @@ interface AnalyticsEvent {
 export const useAnalytics = () => {
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
-      const { error } = await supabase
-        .from('session_analytics')
-        .insert({
-          session_id: event.sessionId,
-          username: event.username,
-          event_type: event.eventType,
-          event_data: event.eventData || {},
-          duration_seconds: event.durationSeconds,
-          exercise_name: event.exerciseName,
-          set_number: event.setNumber,
-          weight: event.weight,
-          reps: event.reps
-        });
+      const { error } = await supabaseRetry(
+        () => supabase
+          .from('session_analytics')
+          .insert({
+            session_id: event.sessionId,
+            username: event.username,
+            event_type: event.eventType,
+            event_data: event.eventData || {},
+            duration_seconds: event.durationSeconds,
+            exercise_name: event.exerciseName,
+            set_number: event.setNumber,
+            weight: event.weight,
+            reps: event.reps
+          }),
+        { maxRetries: 1 },
+      );
 
       if (error) {
         console.error('Analytics tracking error:', error);

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 const DEFAULT_USERNAME = 'Kara';
 
@@ -41,11 +42,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchUserRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role, username')
-        .eq('user_id', userId)
-        .maybeSingle();
+      const { data, error } = await supabaseRetry(
+        () => supabase
+          .from('user_roles')
+          .select('role, username')
+          .eq('user_id', userId)
+          .maybeSingle(),
+        { maxRetries: 1 },
+      );
 
       if (error) {
         console.error('Error fetching user role:', error);

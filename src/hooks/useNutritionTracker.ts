@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithTimeout, TimeoutError } from '@/lib/fetchWithTimeout';
+import { retryWithBackoff } from '@/lib/retryWithBackoff';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 export interface FoodItem {
   name: string;
@@ -181,17 +184,23 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
         if (!user) return;
         if (syncVersion.current !== version) return; // stale
 
-        await supabase
-          .from('nutrition_logs')
-          .upsert(
-            {
-              user_id: user.id,
-              log_date: selectedDate,
-              meals: mealsForCloud(updated),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id,log_date' }
-          );
+        const { error: upsertErr } = await supabaseRetry(
+          () => supabase
+            .from('nutrition_logs')
+            .upsert(
+              {
+                user_id: user.id,
+                log_date: selectedDate,
+                meals: mealsForCloud(updated),
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: 'user_id,log_date' }
+            ),
+          { maxRetries: 2 },
+        );
+        if (upsertErr && syncVersion.current === version) {
+          setSyncError('Cloud sync failed. Changes saved locally.');
+        }
       } catch (err) {
         console.error('Cloud sync save failed:', err);
         if (syncVersion.current === version) {
@@ -224,10 +233,7 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
     try {
       const base64 = await compressImage(file);
 
-      const response = await fetch(GEMINI_PROXY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const requestBody = JSON.stringify({
           contents: [
             {
               parts: [
@@ -269,8 +275,17 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
             temperature: 0.1,
             maxOutputTokens: 8192,
           },
+        });
+
+      const response = await retryWithBackoff(
+        () => fetchWithTimeout(GEMINI_PROXY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: requestBody,
+          timeoutMs: 30_000,
         }),
-      });
+        { maxRetries: 1, shouldRetry: (err) => !(err instanceof TimeoutError) },
+      );
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -304,7 +319,11 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
         photoBase64?: string;
       };
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze food');
+      if (err instanceof TimeoutError) {
+        setError('Analysis is taking too long. Please try again.');
+      } else {
+        setError(err.message || 'Failed to analyze food');
+      }
       return null;
     } finally {
       setAnalyzing(false);
@@ -346,17 +365,20 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
               try {
                 const { data: { user: u } } = await supabase.auth.getUser();
                 if (!u || syncVersion.current !== version) return;
-                await supabase
-                  .from('nutrition_logs')
-                  .upsert(
-                    {
-                      user_id: u.id,
-                      log_date: selectedDate,
-                      meals: mealsForCloud(withUrl),
-                      updated_at: new Date().toISOString(),
-                    },
-                    { onConflict: 'user_id,log_date' }
-                  );
+                await supabaseRetry(
+                  () => supabase
+                    .from('nutrition_logs')
+                    .upsert(
+                      {
+                        user_id: u.id,
+                        log_date: selectedDate,
+                        meals: mealsForCloud(withUrl),
+                        updated_at: new Date().toISOString(),
+                      },
+                      { onConflict: 'user_id,log_date' }
+                    ),
+                  { maxRetries: 2 },
+                );
               } catch (err) {
                 console.error('Cloud sync after photo upload failed:', err);
               }
@@ -417,10 +439,7 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
     setError(null);
 
     try {
-      const response = await fetch(GEMINI_PROXY, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const descRequestBody = JSON.stringify({
           contents: [
             {
               parts: [
@@ -456,8 +475,17 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
             temperature: 0.1,
             maxOutputTokens: 8192,
           },
+        });
+
+      const response = await retryWithBackoff(
+        () => fetchWithTimeout(GEMINI_PROXY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: descRequestBody,
+          timeoutMs: 30_000,
         }),
-      });
+        { maxRetries: 2, shouldRetry: (err) => !(err instanceof TimeoutError) },
+      );
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -486,7 +514,11 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
         totals: { calories: number; protein: number; carbs: number; fat: number };
       };
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze food description');
+      if (err instanceof TimeoutError) {
+        setError('Analysis is taking too long. Please try again.');
+      } else {
+        setError(err.message || 'Failed to analyze food description');
+      }
       return null;
     } finally {
       setAnalyzing(false);
@@ -505,17 +537,21 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
         if (!user) return;
         if (syncVersion.current !== version) return; // stale
 
-        await supabase
-          .from('nutrition_logs')
-          .upsert(
-            {
-              user_id: user.id,
-              log_date: selectedDate,
-              meals: mealsForCloud(meals),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id,log_date' }
-          );
+        const { error: retryErr } = await supabaseRetry(
+          () => supabase
+            .from('nutrition_logs')
+            .upsert(
+              {
+                user_id: user.id,
+                log_date: selectedDate,
+                meals: mealsForCloud(meals),
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: 'user_id,log_date' }
+            ),
+          { maxRetries: 2 },
+        );
+        if (retryErr) throw retryErr;
       } catch (err) {
         console.error('Cloud sync retry failed:', err);
         if (syncVersion.current === version) {

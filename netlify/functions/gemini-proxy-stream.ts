@@ -52,14 +52,23 @@ export default async (req: Request) => {
   if (payload.systemInstruction) geminiBody.systemInstruction = payload.systemInstruction;
 
   try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiBody),
-      }
-    );
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20_000);
+
+    let geminiRes: Response;
+    try {
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiBody),
+          signal: controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
@@ -132,6 +141,12 @@ export default async (req: Request) => {
       },
     });
   } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return new Response(
+        JSON.stringify({ error: "Gemini API request timed out after 20s. Please try again." }),
+        { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     const message = err instanceof Error ? err.message : "Unknown proxy error";
     return new Response(JSON.stringify({ error: message }), {
       status: 502,

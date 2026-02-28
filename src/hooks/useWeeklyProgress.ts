@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfWeek, getISOWeek } from 'date-fns';
 import type { DailyTargets, MealEntry } from '@/hooks/useNutritionTracker';
 import { DAILY_TARGETS } from '@/hooks/useNutritionTracker';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface WeeklyVolume {
   weekLabel: string;
@@ -56,12 +57,15 @@ export function useWeeklyProgress(
 
       // Fetch session analytics for weekly volumes (last 28 days)
       const fourWeeksAgo = subDays(new Date(), 28);
-      const { data: setEvents } = await supabase
-        .from('session_analytics')
-        .select('weight, reps, timestamp')
-        .eq('username', username)
-        .eq('event_type', 'set_completed')
-        .gte('timestamp', fourWeeksAgo.toISOString());
+      const { data: setEvents } = await supabaseRetry(
+        () => supabase
+          .from('session_analytics')
+          .select('weight, reps, timestamp')
+          .eq('username', username)
+          .eq('event_type', 'set_completed')
+          .gte('timestamp', fourWeeksAgo.toISOString()),
+        { maxRetries: 1 },
+      );
 
       // Group by ISO week
       const weekMap = new Map<string, number>();
@@ -85,11 +89,14 @@ export function useWeeklyProgress(
 
       // Fetch 7 days of nutrition logs for macro adherence
       const sevenDaysAgo = format(subDays(new Date(), 6), 'yyyy-MM-dd');
-      const { data: nutritionLogs } = await supabase
-        .from('nutrition_logs')
-        .select('log_date, meals')
-        .eq('user_id', user.id)
-        .gte('log_date', sevenDaysAgo);
+      const { data: nutritionLogs } = await supabaseRetry(
+        () => supabase
+          .from('nutrition_logs')
+          .select('log_date, meals')
+          .eq('user_id', user.id)
+          .gte('log_date', sevenDaysAgo),
+        { maxRetries: 1 },
+      );
 
       const adherenceDays: { date: string; hit: boolean }[] = [];
       let hitCount = 0;

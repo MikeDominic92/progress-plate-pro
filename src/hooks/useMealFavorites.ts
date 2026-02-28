@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import type { FoodItem } from '@/hooks/useNutritionTracker';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 export interface MealFavorite {
   id: string;
@@ -47,11 +48,14 @@ export function useMealFavorites(username: string) {
   const writeFavorites = async (updated: MealFavorite[]) => {
     if (!username.trim()) return;
 
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('preferences')
-      .eq('username', username.trim())
-      .single();
+    const { data: existing } = await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('username', username.trim())
+        .single(),
+      { maxRetries: 2 },
+    );
 
     const currentPrefs = (existing?.preferences as Record<string, unknown>) || {};
     const updatedPrefs = {
@@ -59,10 +63,13 @@ export function useMealFavorites(username: string) {
       meal_favorites: updated,
     };
 
-    await supabase
-      .from('profiles')
-      .update({ preferences: updatedPrefs as unknown as Json })
-      .eq('username', username.trim());
+    await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .update({ preferences: updatedPrefs as unknown as Json })
+        .eq('username', username.trim()),
+      { maxRetries: 2 },
+    );
   };
 
   const addFavorite = useCallback(async (meal: { items: FoodItem[]; totals: { calories: number; protein: number; carbs: number; fat: number } }) => {

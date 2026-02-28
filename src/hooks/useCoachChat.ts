@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { buildSystemPrompt, buildCoachContext } from '@/utils/coachSystemPrompt';
 import type { PersonalRecord } from '@/utils/progressionEngine';
 import type { MealEntry } from '@/hooks/useNutritionTracker';
+import { fetchWithTimeout, TimeoutError } from '@/lib/fetchWithTimeout';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -63,13 +64,22 @@ export function useCoachChat(params: CoachChatParams) {
   const [error, setError] = useState<string | null>(null);
   const paramsRef = useRef(params);
   paramsRef.current = params;
+  const abortRef = useRef<AbortController>();
 
   useEffect(() => {
     setMessages(loadMessages());
   }, []);
 
+  // Cancel in-flight request on unmount
+  useEffect(() => () => { abortRef.current?.abort(); }, []);
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || sending) return;
+
+    // Cancel any previous in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     const userMsg: ChatMessage = {
       role: 'user',
@@ -114,10 +124,12 @@ export function useCoachChat(params: CoachChatParams) {
       let streamed = false;
 
       try {
-        const response = await fetch(GEMINI_STREAM_PROXY, {
+        const response = await fetchWithTimeout(GEMINI_STREAM_PROXY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          timeoutMs: 60_000,
+          signal: controller.signal,
         });
 
         if (response.ok && response.body) {
@@ -129,6 +141,7 @@ export function useCoachChat(params: CoachChatParams) {
           let buffer = '';
 
           while (true) {
+            if (controller.signal.aborted) break;
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -155,7 +168,9 @@ export function useCoachChat(params: CoachChatParams) {
 
           reply = accumulated;
         }
-      } catch {
+      } catch (streamErr) {
+        // If user aborted (navigated away), stop silently
+        if (streamErr instanceof DOMException && streamErr.name === 'AbortError') throw streamErr;
         // Streaming failed, fall through to non-streaming
       }
 
@@ -164,10 +179,12 @@ export function useCoachChat(params: CoachChatParams) {
         setIsStreaming(false);
         setStreamingContent('');
 
-        const response = await fetch(GEMINI_PROXY, {
+        const response = await fetchWithTimeout(GEMINI_PROXY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
+          timeoutMs: 30_000,
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -193,7 +210,13 @@ export function useCoachChat(params: CoachChatParams) {
       setMessages(withReply);
       saveMessages(withReply);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong.');
+      // Silently ignore AbortError (user navigated away or sent new message)
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (err instanceof TimeoutError) {
+        setError('Response is taking too long. Please try again.');
+      } else {
+        setError(err.message || 'Something went wrong.');
+      }
     } finally {
       setSending(false);
       setIsStreaming(false);

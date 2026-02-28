@@ -43,14 +43,23 @@ const handler: Handler = async (event) => {
   if (payload.systemInstruction) geminiBody.systemInstruction = payload.systemInstruction;
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiBody),
-      }
-    );
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20_000);
+
+    let response: Response;
+    try {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiBody),
+          signal: controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timer);
+    }
 
     const data = await response.json();
 
@@ -68,6 +77,13 @@ const handler: Handler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return {
+        statusCode: 504,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Gemini API request timed out after 20s. Please try again." }),
+      };
+    }
     const message = err instanceof Error ? err.message : "Unknown proxy error";
     return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: message }) };
   }

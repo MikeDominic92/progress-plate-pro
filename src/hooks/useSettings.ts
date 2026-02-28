@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 export interface UserSettings {
   daily_targets: { calories: number; protein: number; carbs: number; fat: number };
@@ -54,11 +55,14 @@ export function useSettings(username: string) {
     const updated = { ...settings, ...partial };
     setSettings(updated);
 
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('preferences')
-      .eq('username', username.trim())
-      .single();
+    const { data: existing } = await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('username', username.trim())
+        .single(),
+      { maxRetries: 2 },
+    );
 
     const currentPrefs = (existing?.preferences as Record<string, unknown>) || {};
     const updatedPrefs = {
@@ -66,10 +70,13 @@ export function useSettings(username: string) {
       settings: updated,
     };
 
-    await supabase
-      .from('profiles')
-      .update({ preferences: updatedPrefs as unknown as Json })
-      .eq('username', username.trim());
+    await supabaseRetry(
+      () => supabase
+        .from('profiles')
+        .update({ preferences: updatedPrefs as unknown as Json })
+        .eq('username', username.trim()),
+      { maxRetries: 2 },
+    );
   }, [username, settings]);
 
   const formatWeight = useCallback((lbValue: number): string => {

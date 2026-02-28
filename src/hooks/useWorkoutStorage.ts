@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface WorkoutData {
   [key: string]: any;
@@ -153,19 +154,25 @@ export const useWorkoutStorage = (username: string) => {
 
       if (session.id) {
         // Update existing session
-        const { error } = await supabase
-          .from('workout_sessions')
-          .update(sessionData)
-          .eq('id', session.id);
+        const { error } = await supabaseRetry(
+          () => supabase
+            .from('workout_sessions')
+            .update(sessionData)
+            .eq('id', session.id!),
+          { maxRetries: 2 },
+        );
 
         if (error) throw error;
       } else {
         // Insert new session
-        const { data, error } = await supabase
-          .from('workout_sessions')
-          .insert(sessionData)
-          .select()
-          .single();
+        const { data, error } = await supabaseRetry(
+          () => supabase
+            .from('workout_sessions')
+            .insert(sessionData)
+            .select()
+            .single(),
+          { maxRetries: 2 },
+        );
 
         if (error) throw error;
         if (data && saveVersion.current === version) {
