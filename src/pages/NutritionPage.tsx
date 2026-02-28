@@ -108,13 +108,7 @@ export default function NutritionPage() {
 
     const result = await analyzePhoto(file);
     if (result) {
-      // Read base64 and auto-save
-      const thumbReader = new FileReader();
-      thumbReader.onload = () => {
-        const base64 = (thumbReader.result as string).split(',')[1];
-        addMeal(result.items, result.totals, base64);
-      };
-      thumbReader.readAsDataURL(file);
+      addMeal(result.items, result.totals, result.photoBase64);
     }
     // Reset input so same file can be re-selected
     e.target.value = '';

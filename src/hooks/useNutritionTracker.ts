@@ -39,6 +39,36 @@ export const DAILY_TARGETS: DailyTargets = {
 
 const STORAGE_PREFIX = 'nutrition_log_';
 const GEMINI_PROXY = '/.netlify/functions/gemini-proxy';
+const MAX_IMAGE_DIM = 1024;
+const JPEG_QUALITY = 0.8;
+
+/** Compress an image file to max 1024px and JPEG 80% quality. Returns base64 (no data: prefix). */
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > MAX_IMAGE_DIM || height > MAX_IMAGE_DIM) {
+        const scale = MAX_IMAGE_DIM / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = url;
+  });
+}
 
 function getStorageKey(date: string) {
   return `${STORAGE_PREFIX}${date}`;
@@ -186,18 +216,13 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
   const analyzePhoto = useCallback(async (file: File): Promise<{
     items: FoodItem[];
     totals: { calories: number; protein: number; carbs: number; fat: number };
+    photoBase64?: string;
   } | null> => {
     setAnalyzing(true);
     setError(null);
 
     try {
-      const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const base64 = btoa(binary);
+      const base64 = await compressImage(file);
 
       const response = await fetch(GEMINI_PROXY, {
         method: 'POST',
@@ -208,7 +233,7 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
               parts: [
                 {
                   inlineData: {
-                    mimeType: file.type || 'image/jpeg',
+                    mimeType: 'image/jpeg',
                     data: base64,
                   },
                 },
@@ -269,9 +294,14 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
         throw new Error('Invalid nutrition data format');
       }
 
-      return nutrition as {
+      return {
+        items: nutrition.items,
+        totals: nutrition.totals,
+        photoBase64: base64,
+      } as {
         items: FoodItem[];
         totals: { calories: number; protein: number; carbs: number; fat: number };
+        photoBase64?: string;
       };
     } catch (err: any) {
       setError(err.message || 'Failed to analyze food');
