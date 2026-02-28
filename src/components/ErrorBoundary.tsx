@@ -35,7 +35,6 @@ export class ErrorBoundary extends React.Component<
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null });
-                window.location.reload();
               }}
               className="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
             >

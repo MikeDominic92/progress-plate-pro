@@ -2,25 +2,38 @@ import type { Handler } from "@netlify/functions";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-3.1-pro-preview";
+const ALLOWED_ORIGINS = ["https://kbfit.netlify.app", "http://localhost:8080"];
 
 const handler: Handler = async (event) => {
+  const origin = event.headers?.origin || event.headers?.Origin || "";
+  const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": corsOrigin,
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: corsHeaders, body: "" };
+  }
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
+    return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
   if (!GEMINI_API_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ error: "GEMINI_API_KEY not configured on server" }) };
+    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: "GEMINI_API_KEY not configured on server" }) };
   }
 
   let payload: { contents: unknown; generationConfig?: unknown; systemInstruction?: unknown };
   try {
     payload = JSON.parse(event.body || "{}");
   } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON body" }) };
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
 
   if (!payload.contents) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Missing 'contents' field" }) };
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: "Missing 'contents' field" }) };
   }
 
   const geminiBody: Record<string, unknown> = {
@@ -44,18 +57,19 @@ const handler: Handler = async (event) => {
     if (!response.ok) {
       return {
         statusCode: response.status,
+        headers: corsHeaders,
         body: JSON.stringify(data),
       };
     }
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify(data),
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown proxy error";
-    return { statusCode: 502, body: JSON.stringify({ error: message }) };
+    return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: message }) };
   }
 };
 

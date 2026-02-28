@@ -84,6 +84,20 @@ CREATE TABLE IF NOT EXISTS public.exercise_index (
 );
 
 
+-- Nutrition logs (per-user daily meal tracking)
+CREATE TABLE IF NOT EXISTS public.nutrition_logs (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  log_date date NOT NULL DEFAULT CURRENT_DATE,
+  meals jsonb NOT NULL DEFAULT '[]'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS nutrition_logs_user_date
+  ON public.nutrition_logs(user_id, log_date);
+
+
 -- 2. INDEXES
 -- ----------
 
@@ -164,6 +178,26 @@ CREATE POLICY "Anyone can update exercise_index"
 CREATE POLICY "Anyone can delete exercise_index"
   ON public.exercise_index FOR DELETE
   USING (true);
+
+
+-- nutrition_logs: RLS ON (user-scoped)
+ALTER TABLE public.nutrition_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own nutrition logs"
+  ON public.nutrition_logs FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own nutrition logs"
+  ON public.nutrition_logs FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own nutrition logs"
+  ON public.nutrition_logs FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own nutrition logs"
+  ON public.nutrition_logs FOR DELETE
+  USING (auth.uid() = user_id);
 
 
 -- 4. FUNCTIONS

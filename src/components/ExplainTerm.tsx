@@ -59,6 +59,7 @@ export default function ExplainTerm({ term, children, className = '' }: ExplainT
               <button
                 onClick={() => setOpen(false)}
                 className="p-1 text-white/30 hover:text-white/60 transition-colors"
+                aria-label="Close explanation"
               >
                 <X className="h-4 w-4" />
               </button>

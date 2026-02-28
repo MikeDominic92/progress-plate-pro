@@ -29,7 +29,7 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">
             Session - {new Date(session.session_date).toLocaleDateString('en-US', {

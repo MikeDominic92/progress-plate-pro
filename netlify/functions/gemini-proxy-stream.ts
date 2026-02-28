@@ -1,9 +1,23 @@
 // Netlify Functions v2 - Streaming proxy for Gemini API
+const ALLOWED_ORIGINS = ["https://kbfit.netlify.app", "http://localhost:8080"];
+
 export default async (req: Request) => {
+  const origin = req.headers.get("origin") || "";
+  const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": corsOrigin,
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -111,6 +125,7 @@ export default async (req: Request) => {
     return new Response(readable, {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
@@ -120,7 +135,7 @@ export default async (req: Request) => {
     const message = err instanceof Error ? err.message : "Unknown proxy error";
     return new Response(JSON.stringify({ error: message }), {
       status: 502,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 };

@@ -47,7 +47,7 @@ export const RestTimer = ({ onClose }: RestTimerProps) => {
   const presetTimes = [60, 90, 120, 180]; // 1min, 1.5min, 2min, 3min
 
   return (
-    <Card className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50 bg-gradient-card/95 backdrop-blur-glass border-white/20 shadow-xl w-[calc(100vw-1rem)] max-w-xs md:max-w-sm sm:w-auto animate-slide-in">
+    <Card className="fixed top-2 sm:top-4 right-2 sm:right-4 z-50 bg-gradient-card/95 backdrop-blur-glass border-white/20 shadow-xl w-full max-w-[calc(100%-1rem)] sm:max-w-xs md:max-w-sm animate-slide-in">
       <CardContent className="p-3 sm:p-6 text-center space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">

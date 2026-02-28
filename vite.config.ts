@@ -33,7 +33,7 @@ export default defineConfig(() => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       manifest: {
         name: "KBFit",
         short_name: "KBFit",

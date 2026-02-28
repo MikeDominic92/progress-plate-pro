@@ -67,13 +67,15 @@ export function useWeightTracker(username: string) {
   };
 
   const logWeight = async (date: string, weight: number) => {
-    const updated = [...weightLogs.filter(l => l.date !== date), { date, weight }]
+    if (weight <= 0 || weight > 1500) throw new Error('Invalid weight value');
+    const updated = [...weightLogs.filter(l => l.date !== date), { date, weight: Math.round(weight * 10) / 10 }]
       .sort((a, b) => a.date.localeCompare(b.date));
     await writeWeightData(updated, goalWeight);
     setWeightLogs(updated);
   };
 
   const updateGoalWeight = async (goal: number | null) => {
+    if (goal !== null && (goal <= 0 || goal > 1500)) throw new Error('Invalid goal weight');
     await writeWeightData(weightLogs, goal);
     setGoalWeight(goal);
   };

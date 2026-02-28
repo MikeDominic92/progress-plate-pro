@@ -77,10 +77,10 @@ export const SetLog = React.memo(function SetLog({ set, onLogChange, onSetComple
               {onUnlock && (
                 <button
                   onClick={onUnlock}
-                  className="p-1 rounded-md text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-md text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors"
                   aria-label="Unlock set for editing"
                 >
-                  <Pencil className="h-3.5 w-3.5" />
+                  <Pencil className="h-4 w-4" />
                 </button>
               )}
             </div>

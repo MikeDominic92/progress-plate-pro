@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Download } from 'lucide-react';
@@ -10,6 +11,7 @@ import ExplainTerm from '@/components/ExplainTerm';
 import BottomNav from '@/components/BottomNav';
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { username } = useAuthenticatedUser();
   const { settings, updateSettings, loading } = useSettings(username);
   const { toast } = useToast();
@@ -43,7 +45,7 @@ export default function SettingsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/';
+    navigate('/', { replace: true });
   };
 
   const handleExport = async () => {

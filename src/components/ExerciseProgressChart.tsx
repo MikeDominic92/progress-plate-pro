@@ -54,7 +54,7 @@ export const ExerciseProgressChart = memo(function ExerciseProgressChart({ data,
       )}
       <CardContent className={compact ? 'p-2' : 'px-2 pb-4 pt-0'}>
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <LineChart data={formatted} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
+          <LineChart data={formatted} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis
               dataKey="label"

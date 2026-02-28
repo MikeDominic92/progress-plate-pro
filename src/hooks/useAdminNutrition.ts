@@ -14,6 +14,7 @@ export interface DailyNutrition {
 
 interface UseAdminNutritionReturn {
   dailyLogs: DailyNutrition[];
+  dailyMeals: Record<string, MealEntry[]>;
   daysLogged: number;
   daysOnTarget: number;
   avgCalories: number;
@@ -24,6 +25,7 @@ interface UseAdminNutritionReturn {
 
 export function useAdminNutrition(username = 'Kara'): UseAdminNutritionReturn {
   const [dailyLogs, setDailyLogs] = useState<DailyNutrition[]>([]);
+  const [dailyMeals, setDailyMeals] = useState<Record<string, MealEntry[]>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchNutrition = useCallback(async () => {
@@ -63,12 +65,15 @@ export function useAdminNutrition(username = 'Kara'): UseAdminNutritionReturn {
 
       if (!logs || logs.length === 0) {
         setDailyLogs([]);
+        setDailyMeals({});
         return;
       }
 
-      // Process each day's meals into totals
+      // Process each day's meals into totals + preserve individual meals
+      const mealsMap: Record<string, MealEntry[]> = {};
       const processed: DailyNutrition[] = logs.map(log => {
         const meals = (log.meals as MealEntry[]) || [];
+        mealsMap[log.log_date] = meals;
         const totals = meals.reduce(
           (acc, meal) => ({
             calories: acc.calories + (meal.totals?.calories || 0),
@@ -90,6 +95,7 @@ export function useAdminNutrition(username = 'Kara'): UseAdminNutritionReturn {
       });
 
       setDailyLogs(processed);
+      setDailyMeals(mealsMap);
     } catch (err) {
       console.error('useAdminNutrition error:', err);
     } finally {
@@ -118,6 +124,7 @@ export function useAdminNutrition(username = 'Kara'): UseAdminNutritionReturn {
 
   return {
     dailyLogs,
+    dailyMeals,
     daysLogged,
     daysOnTarget,
     avgCalories,

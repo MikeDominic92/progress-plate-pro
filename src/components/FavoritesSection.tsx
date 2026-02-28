@@ -19,6 +19,8 @@ export default function FavoritesSection({ favorites, onQuickLog, onRemove, load
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-colors"
+        aria-label={expanded ? 'Collapse favorites' : 'Expand favorites'}
+        aria-expanded={expanded}
       >
         <span className="text-sm font-semibold text-white/70">Favorites ({favorites.length})</span>
         {expanded ? <ChevronUp className="h-4 w-4 text-white/40" /> : <ChevronDown className="h-4 w-4 text-white/40" />}

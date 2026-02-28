@@ -22,7 +22,7 @@ export function BadgeGallery({ unlockedIds, open, onOpenChange }: BadgeGalleryPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[80vh] overflow-y-auto rounded-2xl bg-background/95 backdrop-blur-xl border-white/10">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[85vh] overflow-y-auto rounded-2xl bg-background/95 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <DialogTitle className="text-lg text-white flex items-center gap-2">
             Badges

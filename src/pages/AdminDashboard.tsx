@@ -13,6 +13,7 @@ import { SessionHistoryTab } from '@/components/admin/SessionHistoryTab';
 import { ProgressTab } from '@/components/admin/ProgressTab';
 import { ComplianceTab } from '@/components/admin/ComplianceTab';
 import { AdminToolsTab } from '@/components/admin/AdminToolsTab';
+import { NutritionTab } from '@/components/admin/NutritionTab';
 
 const USERNAME = 'Kara';
 
@@ -82,6 +83,7 @@ const AdminDashboard: React.FC = () => {
             <TabsTrigger value="sessions" className="whitespace-nowrap flex-shrink-0">Sessions</TabsTrigger>
             <TabsTrigger value="progress" className="whitespace-nowrap flex-shrink-0">Progress</TabsTrigger>
             <TabsTrigger value="compliance" className="whitespace-nowrap flex-shrink-0">Compliance</TabsTrigger>
+            <TabsTrigger value="nutrition" className="whitespace-nowrap flex-shrink-0">Nutrition</TabsTrigger>
             <TabsTrigger value="tools" className="whitespace-nowrap flex-shrink-0">Tools</TabsTrigger>
           </TabsList>
 
@@ -125,6 +127,13 @@ const AdminDashboard: React.FC = () => {
               sessions={sessionHistory.sessions}
               weightLogs={weightTracker.weightLogs}
               goalWeight={weightTracker.goalWeight}
+            />
+          </TabsContent>
+
+          <TabsContent value="nutrition">
+            <NutritionTab
+              dailyMeals={nutrition.dailyMeals}
+              dailyLogs={nutrition.dailyLogs}
             />
           </TabsContent>
 

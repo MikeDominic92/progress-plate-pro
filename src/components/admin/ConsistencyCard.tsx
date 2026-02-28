@@ -68,7 +68,7 @@ export function ConsistencyCard({ sessions, weeklySessionCount, currentStreak }:
             {/* Day labels column */}
             <div className="flex flex-col gap-1">
               {dayLabels.map((label, i) => (
-                <div key={i} className="w-4 h-4 flex items-center justify-center text-[8px] text-white/30">
+                <div key={i} className="w-4 h-4 flex items-center justify-center text-[10px] text-white/30">
                   {label}
                 </div>
               ))}

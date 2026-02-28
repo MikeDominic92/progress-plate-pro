@@ -92,7 +92,7 @@ export default function CardioPage() {
         navigate('/warmup');
       }
     }
-  }, [currentSession]);
+  }, [currentSession, cardioData.completed, cardioData.time, cardioData.calories, navigate]);
 
   const handleComplete = async () => {
     if (cardioData.time) {

@@ -16,7 +16,7 @@ export default function MealDetailDialog({ meal, mealIndex, open, onOpenChange, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-sm rounded-2xl bg-background/95 backdrop-blur-xl border-white/10 p-0 overflow-hidden">
+      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-sm rounded-2xl bg-background/95 backdrop-blur-xl border-white/10 p-0 overflow-hidden">
         {(meal.photoUrl || meal.photoBase64) && (
           <img
             src={meal.photoUrl || `data:image/jpeg;base64,${meal.photoBase64}`}

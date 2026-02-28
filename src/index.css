@@ -168,7 +168,9 @@
   }
 }
 
-html, body {
+/* Prevent horizontal scroll only on the root container, not html/body
+   (setting it on html/body breaks pinch-zoom on iOS and causes scroll issues) */
+#root {
   overflow-x: hidden;
 }
 
@@ -335,5 +337,15 @@ html, body {
     animation: sonny-swing 2.5s ease-in-out infinite;
     transform-origin: center top;
     display: inline-block;
+  }
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
