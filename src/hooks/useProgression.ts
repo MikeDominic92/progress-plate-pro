@@ -116,7 +116,8 @@ export function useProgression(username: string): UseProgressionReturn {
             }
           }
           const session = sessions.find(s => s.session_date === date);
-          const rpe = (session?.workout_data as any)?.rpe ?? null;
+          const wd = session?.workout_data as Record<string, unknown> | null;
+          const rpe = (wd?.rpe as number) ?? null;
           return { date, totalVolume, prCount: 0, rpe };
         });
         setRecentSessions(recent);
@@ -220,7 +221,7 @@ export function useProgression(username: string): UseProgressionReturn {
 
       await supabase
         .from('profiles')
-        .update({ personal_records: merged as any })
+        .update({ personal_records: merged as unknown as Record<string, unknown>[] })
         .eq('username', username);
 
       setAllPRs(merged);

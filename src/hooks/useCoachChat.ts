@@ -209,13 +209,13 @@ export function useCoachChat(params: CoachChatParams) {
       const withReply = [...updated, assistantMsg];
       setMessages(withReply);
       saveMessages(withReply);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Silently ignore AbortError (user navigated away or sent new message)
       if (err instanceof DOMException && err.name === 'AbortError') return;
       if (err instanceof TimeoutError) {
         setError('Response is taking too long. Please try again.');
       } else {
-        setError(err.message || 'Something went wrong.');
+        setError(err instanceof Error ? err.message : 'Something went wrong.');
       }
     } finally {
       setSending(false);

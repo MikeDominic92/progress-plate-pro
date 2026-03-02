@@ -21,6 +21,7 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com; media-src 'self' https://www.youtube.com https://*.youtube.com; frame-src https://www.youtube.com"
 
 # Never cache HTML or service worker files
 [[headers]]

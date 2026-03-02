@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, Pause, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Clock, Pause, CheckCircle2, RotateCcw } from 'lucide-react';
 import { playBeep, notifyRestComplete, requestNotificationPermission } from '@/utils/timerNotifications';
 
 interface RestTimerSelectorProps {
@@ -65,12 +65,6 @@ export const RestTimerSelector: React.FC<RestTimerSelectorProps> = ({
     setIsRunning(true); // Auto-start timer immediately
     setIsCompleted(false);
     setHasShown30SecWarning(false);
-  };
-
-  const handleStart = () => {
-    if (selectedMinutes && timeLeft > 0) {
-      setIsRunning(true);
-    }
   };
 
   const handlePause = () => {

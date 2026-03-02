@@ -91,7 +91,7 @@ export default function WarmupPage() {
       warmup_watched_videos: Array.from(checked),
     };
     updateSession(updates);
-    try { await manualSave(updates); } catch {}
+    try { await manualSave(updates); } catch { /* save may fail silently */ }
     navigate('/exercise/0', { replace: true });
   };
 
@@ -105,7 +105,7 @@ export default function WarmupPage() {
       warmup_watched_videos: Array.from(checked),
     };
     updateSession(updates);
-    try { await manualSave(updates); } catch {}
+    try { await manualSave(updates); } catch { /* save may fail silently */ }
     navigate('/exercise/0', { replace: true });
   };
 

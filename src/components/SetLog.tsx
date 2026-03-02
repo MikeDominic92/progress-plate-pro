@@ -7,8 +7,16 @@ import { Weight, Repeat, Pencil } from 'lucide-react';
 import { ProgressionBadge } from '@/components/ProgressionBadge';
 import type { ProgressionSuggestion } from '@/utils/progressionEngine';
 
+interface WorkoutSet {
+  type: string;
+  instructions: string;
+  weight: string;
+  reps: string;
+  confirmed?: boolean;
+}
+
 interface SetLogProps {
-  set: any;
+  set: WorkoutSet;
   onLogChange: (field: string, value: string) => void;
   onSetComplete?: () => void;
   onUnlock?: () => void;

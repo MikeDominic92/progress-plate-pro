@@ -4,9 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface WorkoutData {
-  [key: string]: any;
-  logs: Record<string, any>;
-  timers: Record<string, any>;
+  [key: string]: unknown;
+  logs: Record<string, unknown>;
+  timers: Record<string, unknown>;
 }
 
 interface WorkoutSession {
@@ -63,7 +63,7 @@ export const useWorkoutStorage = (username: string) => {
     // If user explicitly started a new workout, skip lookup and create one
     const forceNew = typeof window !== 'undefined' && localStorage.getItem('forceNewSession') === '1';
     if (forceNew) {
-      try { localStorage.removeItem('forceNewSession'); } catch {}
+      try { localStorage.removeItem('forceNewSession'); } catch { /* ignore */ }
       const newSession: WorkoutSession = {
         username,
         session_date: today,
@@ -129,10 +129,10 @@ export const useWorkoutStorage = (username: string) => {
 
     setCurrentSession(newSession);
     await saveSession(newSession);
-  }, [username]);
+  }, [username, saveSession]);
 
   // Save session to database
-  const saveSession = async (session: WorkoutSession) => {
+  const saveSession = useCallback(async (session: WorkoutSession) => {
     if (!session) return;
 
     const version = ++saveVersion.current;
@@ -180,10 +180,7 @@ export const useWorkoutStorage = (username: string) => {
         }
       }
 
-      // Auto-save notification (subtle)
-      if (saveVersion.current === version) {
-        console.log('Workout progress saved');
-      }
+      // Auto-save completed silently
     } catch (error) {
       if (saveVersion.current !== version) return;
       console.error('Error saving session:', error);
@@ -197,7 +194,7 @@ export const useWorkoutStorage = (username: string) => {
         setSaving(false);
       }
     }
-  };
+  }, [toast]);
 
   // Update session data with useCallback to prevent infinite loops
   const updateSession = useCallback((updates: Partial<WorkoutSession>) => {
@@ -206,8 +203,8 @@ export const useWorkoutStorage = (username: string) => {
       // Shallow compare keys we update; avoid state churn if nothing changed
       let changed = false;
       for (const key in updates) {
-        const nextVal = (updates as any)[key];
-        const prevVal = (prev as any)[key];
+        const nextVal = (updates as Record<string, unknown>)[key];
+        const prevVal = (prev as Record<string, unknown>)[key];
         if (typeof nextVal !== 'undefined' && JSON.stringify(prevVal) !== JSON.stringify(nextVal)) {
           changed = true;
           break;
@@ -224,7 +221,7 @@ export const useWorkoutStorage = (username: string) => {
     
     const sessionToSave = updates ? { ...currentSession, ...updates } : currentSession;
     await saveSession(sessionToSave);
-  }, [currentSession]);
+  }, [currentSession, saveSession]);
 
   // Keep the session ref in sync for the auto-save interval
   useEffect(() => {
@@ -240,7 +237,7 @@ export const useWorkoutStorage = (username: string) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []); // empty deps - interval reads from ref
+  }, [saveSession]); // saveSession is stable (useCallback with toast dep)
 
   // Clear session and storage completely including database records
   const clearSession = useCallback(async () => {
@@ -261,8 +258,6 @@ export const useWorkoutStorage = (username: string) => {
           description: "Local session cleared, but some saved data may remain.",
           variant: "destructive",
         });
-      } else {
-        console.log(`All sessions deleted for username: ${username}`);
       }
       
       // Clear localStorage

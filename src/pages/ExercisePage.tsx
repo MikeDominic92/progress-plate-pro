@@ -16,6 +16,7 @@ import { useProgression } from '@/hooks/useProgression';
 import { useExerciseProgram } from '@/hooks/useExerciseProgram';
 import { useToast } from '@/hooks/use-toast';
 import type { PersonalRecord } from '@/utils/progressionEngine';
+import type { WorkoutExercise, WorkoutSet } from '@/hooks/useExerciseProgram';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 import BottomNav from '@/components/BottomNav';
 
@@ -69,15 +70,16 @@ export default function ExercisePage() {
   useEffect(() => {
     if (!isFallback && !hasAppliedProgram.current && !hasHydratedFromSession.current) {
       // Only apply if no sets have been started (weight/reps entered).
-      const hasUserData = workoutLog.some((ex: any) =>
-        ex.sets?.some((s: any) => s.weight || s.reps || s.confirmed) ||
-        ex.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed)
+      const hasUserData = workoutLog.some((ex: WorkoutExercise) =>
+        ex.sets?.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed) ||
+        ex.substitute?.sets?.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed)
       );
       if (!hasUserData) {
         setWorkoutLog(programExercises);
         hasAppliedProgram.current = true;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- workoutLog intentionally omitted to avoid re-trigger loop when setWorkoutLog fires
   }, [isFallback, programExercises]);
 
   useEffect(() => {
@@ -122,7 +124,7 @@ export default function ExercisePage() {
   // Detect if substitute was already in use (data present)
   useEffect(() => {
     const exercise = workoutLog[currentExerciseIndex];
-    if (exercise?.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed)) {
+    if (exercise?.substitute?.sets?.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed)) {
       setUseSubstitute(true);
     }
   }, [currentExerciseIndex, workoutLog]);
@@ -206,28 +208,28 @@ export default function ExercisePage() {
 
     // Check if all sets for this exercise are done
     const setsToCheck = isSubstitute ? exercise.substitute.sets : exercise.sets;
-    const allSetsCompleted = setsToCheck.every((s: any) => s.confirmed);
+    const allSetsCompleted = setsToCheck.every((s: WorkoutSet) => s.confirmed);
 
     if (allSetsCompleted) {
       // Track exercise completion
       if (currentSession?.id && exerciseName) {
-        const totalReps = setsToCheck.reduce((sum: number, s: any) => sum + (parseInt(s.reps) || 0), 0);
-        const avgWeight = setsToCheck.reduce((sum: number, s: any) => sum + (parseFloat(s.weight) || 0), 0) / setsToCheck.length;
+        const totalReps = setsToCheck.reduce((sum: number, s: WorkoutSet) => sum + (parseInt(s.reps) || 0), 0);
+        const avgWeight = setsToCheck.reduce((sum: number, s: WorkoutSet) => sum + (parseFloat(s.weight) || 0), 0) / setsToCheck.length;
         await trackExerciseCompletion(currentSession.id, username, exerciseName, setsToCheck.length, avgWeight, totalReps, 0);
       }
 
       // Check overall completion
-      const totalCompletedSets = updatedLog.reduce((acc: number, ex: any) => {
+      const totalCompletedSets = updatedLog.reduce((acc: number, ex: WorkoutExercise) => {
         if (!ex?.sets) return acc;
-        const mainCompleted = ex.sets.filter((s: any) => s.confirmed).length;
-        const subCompleted = ex.substitute?.sets?.filter((s: any) => s.confirmed).length || 0;
+        const mainCompleted = ex.sets.filter((s: WorkoutSet) => s.confirmed).length;
+        const subCompleted = ex.substitute?.sets?.filter((s: WorkoutSet) => s.confirmed).length || 0;
         return acc + Math.max(mainCompleted, subCompleted);
       }, 0);
-      const totalSets = updatedLog.reduce((acc: number, ex: any) => acc + (ex?.sets?.length || 0), 0);
+      const totalSets = updatedLog.reduce((acc: number, ex: WorkoutExercise) => acc + (ex?.sets?.length || 0), 0);
 
       if (totalCompletedSets >= totalSets) {
         updateSession({ current_phase: 'completed' });
-        try { await manualSave({ current_phase: 'completed' }); } catch {}
+        try { await manualSave({ current_phase: 'completed' }); } catch { /* save may fail silently */ }
         navigate('/post-workout', { replace: true });
       } else {
         // Auto-advance to next exercise after a short delay
@@ -251,12 +253,6 @@ export default function ExercisePage() {
     setWorkoutLog(updatedLog);
     updateSession({ workout_data: { logs: updatedLog, timers: {} } });
     manualSave({ workout_data: { logs: updatedLog, timers: {} } });
-  };
-
-  const handleRestComplete = () => {
-    setShowRestTimer(false);
-    setIsExerciseTimerPaused(false);
-    setCurrentSetInProgress(null);
   };
 
   const handleRestStarted = async (duration: number) => {
@@ -294,18 +290,18 @@ export default function ExercisePage() {
     : currentExercise.name;
 
   // Progress
-  const completedSets = workoutLog.reduce((acc: number, ex: any) => {
+  const completedSets = workoutLog.reduce((acc: number, ex: WorkoutExercise) => {
     if (!ex?.sets) return acc;
-    const mainDone = ex.sets.filter((s: any) => s.confirmed).length;
-    const subDone = ex.substitute?.sets?.filter((s: any) => s.confirmed).length || 0;
+    const mainDone = ex.sets.filter((s: WorkoutSet) => s.confirmed).length;
+    const subDone = ex.substitute?.sets?.filter((s: WorkoutSet) => s.confirmed).length || 0;
     return acc + Math.max(mainDone, subDone);
   }, 0);
-  const totalSets = workoutLog.reduce((acc: number, ex: any) => acc + (ex?.sets?.length || 0), 0);
+  const totalSets = workoutLog.reduce((acc: number, ex: WorkoutExercise) => acc + (ex?.sets?.length || 0), 0);
   const progressPct = Math.round((completedSets / totalSets) * 100);
 
   // Can switch to substitute only if no main sets have data, and vice versa
-  const hasMainData = currentExercise.sets.some((s: any) => s.weight || s.reps || s.confirmed);
-  const hasSubData = currentExercise.substitute?.sets?.some((s: any) => s.weight || s.reps || s.confirmed);
+  const hasMainData = currentExercise.sets.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed);
+  const hasSubData = currentExercise.substitute?.sets?.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed);
   const canSwitch = currentExercise.substitute && !hasMainData && !hasSubData;
 
   const openVideo = (url: string, title: string) => {
@@ -412,8 +408,8 @@ export default function ExercisePage() {
         <div className="space-y-3 md:grid md:grid-cols-2 gap-2 sm:gap-3 md:gap-4 md:space-y-0">
           {(() => {
             const lastSession = getLastSession(activeExerciseName);
-            const firstIncompleteIdx = activeSets.findIndex((s: any) => !s.confirmed);
-            return activeSets.map((set: any, idx: number) => {
+            const firstIncompleteIdx = activeSets.findIndex((s: WorkoutSet) => !s.confirmed);
+            return activeSets.map((set: WorkoutSet, idx: number) => {
               const suggestion = getSuggestion(activeExerciseName, set.type, idx);
               // Match last session data by setType
               const lastSetForType = lastSession?.sets.find(s => s.setType === set.type);

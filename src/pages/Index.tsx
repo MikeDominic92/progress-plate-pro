@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
-import { Button } from '@/components/ui/button';
 import Landing from "./Landing";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -17,7 +15,7 @@ interface WorkoutSession {
   warmup_exercises_completed: boolean;
   warmup_mood?: string;
   warmup_watched_videos: string[];
-  workout_data: any;
+  workout_data: Record<string, unknown>;
   updated_at: string;
 }
 

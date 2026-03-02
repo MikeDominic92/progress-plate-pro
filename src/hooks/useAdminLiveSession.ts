@@ -10,7 +10,7 @@ interface LiveSession {
   cardio_completed: boolean;
   cardio_time: string | null;
   cardio_calories: string | null;
-  workout_data: any;
+  workout_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -18,7 +18,7 @@ interface LiveSession {
 interface LiveEvent {
   id: string;
   event_type: string;
-  event_data: any;
+  event_data: Record<string, unknown>;
   timestamp: string;
   exercise_name: string | null;
   set_number: number | null;

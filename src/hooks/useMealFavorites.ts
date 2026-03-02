@@ -85,12 +85,14 @@ export function useMealFavorites(username: string) {
     const updated = [fav, ...favorites].slice(0, MAX_FAVORITES);
     setFavorites(updated);
     await writeFavorites(updated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- writeFavorites is not memoized; adding it would cause infinite re-renders
   }, [favorites, username]);
 
   const removeFavorite = useCallback(async (id: string) => {
     const updated = favorites.filter(f => f.id !== id);
     setFavorites(updated);
     await writeFavorites(updated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- writeFavorites is not memoized; adding it would cause infinite re-renders
   }, [favorites, username]);
 
   const isFavorited = useCallback((meal: { items: FoodItem[] }): boolean => {

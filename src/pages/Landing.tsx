@@ -34,7 +34,7 @@ interface WorkoutSession {
   current_phase: string;
   cardio_completed: boolean;
   warmup_completed: boolean;
-  workout_data: any;
+  workout_data: Record<string, unknown>;
   updated_at: string;
 }
 
@@ -85,6 +85,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
       fetchInProgressSession();
       fetchCompletedDays();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch functions are stable but not memoized; adding them would cause infinite re-fetches
   }, [username]);
 
   useEffect(() => {
@@ -188,6 +189,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
       nutritionStreak: 0,
       macroAccuracy: false,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- badges, currentStreak, and recentSessions are intentionally omitted to avoid infinite re-render loops
   }, [completedSessionCount, allPRs.length, bestStreak, totalVolumeAllTime, badges.loading]);
 
   const progressPct = Math.round((totalCompletedDays / 90) * 100);

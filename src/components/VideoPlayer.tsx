@@ -124,7 +124,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (data.event === 'video-progress') {
           // Handle video progress if needed
         }
-      } catch (error) {
+      } catch {
         // Ignore parsing errors
       }
     };

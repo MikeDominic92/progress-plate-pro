@@ -9,7 +9,7 @@ export interface SessionSummary {
   cardio_completed: boolean;
   cardio_time: string | null;
   cardio_calories: string | null;
-  workout_data: any;
+  workout_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   duration: number; // minutes
@@ -65,12 +65,15 @@ export function useAdminSessionHistory(username = 'Kara'): UseAdminSessionHistor
         return;
       }
 
-      // Fetch all set_completed events for volume calculation
-      const { data: setEvents } = await supabase
-        .from('session_analytics')
-        .select('session_id, exercise_name, weight, reps')
-        .eq('username', username)
-        .eq('event_type', 'set_completed');
+      // Fetch set_completed events scoped to returned sessions only
+      const sessionIds = rawSessions.map(s => s.id);
+      const { data: setEvents } = sessionIds.length > 0
+        ? await supabase
+            .from('session_analytics')
+            .select('session_id, exercise_name, weight, reps')
+            .in('session_id', sessionIds)
+            .eq('event_type', 'set_completed')
+        : { data: [] };
 
       // Group set events by session_id
       const eventsBySession: Record<string, { exercise_name: string | null; weight: number | null; reps: number | null }[]> = {};

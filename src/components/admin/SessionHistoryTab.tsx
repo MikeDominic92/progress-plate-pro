@@ -92,8 +92,8 @@ export function SessionHistoryTab({ sessions, stats }: SessionHistoryTabProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {(session.workout_data as any)?.rpe != null && (
-                    <span className="text-[10px] text-white/40">RPE {(session.workout_data as any).rpe}</span>
+                  {(session.workout_data as Record<string, unknown>)?.rpe != null && (
+                    <span className="text-[10px] text-white/40">RPE {String((session.workout_data as Record<string, unknown>).rpe)}</span>
                   )}
                   <span className="text-xs text-white/50">
                     {session.totalVolume.toLocaleString()} lb

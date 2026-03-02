@@ -11,6 +11,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import { downloadWorkoutCsv } from '@/utils/exportWorkoutCsv';
 import { useToast } from '@/hooks/use-toast';
+import type { WorkoutSet } from '@/hooks/useExerciseProgram';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 import RPESelector from '@/components/RPESelector';
 import ExplainTerm from '@/components/ExplainTerm';
@@ -61,11 +62,11 @@ export default function PostWorkoutPage() {
         title: 'Download Started',
         description: 'Your workout history CSV is downloading.',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('CSV export failed:', err);
       toast({
         title: 'Export Failed',
-        description: err?.message || 'Could not export workout data.',
+        description: err instanceof Error ? err.message : 'Could not export workout data.',
         variant: 'destructive',
       });
     } finally {
@@ -89,7 +90,7 @@ export default function PostWorkoutPage() {
 
     for (const exercise of logs) {
       if (!exercise?.sets) continue;
-      const setsToCheck = exercise.sets.some((s: any) => s.confirmed) ? exercise.sets : exercise.substitute?.sets || [];
+      const setsToCheck = exercise.sets.some((s: WorkoutSet) => s.confirmed) ? exercise.sets : exercise.substitute?.sets || [];
       const name = setsToCheck === exercise.sets ? exercise.name : exercise.substitute?.name || exercise.name;
 
       let heaviestWeight = 0;

@@ -1,8 +1,7 @@
 import type { Handler } from "@netlify/functions";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-3.1-pro-preview";
-const ALLOWED_ORIGINS = ["https://kbfit.netlify.app", "http://localhost:8080"];
+const ALLOWED_ORIGINS = ["https://kbfit.netlify.app"];
 
 const handler: Handler = async (event) => {
   const origin = event.headers?.origin || event.headers?.Origin || "";
@@ -21,6 +20,7 @@ const handler: Handler = async (event) => {
     return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_API_KEY) {
     return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: "GEMINI_API_KEY not configured on server" }) };
   }

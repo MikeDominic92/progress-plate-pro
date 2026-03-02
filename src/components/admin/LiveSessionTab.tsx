@@ -5,7 +5,7 @@ import { Activity, Clock, Dumbbell, Zap } from 'lucide-react';
 interface LiveEvent {
   id: string;
   event_type: string;
-  event_data: any;
+  event_data: Record<string, unknown>;
   timestamp: string;
   exercise_name: string | null;
   set_number: number | null;

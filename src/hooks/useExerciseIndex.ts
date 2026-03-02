@@ -11,7 +11,7 @@ export interface ExerciseIndexItem {
   video_url: string;
   time_segment?: string;
   instructions?: string;
-  exercise_data?: any;
+  exercise_data?: Record<string, unknown>;
   tags?: string[];
   is_custom: boolean;
   created_by?: string;
@@ -193,6 +193,7 @@ export const useExerciseIndex = () => {
   // Load exercises on mount
   useEffect(() => {
     fetchExercises();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

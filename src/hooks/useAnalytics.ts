@@ -6,7 +6,7 @@ interface AnalyticsEvent {
   sessionId?: string;
   username: string;
   eventType: 'set_completed' | 'rest_started' | 'rest_completed' | 'exercise_started' | 'exercise_completed' | 'phase_started' | 'phase_completed' | 'cardio_completed' | 'warmup_completed';
-  eventData?: Record<string, any>;
+  eventData?: Record<string, unknown>;
   durationSeconds?: number;
   exerciseName?: string;
   setNumber?: number;
@@ -88,7 +88,7 @@ export const useAnalytics = () => {
     username: string,
     phase: string,
     durationSeconds: number,
-    additionalData?: Record<string, any>
+    additionalData?: Record<string, unknown>
   ) => {
     await trackEvent({
       sessionId,

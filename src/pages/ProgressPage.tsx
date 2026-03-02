@@ -6,7 +6,7 @@ import { useWeightTracker } from '@/hooks/useWeightTracker';
 import { useSettings } from '@/hooks/useSettings';
 import { useWeeklyProgress } from '@/hooks/useWeeklyProgress';
 import { supabase } from '@/integrations/supabase/client';
-import { differenceInCalendarDays, format, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { WeeklyVolumeChart } from '@/components/progress/WeeklyVolumeChart';
 import { MacroAdherenceCard } from '@/components/progress/MacroAdherenceCard';
 import { BodyWeightSparkline } from '@/components/progress/BodyWeightSparkline';
@@ -16,7 +16,7 @@ import BottomNav from '@/components/BottomNav';
 
 export default function ProgressPage() {
   const { username } = useAuthenticatedUser();
-  const { completedSessionCount, allPRs } = useProgression(username);
+  const { allPRs } = useProgression(username);
   const { weightLogs } = useWeightTracker(username);
   const { settings } = useSettings(username);
 

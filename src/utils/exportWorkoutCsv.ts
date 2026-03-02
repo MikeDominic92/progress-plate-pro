@@ -10,6 +10,26 @@ interface CsvRow {
   setType: string;
 }
 
+interface WorkoutSet {
+  confirmed?: boolean;
+  weight?: string;
+  reps?: string;
+  type?: string;
+}
+
+interface WorkoutExercise {
+  name?: string;
+  sets?: WorkoutSet[];
+  substitute?: {
+    name?: string;
+    sets?: WorkoutSet[];
+  };
+}
+
+interface SessionWorkoutData {
+  logs?: WorkoutExercise[];
+}
+
 /**
  * Queries all completed workout_sessions for the given user,
  * parses the workout_data JSON column, and returns a CSV string.
@@ -33,7 +53,7 @@ export async function buildWorkoutCsv(username: string): Promise<string> {
   const rows: CsvRow[] = [];
 
   for (const session of sessions) {
-    const workoutData = session.workout_data as any;
+    const workoutData = session.workout_data as SessionWorkoutData;
     if (!workoutData?.logs || !Array.isArray(workoutData.logs)) continue;
 
     for (const exercise of workoutData.logs) {
@@ -42,7 +62,7 @@ export async function buildWorkoutCsv(username: string): Promise<string> {
       // Determine which sets were actually used: main or substitute.
       // If any substitute set is confirmed, use the substitute; otherwise use main sets.
       const hasConfirmedSubstitute = exercise.substitute?.sets?.some(
-        (s: any) => s.confirmed
+        (s: WorkoutSet) => s.confirmed
       );
       const activeSets = hasConfirmedSubstitute
         ? exercise.substitute.sets

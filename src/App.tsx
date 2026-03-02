@@ -86,7 +86,7 @@ const App = () => {
 
               {/* Admin - accessible via secret 5-tap on title */}
               <Route path="/admin" element={
-                <AuthGuard><AdminDashboard /></AuthGuard>
+                <AuthGuard requireAdmin={true}><AdminDashboard /></AuthGuard>
               } />
 
               <Route path="*" element={<NotFound />} />

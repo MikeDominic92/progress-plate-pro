@@ -9,15 +9,17 @@ interface SessionDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface ExerciseSet {
+  setType?: string;
+  weight?: number;
+  reps?: number;
+  completed?: boolean;
+  [key: string]: unknown;
+}
+
 interface ExerciseLog {
-  sets: {
-    setType?: string;
-    weight?: number;
-    reps?: number;
-    completed?: boolean;
-    [key: string]: any;
-  }[];
-  [key: string]: any;
+  sets: ExerciseSet[];
+  [key: string]: unknown;
 }
 
 export function SessionDetailDialog({ session, open, onOpenChange }: SessionDetailDialogProps) {
@@ -41,7 +43,7 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
         </DialogHeader>
 
         {/* Session summary */}
-        <div className={`grid gap-2 sm:gap-3 text-sm ${(session.workout_data as any)?.rpe != null ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        <div className={`grid gap-2 sm:gap-3 text-sm ${(session.workout_data as Record<string, unknown>)?.rpe != null ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <div>
             <p className="text-muted-foreground text-xs">Duration</p>
             <p className="font-medium">{session.duration}m</p>
@@ -54,10 +56,10 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
             <p className="text-muted-foreground text-xs">Volume</p>
             <p className="font-medium">{session.totalVolume.toLocaleString()} lb</p>
           </div>
-          {(session.workout_data as any)?.rpe != null && (
+          {(session.workout_data as Record<string, unknown>)?.rpe != null && (
             <div>
               <p className="text-muted-foreground text-xs">RPE</p>
-              <p className="font-medium">{(session.workout_data as any).rpe}/10</p>
+              <p className="font-medium">{String((session.workout_data as Record<string, unknown>).rpe)}/10</p>
             </div>
           )}
         </div>
@@ -88,7 +90,7 @@ export function SessionDetailDialog({ session, open, onOpenChange }: SessionDeta
                 <div key={name}>
                   <h4 className="font-medium text-sm mb-2">{name}</h4>
                   <div className="space-y-1">
-                    {sets.map((set: any, i: number) => (
+                    {sets.map((set: ExerciseSet, i: number) => (
                       <div
                         key={i}
                         className="flex items-center justify-between text-xs bg-black/20 rounded px-3 py-1.5"

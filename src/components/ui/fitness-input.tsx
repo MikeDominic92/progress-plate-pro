@@ -8,7 +8,7 @@ interface FitnessInputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const FitnessInput = React.forwardRef<HTMLInputElement, FitnessInputProps>(
-  ({ className, label, icon, variant = 'default', ...props }, ref) => {
+  ({ className, label, icon, variant: _variant = 'default', ...props }, ref) => {
     return (
       <div className="space-y-1">
         <label className="text-sm font-medium text-white">

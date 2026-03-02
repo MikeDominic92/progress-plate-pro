@@ -1,5 +1,4 @@
 import { workoutPlan } from '@/data/workoutPlan';
-import { ExerciseIndexItem } from '@/hooks/useExerciseIndex';
 
 export interface ExerciseToSync {
   name: string;

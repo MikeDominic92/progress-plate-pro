@@ -100,6 +100,7 @@ export default function NutritionPage() {
       }, 150);
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount intentionally; searchParams and setSearchParams are stable router refs
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

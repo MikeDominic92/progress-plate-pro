@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,7 +105,7 @@ export default function CardioPage() {
       };
       updateSession(updates);
       sessionStorage.removeItem('cardio_timer_state');
-      try { await manualSave(updates); } catch {}
+      try { await manualSave(updates); } catch { /* save may fail silently */ }
       navigate('/warmup', { replace: true });
     }
   };
@@ -120,7 +120,7 @@ export default function CardioPage() {
     };
     updateSession(updates);
     sessionStorage.removeItem('cardio_timer_state');
-    try { await manualSave(updates); } catch {}
+    try { await manualSave(updates); } catch { /* save may fail silently */ }
     navigate('/warmup', { replace: true });
   };
 

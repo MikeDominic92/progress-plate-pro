@@ -50,7 +50,7 @@ const AuthPage = () => {
       });
       
       navigate('/');
-    } catch (error) {
+    } catch {
       toast({
         title: "Unexpected Error",
         description: "An unexpected error occurred. Please try again.",
@@ -119,7 +119,7 @@ const AuthPage = () => {
       });
       
       navigate('/');
-    } catch (error) {
+    } catch {
       toast({
         title: "Unexpected Error",
         description: "An unexpected error occurred. Please try again.",

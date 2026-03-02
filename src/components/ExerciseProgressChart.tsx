@@ -11,7 +11,12 @@ interface ExerciseProgressChartProps {
   compact?: boolean;
 }
 
-function CustomTooltip({ active, payload }: any) {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { payload: WeightTrendPoint }[];
+}
+
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload as WeightTrendPoint;
   return (
@@ -24,6 +29,12 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 export const ExerciseProgressChart = memo(function ExerciseProgressChart({ data, exerciseName, compact = false }: ExerciseProgressChartProps) {
+  // Format dates for X-axis (must be called before early return to satisfy hook rules)
+  const formatted = useMemo(() => data.map(d => ({
+    ...d,
+    label: format(new Date(d.date), 'M/d'),
+  })), [data]);
+
   if (data.length < 2) {
     return (
       <Card className="bg-black/50 border-white/10">
@@ -35,12 +46,6 @@ export const ExerciseProgressChart = memo(function ExerciseProgressChart({ data,
   }
 
   const chartHeight = compact ? 160 : 250;
-
-  // Format dates for X-axis
-  const formatted = useMemo(() => data.map(d => ({
-    ...d,
-    label: format(new Date(d.date), 'M/d'),
-  })), [data]);
 
   return (
     <Card className="bg-black/50 border-white/10 backdrop-blur-sm">

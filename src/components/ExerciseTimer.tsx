@@ -39,7 +39,7 @@ export const ExerciseTimer: React.FC<ExerciseTimerProps> = ({
       // Auto-start timer when it becomes active
       setHasStarted(true);
       setIsRunning(true);
-      try { onStart(); } catch {}
+      try { onStart(); } catch { /* callback may throw */ }
     }
   }, [isActive, isPaused, hasStarted, onStart]);
 

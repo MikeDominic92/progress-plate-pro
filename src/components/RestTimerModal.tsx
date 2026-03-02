@@ -77,6 +77,7 @@ export const RestTimerModal: React.FC<RestTimerModalProps> = ({
       }, 1500);
       return () => clearTimeout(timeout);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- handleFinish is intentionally excluded to avoid re-creating the effect on every render
   }, [isCompleted]);
 
   const handleSelectTime = (minutes: number) => {

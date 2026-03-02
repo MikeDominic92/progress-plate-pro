@@ -1,5 +1,5 @@
 // Netlify Functions v2 - Streaming proxy for Gemini API
-const ALLOWED_ORIGINS = ["https://kbfit.netlify.app", "http://localhost:8080"];
+const ALLOWED_ORIGINS = ["https://kbfit.netlify.app"];
 
 export default async (req: Request) => {
   const origin = req.headers.get("origin") || "";

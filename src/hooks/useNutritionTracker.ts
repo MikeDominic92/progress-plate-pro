@@ -79,7 +79,7 @@ function getStorageKey(date: string) {
 
 /** Strip photoBase64 from meals before saving to Supabase (saves bandwidth/storage). Keep photoUrl. */
 function mealsForCloud(meals: MealEntry[]): MealEntry[] {
-  return meals.map(({ photoBase64, ...rest }) => rest);
+  return meals.map(({ photoBase64: _photoBase64, ...rest }) => rest);
 }
 
 /** Upload a meal photo to Supabase Storage. Returns public URL or null on failure. */
@@ -96,6 +96,10 @@ async function uploadMealPhoto(
       byteArray[i] = byteChars.charCodeAt(i);
     }
     const blob = new Blob([byteArray], { type: 'image/jpeg' });
+    if (blob.size > 10 * 1024 * 1024) {
+      console.error('Photo too large after compression:', blob.size);
+      return null;
+    }
 
     const path = `${userId}/${date}/${mealId}.jpg`;
 
@@ -295,7 +299,10 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
       const data = await response.json();
       // Thinking models may return multiple parts; grab the last text part
       const parts = data?.candidates?.[0]?.content?.parts || [];
-      const text = [...parts].reverse().find((p: any) => p.text && !p.thoughtSignature)?.text
+      const text = [...parts].reverse().find((p: unknown) => {
+        const part = p as { text?: string; thoughtSignature?: boolean };
+        return part.text && !part.thoughtSignature;
+      })?.text
         || parts[parts.length - 1]?.text || '';
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -318,11 +325,11 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
         totals: { calories: number; protein: number; carbs: number; fat: number };
         photoBase64?: string;
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof TimeoutError) {
         setError('Analysis is taking too long. Please try again.');
       } else {
-        setError(err.message || 'Failed to analyze food');
+        setError(err instanceof Error ? err.message : 'Failed to analyze food');
       }
       return null;
     } finally {
@@ -495,7 +502,10 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
       const data = await response.json();
       // Thinking models may return multiple parts; grab the last text part
       const parts = data?.candidates?.[0]?.content?.parts || [];
-      const responseText = [...parts].reverse().find((p: any) => p.text && !p.thoughtSignature)?.text
+      const responseText = [...parts].reverse().find((p: unknown) => {
+        const part = p as { text?: string; thoughtSignature?: boolean };
+        return part.text && !part.thoughtSignature;
+      })?.text
         || parts[parts.length - 1]?.text || '';
 
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -513,11 +523,11 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
         items: FoodItem[];
         totals: { calories: number; protein: number; carbs: number; fat: number };
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof TimeoutError) {
         setError('Analysis is taking too long. Please try again.');
       } else {
-        setError(err.message || 'Failed to analyze food description');
+        setError(err instanceof Error ? err.message : 'Failed to analyze food description');
       }
       return null;
     } finally {
