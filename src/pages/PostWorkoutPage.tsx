@@ -8,7 +8,6 @@ import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useProgression } from '@/hooks/useProgression';
 import { ExerciseProgressChart } from '@/components/ExerciseProgressChart';
 import { VideoPlayer } from '@/components/VideoPlayer';
-import { supabase } from '@/integrations/supabase/client';
 import { downloadWorkoutCsv } from '@/utils/exportWorkoutCsv';
 import { useToast } from '@/hooks/use-toast';
 import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
@@ -19,7 +18,7 @@ import BottomNav from '@/components/BottomNav';
 export default function PostWorkoutPage() {
   const navigate = useNavigate();
   const { username } = useAuthenticatedUser();
-  const { currentSession, initializeSession, resetSession } = useWorkoutStorage(username || '');
+  const { currentSession, initializeSession, resetSession, updateSession, manualSave } = useWorkoutStorage(username || '');
   const { allPRs, getWeightTrend, getPlateauStatus, recentSessions } = useProgression(username || '');
   const { toast } = useToast();
   const [downloading, setDownloading] = useState(false);
@@ -41,10 +40,9 @@ export default function PostWorkoutPage() {
     if (!currentSession || sessionRpe === null) return;
     try {
       const updatedData = { ...(currentSession.workout_data || {}), rpe: sessionRpe };
-      await supabase
-        .from('workout_sessions')
-        .update({ workout_data: updatedData, updated_at: new Date().toISOString() })
-        .eq('id', currentSession.id);
+      const updates = { workout_data: updatedData };
+      updateSession(updates);
+      await manualSave(updates);
       setRpeSubmitted(true);
       toast({ title: 'RPE saved', description: `Session rated ${sessionRpe}/10` });
     } catch {
