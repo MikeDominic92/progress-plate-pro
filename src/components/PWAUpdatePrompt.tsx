@@ -2,11 +2,13 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function PWAUpdatePrompt() {
   const {
-    needRefresh: [needRefresh],
+    needRefresh,
     updateServiceWorker,
   } = useRegisterSW();
 
-  if (!needRefresh) return null;
+  const [isRefreshNeeded] = needRefresh;
+
+  if (!isRefreshNeeded) return null;
 
   return (
     <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-sm">
