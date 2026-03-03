@@ -44,7 +44,7 @@ const handler: Handler = async (event) => {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25_000);
+    const timer = setTimeout(() => controller.abort(), 60_000);
 
     let response: Response;
     try {
@@ -81,7 +81,7 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 504,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "Gemini API request timed out after 25s. Please try again." }),
+        body: JSON.stringify({ error: "Gemini API request timed out after 60s. Please try again." }),
       };
     }
     const message = err instanceof Error ? err.message : "Unknown proxy error";

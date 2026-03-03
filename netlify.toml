@@ -7,10 +7,10 @@
   node_bundler = "esbuild"
 
 [functions."gemini-proxy"]
-  timeout = 26
+  timeout = 65
 
 [functions."gemini-proxy-stream"]
-  timeout = 26
+  timeout = 65
 
 # Security headers for all pages
 [[headers]]

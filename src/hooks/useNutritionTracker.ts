@@ -287,7 +287,7 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: requestBody,
-            timeoutMs: 30_000,
+            timeoutMs: 65_000,
           });
 
           if (!res.ok) {
@@ -504,7 +504,7 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: descRequestBody,
-            timeoutMs: 30_000,
+            timeoutMs: 65_000,
           });
 
           if (!res.ok) {
