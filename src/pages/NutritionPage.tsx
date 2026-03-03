@@ -72,6 +72,10 @@ export default function NutritionPage() {
   const [showDescription, setShowDescription] = useState(false);
   const [descriptionText, setDescriptionText] = useState('');
 
+  // Photo with description state
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+  const [photoDescription, setPhotoDescription] = useState('');
+
   // Manual macro entry form
   const [showManual, setShowManual] = useState(false);
   const [manualForm, setManualForm] = useState({ name: '', portion: '', calories: '', protein: '', carbs: '', fat: '' });
@@ -107,12 +111,25 @@ export default function NutritionPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const result = await analyzePhoto(file);
+    // Show description dialog before analyzing
+    setPendingPhotoFile(file);
+    setPhotoDescription('');
+
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  const handlePhotoWithDescription = async () => {
+    if (!pendingPhotoFile) return;
+
+    const result = await analyzePhoto(pendingPhotoFile);
     if (result) {
       addMeal(result.items, result.totals, result.photoBase64);
     }
-    // Reset input so same file can be re-selected
-    e.target.value = '';
+
+    // Clean up
+    setPendingPhotoFile(null);
+    setPhotoDescription('');
   };
 
   const handleDescriptionLookup = async () => {
@@ -386,6 +403,47 @@ export default function NutritionPage() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Photo Description Input */}
+        {pendingPhotoFile && (
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-white/80">Describe this photo</span>
+                <button
+                  aria-label="Cancel photo"
+                  onClick={() => {
+                    setPendingPhotoFile(null);
+                    setPhotoDescription('');
+                  }}
+                  className="p-1 text-white/30 hover:text-white/60"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-xs text-white/40">
+                Adding a description helps the AI analyze your food more accurately
+              </p>
+              <textarea
+                value={photoDescription}
+                onChange={e => setPhotoDescription(e.target.value)}
+                placeholder="Optional: What's in this meal? (e.g., grilled chicken with rice and vegetables)"
+                rows={2}
+                className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-sm text-white placeholder:text-white/20 focus:border-primary/40 outline-none resize-none"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={handlePhotoWithDescription}
+                  className="flex-1"
+                  disabled={analyzing}
+                >
+                  {analyzing ? 'Analyzing...' : photoDescription.trim() ? 'Analyze with Description' : 'Analyze Photo'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Text Description Input */}
