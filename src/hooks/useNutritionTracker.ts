@@ -159,13 +159,15 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           return;
         }
 
-        // Always sync from cloud (even if empty/null), UNLESS query returned nothing
-        if (loadVersion.current === currentLoad) {
-          const cloudMeals = (data?.meals as MealEntry[]) || [];
+        // If we got cloud data (even if empty), use it as source of truth
+        if (data && loadVersion.current === currentLoad) {
+          const cloudMeals = (data.meals as MealEntry[]) || [];
           setMeals(cloudMeals);
           // Update localStorage to match cloud
           localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(cloudMeals));
         }
+        // If no cloud data exists for this date, keep localStorage (first load)
+        // but don't update state again since we already loaded from localStorage above
       } catch (err) {
         console.error('Cloud sync load failed:', err);
       }
