@@ -9,7 +9,7 @@ import AuthGuard from "@/components/AuthGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import SonnyDefs from "@/components/characters/SonnyDefs";
-import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
+// import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 
 const CardioPage = lazy(() => import("./pages/CardioPage"));
 const WarmupPage = lazy(() => import("./pages/WarmupPage"));
@@ -39,7 +39,7 @@ const App = () => {
       <AuthProvider>
         <TooltipProvider>
           <SonnyDefs />
-          <PWAUpdatePrompt />
+          {/* <PWAUpdatePrompt /> */}
           <Toaster />
           <Sonner />
           <ErrorBoundary>
