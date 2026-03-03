@@ -129,12 +129,12 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
   const syncVersion = useRef(0);
   const loadVersion = useRef(0);
 
-  // Load meals: try Supabase first, fall back to localStorage
+  // Load meals: Supabase is source of truth, localStorage only for instant display
   useEffect(() => {
     const currentLoad = ++loadVersion.current;
 
     async function load() {
-      // 1. Try localStorage immediately for fast paint
+      // 1. Show localStorage immediately for instant display (cache only)
       try {
         const stored = localStorage.getItem(getStorageKey(selectedDate));
         if (stored && loadVersion.current === currentLoad) {
@@ -142,7 +142,7 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
         }
       } catch { /* ignore */ }
 
-      // 2. Then fetch from Supabase (source of truth)
+      // 2. Fetch from Supabase (source of truth) - ALWAYS use this data
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || loadVersion.current !== currentLoad) return;
@@ -156,65 +156,82 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
 
         if (fetchErr) {
           console.error('Supabase load error:', fetchErr);
+          setSyncError(`Failed to load from cloud: ${fetchErr.message}`);
           return;
         }
 
-        // If we got cloud data (even if empty), use it as source of truth
-        if (data && loadVersion.current === currentLoad) {
-          const cloudMeals = (data.meals as MealEntry[]) || [];
+        // ALWAYS sync from Supabase (source of truth)
+        if (loadVersion.current === currentLoad) {
+          // If Supabase has data for this date, use it
+          // If no row exists yet (data is null), show empty (will create row on first save)
+          const cloudMeals = data ? ((data.meals as MealEntry[]) || []) : [];
           setMeals(cloudMeals);
-          // Update localStorage to match cloud
+          // Cache to localStorage for instant display next time
           localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(cloudMeals));
         }
-        // If no cloud data exists for this date, keep localStorage (first load)
-        // but don't update state again since we already loaded from localStorage above
       } catch (err) {
         console.error('Cloud sync load failed:', err);
+        setSyncError('Failed to load from cloud. Check your connection.');
       }
     }
 
     load();
   }, [selectedDate]);
 
-  // Save meals to localStorage + Supabase
-  const saveMeals = useCallback((updated: MealEntry[]) => {
+  // Save meals to Supabase (primary) + localStorage (cache)
+  const saveMeals = useCallback(async (updated: MealEntry[]) => {
+    // Update UI immediately (optimistic)
     setMeals(updated);
     setSyncError(null);
-    localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(updated));
 
-    // Async cloud sync with version guard to discard stale writes
+    // Cache to localStorage for instant display
+    try {
+      localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(updated));
+    } catch (err) {
+      console.warn('localStorage save failed:', err);
+    }
+
+    // Save to Supabase (source of truth) - with version guard
     const version = ++syncVersion.current;
 
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        if (syncVersion.current !== version) return; // stale
-
-        const { error: upsertErr } = await supabaseRetry(
-          () => supabase
-            .from('nutrition_logs')
-            .upsert(
-              {
-                user_id: user.id,
-                log_date: selectedDate,
-                meals: mealsForCloud(updated),
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: 'user_id,log_date' }
-            ),
-          { maxRetries: 2 },
-        );
-        if (upsertErr && syncVersion.current === version) {
-          setSyncError('Cloud sync failed. Changes saved locally.');
-        }
-      } catch (err) {
-        console.error('Cloud sync save failed:', err);
-        if (syncVersion.current === version) {
-          setSyncError('Cloud sync failed. Changes saved locally.');
-        }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSyncError('Not logged in. Cannot save to cloud.');
+        return;
       }
-    })();
+      if (syncVersion.current !== version) return; // Stale save, discard
+
+      const { error: upsertErr } = await supabaseRetry(
+        () => supabase
+          .from('nutrition_logs')
+          .upsert(
+            {
+              user_id: user.id,
+              log_date: selectedDate,
+              meals: mealsForCloud(updated),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id,log_date' }
+          ),
+        { maxRetries: 3 },
+      );
+
+      if (upsertErr) {
+        console.error('Supabase upsert error:', upsertErr);
+        if (syncVersion.current === version) {
+          setSyncError(`Failed to save to cloud: ${upsertErr.message}`);
+        }
+      } else {
+        console.log('✅ Saved to Supabase successfully');
+      }
+    } catch (err) {
+      console.error('Cloud sync save failed:', err);
+      if (syncVersion.current === version) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setSyncError(`Failed to save to cloud: ${message}`);
+      }
+    }
   }, [selectedDate]);
 
   // Compute daily totals
@@ -540,39 +557,8 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
 
   // Retry the last save if cloud sync failed
   const retrySave = useCallback(() => {
-    setSyncError(null);
-
-    const version = ++syncVersion.current;
-
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        if (syncVersion.current !== version) return; // stale
-
-        const { error: retryErr } = await supabaseRetry(
-          () => supabase
-            .from('nutrition_logs')
-            .upsert(
-              {
-                user_id: user.id,
-                log_date: selectedDate,
-                meals: mealsForCloud(meals),
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: 'user_id,log_date' }
-            ),
-          { maxRetries: 2 },
-        );
-        if (retryErr) throw retryErr;
-      } catch (err) {
-        console.error('Cloud sync retry failed:', err);
-        if (syncVersion.current === version) {
-          setSyncError('Cloud sync failed. Changes saved locally.');
-        }
-      }
-    })();
-  }, [selectedDate, meals]);
+    saveMeals(meals);
+  }, [meals, saveMeals]);
 
 
   return {
