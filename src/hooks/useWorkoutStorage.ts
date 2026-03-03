@@ -4,9 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabaseRetry } from '@/lib/supabaseRetry';
 
 interface WorkoutData {
-  [key: string]: unknown;
-  logs: Record<string, unknown>;
-  timers: Record<string, unknown>;
+  [key: string]: any;
+  logs: any[];  // Changed from Record<string, any> to any[]
+  timers: Record<string, any>;
 }
 
 interface WorkoutSession {
@@ -35,101 +35,6 @@ export const useWorkoutStorage = (username: string) => {
   const resetSession = useCallback(() => {
     setCurrentSession(null);
   }, []);
-
-  // Initialize or load session
-  const initializeSession = useCallback(async (existingSession?: WorkoutSession) => {
-    if (existingSession) {
-      const session: WorkoutSession = {
-        id: existingSession.id,
-        username: existingSession.username,
-        session_date: existingSession.session_date,
-        current_phase: existingSession.current_phase,
-        cardio_completed: existingSession.cardio_completed,
-        cardio_time: existingSession.cardio_time,
-        cardio_calories: existingSession.cardio_calories,
-        warmup_completed: existingSession.warmup_completed,
-        warmup_exercises_completed: existingSession.warmup_exercises_completed,
-        warmup_mood: existingSession.warmup_mood,
-        warmup_watched_videos: existingSession.warmup_watched_videos || [],
-        workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
-      };
-      setCurrentSession(session);
-      return;
-    }
-
-    // Check if there's already a session for today
-    const today = new Date().toISOString().split('T')[0];
-
-    // If user explicitly started a new workout, skip lookup and create one
-    const forceNew = typeof window !== 'undefined' && localStorage.getItem('forceNewSession') === '1';
-    if (forceNew) {
-      try { localStorage.removeItem('forceNewSession'); } catch { /* ignore */ }
-      const newSession: WorkoutSession = {
-        username,
-        session_date: today,
-        current_phase: 'cardio',
-        cardio_completed: false,
-        warmup_completed: false,
-        warmup_exercises_completed: false,
-        warmup_watched_videos: [],
-        workout_data: { logs: {}, timers: {} }
-      };
-      setCurrentSession(newSession);
-      await saveSession(newSession);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('workout_sessions')
-        .select('*')
-        .eq('username', username)
-        .eq('session_date', today)
-        .order('updated_at', { ascending: false })
-        .limit(1);
-
-      if (error) throw error;
-
-      // If there's an existing session for today, use it (even if completed)
-      if (data && data.length > 0) {
-        const existingSession = data[0];
-        // Cast the database response to our WorkoutSession type
-        const session: WorkoutSession = {
-          id: existingSession.id,
-          username: existingSession.username,
-          session_date: existingSession.session_date,
-          current_phase: existingSession.current_phase,
-          cardio_completed: existingSession.cardio_completed,
-          cardio_time: existingSession.cardio_time,
-          cardio_calories: existingSession.cardio_calories,
-          warmup_completed: existingSession.warmup_completed,
-          warmup_exercises_completed: existingSession.warmup_exercises_completed,
-          warmup_mood: existingSession.warmup_mood,
-          warmup_watched_videos: existingSession.warmup_watched_videos || [],
-          workout_data: (existingSession.workout_data as WorkoutData) || { logs: {}, timers: {} }
-        };
-        setCurrentSession(session);
-        return;
-      }
-    } catch (error) {
-      console.error('Error checking for existing session:', error);
-    }
-
-    // Create new session only if no existing session for today
-    const newSession: WorkoutSession = {
-      username,
-      session_date: today,
-      current_phase: 'cardio',
-      cardio_completed: false,
-      warmup_completed: false,
-      warmup_exercises_completed: false,
-      warmup_watched_videos: [],
-      workout_data: { logs: {}, timers: {} }
-    };
-
-    setCurrentSession(newSession);
-    await saveSession(newSession);
-  }, [username, saveSession]);
 
   // Save session to database
   const saveSession = useCallback(async (session: WorkoutSession) => {
@@ -180,7 +85,10 @@ export const useWorkoutStorage = (username: string) => {
         }
       }
 
-      // Auto-save completed silently
+      // Auto-save notification (subtle)
+      if (saveVersion.current === version) {
+        console.log('Workout progress saved');
+      }
     } catch (error) {
       if (saveVersion.current !== version) return;
       console.error('Error saving session:', error);
@@ -196,6 +104,101 @@ export const useWorkoutStorage = (username: string) => {
     }
   }, [toast]);
 
+  // Initialize or load session
+  const initializeSession = useCallback(async (existingSession?: WorkoutSession) => {
+    if (existingSession) {
+      const session: WorkoutSession = {
+        id: existingSession.id,
+        username: existingSession.username,
+        session_date: existingSession.session_date,
+        current_phase: existingSession.current_phase,
+        cardio_completed: existingSession.cardio_completed,
+        cardio_time: existingSession.cardio_time,
+        cardio_calories: existingSession.cardio_calories,
+        warmup_completed: existingSession.warmup_completed,
+        warmup_exercises_completed: existingSession.warmup_exercises_completed,
+        warmup_mood: existingSession.warmup_mood,
+        warmup_watched_videos: existingSession.warmup_watched_videos || [],
+        workout_data: (existingSession.workout_data as WorkoutData) || { logs: [], timers: {} }
+      };
+      setCurrentSession(session);
+      return;
+    }
+
+    // Check if there's already a session for today
+    const today = new Date().toISOString().split('T')[0];
+
+    // If user explicitly started a new workout, skip lookup and create one
+    const forceNew = typeof window !== 'undefined' && localStorage.getItem('forceNewSession') === '1';
+    if (forceNew) {
+      try { localStorage.removeItem('forceNewSession'); } catch {}
+      const newSession: WorkoutSession = {
+        username,
+        session_date: today,
+        current_phase: 'cardio',
+        cardio_completed: false,
+        warmup_completed: false,
+        warmup_exercises_completed: false,
+        warmup_watched_videos: [],
+        workout_data: { logs: [], timers: {} }
+      };
+      setCurrentSession(newSession);
+      await saveSession(newSession);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('workout_sessions')
+        .select('*')
+        .eq('username', username)
+        .eq('session_date', today)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      // If there's an existing session for today, use it (even if completed)
+      if (data && data.length > 0) {
+        const existingSession = data[0];
+        // Cast the database response to our WorkoutSession type
+        const session: WorkoutSession = {
+          id: existingSession.id,
+          username: existingSession.username,
+          session_date: existingSession.session_date,
+          current_phase: existingSession.current_phase,
+          cardio_completed: existingSession.cardio_completed,
+          cardio_time: existingSession.cardio_time,
+          cardio_calories: existingSession.cardio_calories,
+          warmup_completed: existingSession.warmup_completed,
+          warmup_exercises_completed: existingSession.warmup_exercises_completed,
+          warmup_mood: existingSession.warmup_mood,
+          warmup_watched_videos: existingSession.warmup_watched_videos || [],
+          workout_data: (existingSession.workout_data as WorkoutData) || { logs: [], timers: {} }
+        };
+        setCurrentSession(session);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking for existing session:', error);
+    }
+
+    // Create new session only if no existing session for today
+    const newSession: WorkoutSession = {
+      username,
+      session_date: today,
+      current_phase: 'cardio',
+      cardio_completed: false,
+      warmup_completed: false,
+      warmup_exercises_completed: false,
+      warmup_watched_videos: [],
+      workout_data: { logs: {}, timers: {} }
+    };
+
+    setCurrentSession(newSession);
+    await saveSession(newSession);
+  }, [username, saveSession]);
+
   // Update session data with useCallback to prevent infinite loops
   const updateSession = useCallback((updates: Partial<WorkoutSession>) => {
     setCurrentSession(prev => {
@@ -203,8 +206,8 @@ export const useWorkoutStorage = (username: string) => {
       // Shallow compare keys we update; avoid state churn if nothing changed
       let changed = false;
       for (const key in updates) {
-        const nextVal = (updates as Record<string, unknown>)[key];
-        const prevVal = (prev as Record<string, unknown>)[key];
+        const nextVal = (updates as any)[key];
+        const prevVal = (prev as any)[key];
         if (typeof nextVal !== 'undefined' && JSON.stringify(prevVal) !== JSON.stringify(nextVal)) {
           changed = true;
           break;
@@ -218,7 +221,7 @@ export const useWorkoutStorage = (username: string) => {
   // Manual save function for user-triggered saves
   const manualSave = useCallback(async (updates?: Partial<WorkoutSession>) => {
     if (!currentSession) return;
-    
+
     const sessionToSave = updates ? { ...currentSession, ...updates } : currentSession;
     await saveSession(sessionToSave);
   }, [currentSession, saveSession]);
@@ -237,7 +240,7 @@ export const useWorkoutStorage = (username: string) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [saveSession]); // saveSession is stable (useCallback with toast dep)
+  }, []); // empty deps - interval reads from ref
 
   // Clear session and storage completely including database records
   const clearSession = useCallback(async () => {
@@ -258,6 +261,8 @@ export const useWorkoutStorage = (username: string) => {
           description: "Local session cleared, but some saved data may remain.",
           variant: "destructive",
         });
+      } else {
+        console.log(`All sessions deleted for username: ${username}`);
       }
       
       // Clear localStorage
