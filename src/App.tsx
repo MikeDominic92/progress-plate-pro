@@ -40,8 +40,8 @@ const App = () => {
         <TooltipProvider>
           <SonnyDefs />
           {/* <PWAUpdatePrompt /> */}
-          <Toaster />
-          <Sonner />
+          {/* <Toaster /> */}
+          {/* <Sonner /> */}
           <ErrorBoundary>
           <BrowserRouter>
             <Suspense fallback={
