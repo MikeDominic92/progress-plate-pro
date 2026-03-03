@@ -281,22 +281,36 @@ All macros in grams, calories in kcal. Be realistic with portion sizes based on 
           },
         });
 
-      const response = await retryWithBackoff(
-        () => fetchWithTimeout(GEMINI_PROXY, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: requestBody,
-          timeoutMs: 30_000,
-        }),
-        { maxRetries: 1, shouldRetry: (err) => !(err instanceof TimeoutError) },
+      const data = await retryWithBackoff(
+        async () => {
+          const res = await fetchWithTimeout(GEMINI_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody,
+            timeoutMs: 30_000,
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const msg = errData?.error?.message || `Gemini API error (${res.status})`;
+            // Mark transient server errors as retryable
+            const err = new Error(msg);
+            (err as Error & { status?: number }).status = res.status;
+            throw err;
+          }
+
+          return res.json();
+        },
+        {
+          maxRetries: 2,
+          shouldRetry: (err) => {
+            if (err instanceof TimeoutError) return false;
+            const status = (err as Error & { status?: number }).status;
+            // Retry on gateway errors (502, 503, 504) but not on client errors
+            return status === 502 || status === 503 || status === 504 || !status;
+          },
+        },
       );
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Gemini API error (${response.status})`);
-      }
-
-      const data = await response.json();
       // Thinking models may return multiple parts; grab the last text part
       const parts = data?.candidates?.[0]?.content?.parts || [];
       const text = [...parts].reverse().find((p: unknown) => {
@@ -484,22 +498,34 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
           },
         });
 
-      const response = await retryWithBackoff(
-        () => fetchWithTimeout(GEMINI_PROXY, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: descRequestBody,
-          timeoutMs: 30_000,
-        }),
-        { maxRetries: 2, shouldRetry: (err) => !(err instanceof TimeoutError) },
+      const data = await retryWithBackoff(
+        async () => {
+          const res = await fetchWithTimeout(GEMINI_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: descRequestBody,
+            timeoutMs: 30_000,
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const msg = errData?.error?.message || `Gemini API error (${res.status})`;
+            const err = new Error(msg);
+            (err as Error & { status?: number }).status = res.status;
+            throw err;
+          }
+
+          return res.json();
+        },
+        {
+          maxRetries: 2,
+          shouldRetry: (err) => {
+            if (err instanceof TimeoutError) return false;
+            const status = (err as Error & { status?: number }).status;
+            return status === 502 || status === 503 || status === 504 || !status;
+          },
+        },
       );
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Gemini API error (${response.status})`);
-      }
-
-      const data = await response.json();
       // Thinking models may return multiple parts; grab the last text part
       const parts = data?.candidates?.[0]?.content?.parts || [];
       const responseText = [...parts].reverse().find((p: unknown) => {
