@@ -124,6 +124,7 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
   const [selectedDate, setSelectedDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const syncVersion = useRef(0);
@@ -183,6 +184,7 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
     // Update UI immediately (optimistic)
     setMeals(updated);
     setSyncError(null);
+    setSaving(true);
 
     // Cache to localStorage for instant display
     try {
@@ -198,9 +200,13 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setSyncError('Not logged in. Cannot save to cloud.');
+        setSaving(false);
         return;
       }
-      if (syncVersion.current !== version) return; // Stale save, discard
+      if (syncVersion.current !== version) {
+        setSaving(false);
+        return; // Stale save, discard
+      }
 
       const { error: upsertErr } = await supabaseRetry(
         () => supabase
@@ -221,15 +227,20 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
         console.error('Supabase upsert error:', upsertErr);
         if (syncVersion.current === version) {
           setSyncError(`Failed to save to cloud: ${upsertErr.message}`);
+          setSaving(false);
         }
       } else {
         console.log('✅ Saved to Supabase successfully');
+        if (syncVersion.current === version) {
+          setSaving(false);
+        }
       }
     } catch (err) {
       console.error('Cloud sync save failed:', err);
       if (syncVersion.current === version) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         setSyncError(`Failed to save to cloud: ${message}`);
+        setSaving(false);
       }
     }
   }, [selectedDate]);
@@ -568,6 +579,7 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
     dailyTotals,
     targets: customTargets || DAILY_TARGETS,
     analyzing,
+    saving,
     error,
     syncError,
     analyzePhoto,
@@ -577,5 +589,6 @@ All macros in grams, calories in kcal. Be realistic with typical portion sizes. 
     removeMeal,
     updateMeal,
     retrySave,
+    manualSave: () => saveMeals(meals),
   };
 }

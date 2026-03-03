@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, ChevronLeft, ChevronRight, Download, ImagePlus, Search, Utensils, X } from 'lucide-react';
+import { Camera, ChevronLeft, ChevronRight, Download, ImagePlus, Save, Search, Utensils, X } from 'lucide-react';
 import { addDays, subDays, isToday, format as fnsFormat, parseISO } from 'date-fns';
 import { useNutritionTracker } from '@/hooks/useNutritionTracker';
 import { useSettings } from '@/hooks/useSettings';
@@ -58,9 +58,9 @@ export default function NutritionPage() {
   const { settings } = useSettings(username);
   const {
     selectedDate, setSelectedDate,
-    meals, dailyTotals, targets, analyzing, error, syncError,
+    meals, dailyTotals, targets, analyzing, saving, error, syncError,
     analyzePhoto, analyzeDescription, addMeal, addManualItem, removeMeal, updateMeal,
-    retrySave,
+    retrySave, manualSave,
   } = useNutritionTracker(settings.daily_targets);
 
   const mealFavs = useMealFavorites(username);
@@ -236,6 +236,19 @@ export default function NutritionPage() {
             <span className="text-sm font-semibold text-white/80">
               {isTodaySelected ? 'Today' : fnsFormat(parsedDate, 'EEE, MMM d')}
             </span>
+            <button
+              aria-label="Save to cloud"
+              onClick={() => manualSave()}
+              disabled={saving}
+              className="p-1.5 rounded-lg bg-primary/20 border border-primary/30 hover:bg-primary/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Save nutrition data to cloud"
+            >
+              {saving ? (
+                <div className="h-3.5 w-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5 text-primary" />
+              )}
+            </button>
             <button
               aria-label="Export CSV"
               onClick={handleExportCsv}
