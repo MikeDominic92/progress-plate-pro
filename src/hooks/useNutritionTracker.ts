@@ -159,8 +159,9 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           return;
         }
 
-        if (data?.meals && loadVersion.current === currentLoad) {
-          const cloudMeals = data.meals as MealEntry[];
+        // Always sync from cloud (even if empty/null), UNLESS query returned nothing
+        if (loadVersion.current === currentLoad) {
+          const cloudMeals = (data?.meals as MealEntry[]) || [];
           setMeals(cloudMeals);
           // Update localStorage to match cloud
           localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(cloudMeals));
