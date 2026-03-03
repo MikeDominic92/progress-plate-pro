@@ -53,7 +53,7 @@ export default async (req: Request) => {
 
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 20_000);
+    const timer = setTimeout(() => controller.abort(), 26_000);
 
     let geminiRes: Response;
     try {
@@ -143,7 +143,7 @@ export default async (req: Request) => {
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") {
       return new Response(
-        JSON.stringify({ error: "Gemini API request timed out after 20s. Please try again." }),
+        JSON.stringify({ error: "Gemini API request timed out after 26s. Please try again." }),
         { status: 504, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
