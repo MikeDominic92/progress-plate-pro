@@ -259,6 +259,18 @@ export default function MealTimeline({
                     <span>{Math.round(meal.totals.carbs)}g C</span>
                     <span>{Math.round(meal.totals.fat)}g F</span>
                   </div>
+
+                  {/* Photo display */}
+                  {(meal.photoUrl || meal.photoBase64) && (
+                    <div className="mt-3 rounded-lg overflow-hidden border border-white/10">
+                      <img
+                        src={meal.photoUrl || `data:image/jpeg;base64,${meal.photoBase64}`}
+                        alt="Meal photo"
+                        className="w-full h-auto object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
