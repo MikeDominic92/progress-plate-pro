@@ -83,16 +83,23 @@ export default function CardioPage() {
         calories: currentSession.cardio_calories || '',
         completed: currentSession.cardio_completed || false,
       };
-      if (sessionData.time !== cardioData.time ||
-          sessionData.calories !== cardioData.calories ||
-          sessionData.completed !== cardioData.completed) {
+
+      // Only sync from session on initial load (when inputs are empty)
+      // Don't sync while user is typing
+      const isInitialLoad = !cardioData.time && !cardioData.calories;
+      if (isInitialLoad && (sessionData.time || sessionData.calories || sessionData.completed)) {
+        setCardioData(sessionData);
+      } else if (sessionData.completed !== cardioData.completed) {
+        // Always sync completion status changes
         setCardioData(sessionData);
       }
+
       if (currentSession.cardio_completed && !cardioData.completed) {
         navigate('/warmup');
       }
     }
-  }, [currentSession, cardioData.completed, cardioData.time, cardioData.calories, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSession?.cardio_completed, currentSession?.cardio_time, currentSession?.cardio_calories, navigate]);
 
   const handleComplete = async () => {
     if (cardioData.time) {

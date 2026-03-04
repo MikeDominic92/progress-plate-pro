@@ -193,6 +193,7 @@ function rowToWorkoutExercise(
 // Fetch workout-category exercises from exercise_index and convert them.
 // ---------------------------------------------------------------------------
 async function fetchWorkoutProgram(): Promise<WorkoutExercise[]> {
+  console.log('🔍 Fetching exercises from exercise_index table...');
   const { data, error } = await supabase
     .from('exercise_index')
     .select('name, tier, video_url, exercise_data')
@@ -200,11 +201,14 @@ async function fetchWorkoutProgram(): Promise<WorkoutExercise[]> {
     .order('name', { ascending: true });
 
   if (error) {
-    console.error('Failed to fetch exercise program from Supabase:', error);
+    console.error('❌ Failed to fetch exercise program from Supabase:', error);
     throw error;
   }
 
+  console.log(`📊 Fetched ${data?.length || 0} exercises from Supabase`);
+
   if (!data || data.length === 0) {
+    console.warn('⚠️ No exercises found in exercise_index table');
     return [];
   }
 
@@ -266,6 +270,13 @@ export function useExerciseProgram(): UseExerciseProgramResult {
     !!error ||                 // fetch failed
     !fetched ||                // null / undefined
     fetched.length === 0;      // table had no usable rows
+
+  console.log('📋 useExerciseProgram state:', {
+    isLoading,
+    fetchedCount: fetched?.length || 0,
+    useFallback,
+    error: error?.message,
+  });
 
   return {
     exercises: useFallback ? FALLBACK_WORKOUT_DATA : fetched,

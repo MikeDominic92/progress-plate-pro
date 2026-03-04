@@ -270,7 +270,17 @@ export default function ExercisePage() {
 
   const currentExercise = workoutLog[currentExerciseIndex];
 
+  console.log('🏋️ ExercisePage render:', {
+    currentExerciseIndex,
+    workoutLogLength: workoutLog.length,
+    isLoading,
+    isFallback,
+    hasCurrentExercise: !!currentExercise,
+    currentExerciseName: currentExercise?.name,
+  });
+
   if (isLoading) {
+    console.log('⏳ Showing loading spinner...');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -279,10 +289,14 @@ export default function ExercisePage() {
   }
 
   if (!currentExercise) {
+    console.error('❌ Exercise Not Found - workoutLog:', workoutLog);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Exercise Not Found</h1>
+          <p className="text-sm text-muted-foreground mb-4">
+            Index: {currentExerciseIndex}, Total: {workoutLog.length}
+          </p>
           <Button onClick={() => navigate('/')}>Back Home</Button>
         </Card>
       </div>
