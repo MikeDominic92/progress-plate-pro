@@ -109,7 +109,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!loading && !session) {
       const autoSignIn = async () => {
         const email = `${DEFAULT_USERNAME.toLowerCase()}@temp.local`;
-        const password = import.meta.env.VITE_AUTO_AUTH_PASSWORD;
+        // Use env var if available, otherwise use default secure password
+        const password = import.meta.env.VITE_AUTO_AUTH_PASSWORD || 'KaraFitness2024!';
+
+        console.log('🔐 Attempting auto-authentication as', DEFAULT_USERNAME);
 
         // Try to sign in first
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -118,6 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         });
 
         if (signInError) {
+          console.log('📝 Sign-in failed, creating new account:', signInError.message);
           // If sign-in fails, create the account
           const { data, error: signUpError } = await supabase.auth.signUp({
             email,
@@ -128,10 +132,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           });
 
           if (signUpError) {
-            console.error('Auto-auth failed:', signUpError);
+            console.error('❌ Auto-auth failed:', signUpError);
             setLoading(false);
             return;
           }
+
+          console.log('✅ Account created successfully');
 
           // Create user role entry
           if (data.user) {
@@ -141,6 +147,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               role: 'user'
             }, { onConflict: 'user_id' });
           }
+        } else {
+          console.log('✅ Auto-authentication successful');
         }
       };
 
