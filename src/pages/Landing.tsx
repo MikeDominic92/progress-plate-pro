@@ -256,13 +256,18 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
               <div className="absolute -top-2 -right-2 pointer-events-none">
                 <SonnyAngelDetailed variant="bunny" size={48} />
               </div>
-              <h1
-                onClick={handleTitleTap}
-                className="text-3xl font-extrabold mb-1 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight cursor-default select-none"
-              >
-                KaraBaeFit
-              </h1>
-              <p className="text-xs text-muted-foreground/60">
+              <div className="flex items-baseline justify-center gap-2">
+                <h1
+                  onClick={handleTitleTap}
+                  className="text-3xl font-extrabold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight cursor-default select-none"
+                >
+                  KaraBaeFit
+                </h1>
+                <span className="text-[10px] text-white/20 font-light">
+                  v1.0.0 • 3/4/26
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 Made with love by Mikey for his Baby Kara
               </p>
             </div>
