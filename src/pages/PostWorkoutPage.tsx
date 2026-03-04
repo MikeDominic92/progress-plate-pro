@@ -15,6 +15,7 @@ import SonnyAngelDetailed from '@/components/characters/SonnyAngelDetailed';
 import RPESelector from '@/components/RPESelector';
 import ExplainTerm from '@/components/ExplainTerm';
 import BottomNav from '@/components/BottomNav';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PostWorkoutPage() {
   const navigate = useNavigate();
