@@ -133,20 +133,34 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
   // Load meals: Supabase is source of truth, localStorage only for instant display
   useEffect(() => {
     const currentLoad = ++loadVersion.current;
+    let hasShownCache = false;
 
     async function load() {
       // 1. Show localStorage immediately for instant display (cache only)
       try {
         const stored = localStorage.getItem(getStorageKey(selectedDate));
         if (stored && loadVersion.current === currentLoad) {
-          setMeals(JSON.parse(stored));
+          const cachedMeals = JSON.parse(stored);
+          setMeals(cachedMeals);
+          hasShownCache = true;
+          console.log('📦 Loaded from cache:', cachedMeals.length, 'meals for', selectedDate);
         }
       } catch { /* ignore */ }
 
       // 2. Fetch from Supabase (source of truth) - ALWAYS use this data
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user || loadVersion.current !== currentLoad) return;
+        if (!user) {
+          console.warn('No user authenticated, cannot load nutrition data');
+          setSyncError('Not logged in');
+          return;
+        }
+
+        // Only abort if a NEWER load has started (different date selected)
+        if (loadVersion.current !== currentLoad) {
+          console.log('⏭️ Load aborted, newer date selected');
+          return;
+        }
 
         const { data, error: fetchErr } = await supabase
           .from('nutrition_logs')
@@ -161,14 +175,31 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           return;
         }
 
-        // ALWAYS sync from Supabase (source of truth)
+        // ALWAYS sync from Supabase (source of truth) - even if we showed cache
+        // Only check version one final time right before setState
         if (loadVersion.current === currentLoad) {
           // If Supabase has data for this date, use it
           // If no row exists yet (data is null), show empty (will create row on first save)
           const cloudMeals = data ? ((data.meals as MealEntry[]) || []) : [];
+
+          // Log sync result
+          if (hasShownCache) {
+            console.log('✅ Synced from Supabase:', cloudMeals.length, 'meals (replaced cache)');
+          } else {
+            console.log('✅ Loaded from Supabase:', cloudMeals.length, 'meals');
+          }
+
           setMeals(cloudMeals);
+          setSyncError(null); // Clear any previous errors on successful load
+
           // Cache to localStorage for instant display next time
-          localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(cloudMeals));
+          try {
+            localStorage.setItem(getStorageKey(selectedDate), JSON.stringify(cloudMeals));
+          } catch (err) {
+            console.warn('Failed to cache to localStorage:', err);
+          }
+        } else {
+          console.log('⏭️ Supabase response discarded, newer date selected');
         }
       } catch (err) {
         console.error('Cloud sync load failed:', err);
