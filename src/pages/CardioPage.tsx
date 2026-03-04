@@ -90,8 +90,8 @@ export default function CardioPage() {
       if (isInitialLoad && (sessionData.time || sessionData.calories || sessionData.completed)) {
         setCardioData(sessionData);
       } else if (sessionData.completed !== cardioData.completed) {
-        // Always sync completion status changes
-        setCardioData(sessionData);
+        // Only update completion status, preserve time/calories
+        setCardioData(prev => ({ ...prev, completed: sessionData.completed }));
       }
 
       if (currentSession.cardio_completed && !cardioData.completed) {
@@ -99,7 +99,7 @@ export default function CardioPage() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSession?.cardio_completed, currentSession?.cardio_time, currentSession?.cardio_calories, navigate]);
+  }, [currentSession?.cardio_completed, navigate]);
 
   const handleComplete = async () => {
     if (cardioData.time) {
@@ -214,7 +214,7 @@ export default function CardioPage() {
                 onChange={(e) => {
                   const newData = { ...cardioData, time: e.target.value };
                   setCardioData(newData);
-                  setTimeout(() => updateSession({ cardio_time: e.target.value }), 500);
+                  updateSession({ cardio_time: e.target.value });
                 }}
                 variant={cardioData.time ? 'success' : 'default'}
                 disabled={cardioData.completed}
@@ -228,7 +228,7 @@ export default function CardioPage() {
                 onChange={(e) => {
                   const newData = { ...cardioData, calories: e.target.value };
                   setCardioData(newData);
-                  setTimeout(() => updateSession({ cardio_calories: e.target.value }), 500);
+                  updateSession({ cardio_calories: e.target.value });
                 }}
                 variant={cardioData.calories ? 'success' : 'default'}
                 disabled={cardioData.completed}

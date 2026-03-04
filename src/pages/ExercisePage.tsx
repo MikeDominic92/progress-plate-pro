@@ -68,7 +68,7 @@ export default function ExercisePage() {
   // workoutLog -- but only when there is no existing session data to preserve.
   const hasAppliedProgram = useRef(false);
   useEffect(() => {
-    if (!isFallback && !hasAppliedProgram.current && !hasHydratedFromSession.current) {
+    if (!isFallback && !hasAppliedProgram.current && (!hasHydratedFromSession.current || workoutLog.length === 0)) {
       // Only apply if no sets have been started (weight/reps entered).
       const hasUserData = workoutLog.some((ex: WorkoutExercise) =>
         ex.sets?.some((s: WorkoutSet) => s.weight || s.reps || s.confirmed) ||
@@ -111,7 +111,7 @@ export default function ExercisePage() {
 
       if (currentSession.workout_data?.logs) {
         const logs = currentSession.workout_data.logs;
-        if (Array.isArray(logs) && !hasHydratedFromSession.current) {
+        if (Array.isArray(logs) && logs.length > 0 && !hasHydratedFromSession.current) {
           setWorkoutLog(logs);
           hasHydratedFromSession.current = true;
         }

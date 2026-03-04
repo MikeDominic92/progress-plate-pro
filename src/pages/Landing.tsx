@@ -264,7 +264,7 @@ const Landing = ({ username, onStartWorkout }: LandingProps) => {
                   KaraBaeFit
                 </h1>
                 <span className="text-[10px] text-white/20 font-light">
-                  v1.0.1 • 3/4/26
+                  v1.0.2 • 3/4/26
                 </span>
               </div>
               <p className="text-xs text-muted-foreground/60 mt-1">
