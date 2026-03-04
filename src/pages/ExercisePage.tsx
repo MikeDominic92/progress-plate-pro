@@ -28,7 +28,7 @@ export default function ExercisePage() {
   const { currentSession, updateSession, initializeSession, manualSave } = useWorkoutStorage(username || '');
   const { toast } = useToast();
   const { getSuggestion, checkForPR, savePersonalRecords, refreshHistory, getLastSession } = useProgression(username || '');
-  const { exercises: programExercises, isFallback } = useExerciseProgram();
+  const { exercises: programExercises, isFallback, isLoading } = useExerciseProgram();
 
   const currentExerciseIndex = parseInt(exerciseIndex || '0');
 
@@ -269,6 +269,14 @@ export default function ExercisePage() {
   };
 
   const currentExercise = workoutLog[currentExerciseIndex];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!currentExercise) {
     return (
