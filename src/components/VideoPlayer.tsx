@@ -216,8 +216,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           {/* Instructions */}
           <div className="mt-4 p-3 bg-primary/10 border border-primary/30 rounded-lg">
             <p className="text-primary text-sm">
-              <strong>Note:</strong> Click the play button above to start the video and any associated timers. 
-              The video will not auto-play.
+              <strong>Note:</strong> If the video doesn't load, click "Open in YouTube" to watch the form tutorial directly on YouTube. Some videos cannot be embedded due to creator settings.
             </p>
           </div>
         </div>
