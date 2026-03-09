@@ -56,6 +56,7 @@ interface ExerciseDataPayload {
       instructions: string;
     }>;
   };
+  order_index?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -196,8 +197,7 @@ async function fetchWorkoutProgram(): Promise<WorkoutExercise[]> {
   const { data, error } = await supabase
     .from('exercise_index')
     .select('name, tier, video_url, exercise_data')
-    .eq('category', 'workout')
-    .order('name', { ascending: true });
+    .eq('category', 'workout');
 
   if (error) {
     console.error('Failed to fetch exercise program from Supabase:', error);
@@ -209,10 +209,23 @@ async function fetchWorkoutProgram(): Promise<WorkoutExercise[]> {
     return [];
   }
 
+  // Sort by order_index from exercise_data, fallback to alphabetical by name
+  const sortedData = [...data].sort((a, b) => {
+    const aOrder = (a.exercise_data as ExerciseDataPayload)?.order_index ?? 999;
+    const bOrder = (b.exercise_data as ExerciseDataPayload)?.order_index ?? 999;
+
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+
+    // If same order_index or both missing, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
+
   let idCounter = 0;
   const exercises: WorkoutExercise[] = [];
 
-  for (const row of data) {
+  for (const row of sortedData) {
     const ex = rowToWorkoutExercise(row, idCounter);
     if (ex) {
       // Advance the id counter past the sets we just created so ids stay unique.
