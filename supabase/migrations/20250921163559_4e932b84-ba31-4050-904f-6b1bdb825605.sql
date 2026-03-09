@@ -4,10 +4,11 @@ ALTER TABLE public.workout_sessions
   ADD COLUMN username TEXT NOT NULL DEFAULT 'JackyLove';
 
 -- Update RLS policies for username-based access
-DROP POLICY "Users can view their own workout sessions" ON public.workout_sessions;
-DROP POLICY "Users can create their own workout sessions" ON public.workout_sessions;
-DROP POLICY "Users can update their own workout sessions" ON public.workout_sessions;
-DROP POLICY "Users can delete their own workout sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can view their own workout sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can create their own workout sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can update their own workout sessions" ON public.workout_sessions;
+DROP POLICY IF EXISTS "Users can delete their own workout sessions" ON public.workout_sessions;
 
--- Disable RLS since we're using username-based access without auth
-ALTER TABLE public.workout_sessions DISABLE ROW LEVEL SECURITY;
+-- SECURITY FIX: Keep RLS enabled - proper policies will be added in migration 20260225000000_fix_rls_jwt_paths.sql
+-- DO NOT DISABLE RLS - this leaves user data completely unprotected
+ALTER TABLE public.workout_sessions ENABLE ROW LEVEL SECURITY;

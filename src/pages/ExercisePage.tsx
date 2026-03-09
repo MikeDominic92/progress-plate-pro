@@ -9,6 +9,7 @@ import { PRCelebration } from '@/components/PRCelebration';
 import { ConfettiCelebration } from '@/components/ConfettiCelebration';
 import { SetLog } from '@/components/SetLog';
 import { VideoPlayer } from '@/components/VideoPlayer';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useWorkoutStorage } from '@/hooks/useWorkoutStorage';
 import { useAuthenticatedUser } from '@/hooks/useAuthenticatedUser';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -270,32 +271,18 @@ export default function ExercisePage() {
 
   const currentExercise = workoutLog[currentExerciseIndex];
 
-  console.log('🏋️ ExercisePage render:', {
-    currentExerciseIndex,
-    workoutLogLength: workoutLog.length,
-    isLoading,
-    isFallback,
-    hasCurrentExercise: !!currentExercise,
-    currentExerciseName: currentExercise?.name,
-  });
-
   if (isLoading) {
-    console.log('⏳ Showing loading spinner...');
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!currentExercise) {
-    console.error('❌ Exercise Not Found - workoutLog:', workoutLog);
+    console.error('Exercise Not Found', { currentExerciseIndex, workoutLogLength: workoutLog.length });
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Exercise Not Found</h1>
           <p className="text-sm text-muted-foreground mb-4">
-            Index: {currentExerciseIndex}, Total: {workoutLog.length}
+            Please return home and start a new workout.
           </p>
           <Button onClick={() => navigate('/')}>Back Home</Button>
         </Card>

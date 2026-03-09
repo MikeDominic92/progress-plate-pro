@@ -116,8 +116,8 @@ CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);
 -- 3. ROW LEVEL SECURITY
 -- ---------------------
 
--- workout_sessions: RLS OFF (username-based, no auth required for simplicity)
-ALTER TABLE public.workout_sessions DISABLE ROW LEVEL SECURITY;
+-- workout_sessions: RLS ON (secured by username-based policies in fix_rls_jwt_paths.sql)
+ALTER TABLE public.workout_sessions ENABLE ROW LEVEL SECURITY;
 
 -- user_roles: RLS ON
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
@@ -137,6 +137,8 @@ CREATE POLICY "Users can update own role"
 -- profiles: RLS ON
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: These permissive policies are replaced by username-scoped policies
+-- in migration 20260225000000_fix_rls_jwt_paths.sql
 CREATE POLICY "Anyone can read profiles"
   ON public.profiles FOR SELECT
   USING (true);
@@ -152,6 +154,8 @@ CREATE POLICY "Anyone can update profiles"
 -- session_analytics: RLS ON
 ALTER TABLE public.session_analytics ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: These permissive policies are replaced by username-scoped policies
+-- in migration 20260225000000_fix_rls_jwt_paths.sql
 CREATE POLICY "Anyone can read session_analytics"
   ON public.session_analytics FOR SELECT
   USING (true);
@@ -163,6 +167,9 @@ CREATE POLICY "Anyone can insert session_analytics"
 -- exercise_index: RLS ON
 ALTER TABLE public.exercise_index ENABLE ROW LEVEL SECURITY;
 
+-- NOTE: These permissive policies are replaced by admin-only policies
+-- in migration 20260225000000_fix_rls_jwt_paths.sql
+-- (SELECT remains public, but INSERT/UPDATE/DELETE become admin-only)
 CREATE POLICY "Anyone can read exercise_index"
   ON public.exercise_index FOR SELECT
   USING (true);

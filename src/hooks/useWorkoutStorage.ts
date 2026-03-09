@@ -84,11 +84,6 @@ export const useWorkoutStorage = (username: string) => {
           setCurrentSession(prev => prev ? { ...prev, id: data.id } : null);
         }
       }
-
-      // Auto-save notification (subtle)
-      if (saveVersion.current === version) {
-        console.log('Workout progress saved');
-      }
     } catch (error) {
       if (saveVersion.current !== version) return;
       console.error('Error saving session:', error);
@@ -192,7 +187,7 @@ export const useWorkoutStorage = (username: string) => {
       warmup_completed: false,
       warmup_exercises_completed: false,
       warmup_watched_videos: [],
-      workout_data: { logs: {}, timers: {} }
+      workout_data: { logs: [], timers: {} }
     };
 
     setCurrentSession(newSession);
@@ -261,10 +256,8 @@ export const useWorkoutStorage = (username: string) => {
           description: "Local session cleared, but some saved data may remain.",
           variant: "destructive",
         });
-      } else {
-        console.log(`All sessions deleted for username: ${username}`);
       }
-      
+
       // Clear localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('forceNewSession');

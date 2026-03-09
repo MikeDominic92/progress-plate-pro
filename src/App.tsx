@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthGuard from "@/components/AuthGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import Index from "./pages/Index";
 import SonnyDefs from "@/components/characters/SonnyDefs";
 // import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
@@ -44,11 +45,7 @@ const App = () => {
           {/* <Sonner /> */}
           <ErrorBoundary>
           <BrowserRouter>
-            <Suspense fallback={
-              <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              </div>
-            }>
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
             <Routes>
               {/* Redirect old routes */}
               <Route path="/auth" element={<Navigate to="/" replace />} />

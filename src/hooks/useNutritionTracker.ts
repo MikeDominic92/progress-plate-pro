@@ -143,7 +143,6 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           const cachedMeals = JSON.parse(stored);
           setMeals(cachedMeals);
           hasShownCache = true;
-          console.log('📦 Loaded from cache:', cachedMeals.length, 'meals for', selectedDate);
         }
       } catch { /* ignore */ }
 
@@ -158,7 +157,6 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
 
         // Only abort if a NEWER load has started (different date selected)
         if (loadVersion.current !== currentLoad) {
-          console.log('⏭️ Load aborted, newer date selected');
           return;
         }
 
@@ -182,13 +180,6 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           // If no row exists yet (data is null), show empty (will create row on first save)
           const cloudMeals = data ? ((data.meals as MealEntry[]) || []) : [];
 
-          // Log sync result
-          if (hasShownCache) {
-            console.log('✅ Synced from Supabase:', cloudMeals.length, 'meals (replaced cache)');
-          } else {
-            console.log('✅ Loaded from Supabase:', cloudMeals.length, 'meals');
-          }
-
           setMeals(cloudMeals);
           setSyncError(null); // Clear any previous errors on successful load
 
@@ -198,8 +189,6 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           } catch (err) {
             console.warn('Failed to cache to localStorage:', err);
           }
-        } else {
-          console.log('⏭️ Supabase response discarded, newer date selected');
         }
       } catch (err) {
         console.error('Cloud sync load failed:', err);
@@ -261,7 +250,6 @@ export function useNutritionTracker(customTargets?: DailyTargets) {
           setSaving(false);
         }
       } else {
-        console.log('✅ Saved to Supabase successfully');
         if (syncVersion.current === version) {
           setSaving(false);
         }
